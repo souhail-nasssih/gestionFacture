@@ -41,12 +41,12 @@ export default function AuthenticatedLayout({ header, children }) {
 
     const navigation = [
         { name: "Dashboard", href: route("dashboard"), icon: LayoutDashboard },
-        { name: "Produits", href: route("Produits"), icon: Package },
-        { name: "Fournisseurs", href: "#", icon: Truck },
-        { name: "Clients", href: "#", icon: Users },
+        { name: "Produits", href: route("produits.index"), icon: Package },
+        { name: "Fournisseurs", href: route("fournisseurs.index"), icon: Truck },
+        { name: "Clients", href: route("clients.index"), icon: Users },
         { name: "Factures Fournisseurs", href: "#", icon: FileText },
         { name: "Factures Clients", href: "#", icon: ReceiptText },
-        { name: "BL Fournisseurs", href: "#", icon: ClipboardList },
+        { name: "BL Fournisseurs", href: route("bl-fournisseurs.index"), icon: ClipboardList },
         { name: "BL Clients", href: "#", icon: ClipboardCheck },
         { name: "Settings", href: "#", icon: Settings },
     ];
@@ -66,14 +66,12 @@ export default function AuthenticatedLayout({ header, children }) {
     };
 
     return (
-        <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
+        <div className="flex h-screen bg-gray-50 dark:bg-gray-900 overflow-hidden">
             {/* Mobile sidebar backdrop */}
             {isMobile && (
                 <div
                     className={`fixed inset-0 z-20 bg-black/50 transition-opacity duration-300 ${
-                        sidebarOpen
-                            ? "opacity-100"
-                            : "opacity-0 pointer-events-none"
+                        sidebarOpen ? "opacity-100" : "opacity-0 pointer-events-none"
                     }`}
                     onClick={() => setSidebarOpen(false)}
                 />
@@ -85,7 +83,6 @@ export default function AuthenticatedLayout({ header, children }) {
                     sidebarOpen ? "w-64" : "w-20"
                 }`}
             >
-                {/* Sidebar header */}
                 <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
                     <Link
                         href="/"
@@ -102,8 +99,7 @@ export default function AuthenticatedLayout({ header, children }) {
                     </Link>
                 </div>
 
-                {/* Sidebar navigation */}
-                <nav className="mt-6 flex-1 overflow-y-auto">
+                <nav className="mt-6 flex-1">
                     <div className="space-y-1 px-2">
                         {navigation.map((item) => {
                             const Icon = item.icon;
@@ -127,9 +123,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                     />
                                     <span
                                         className={`ml-3 whitespace-nowrap transition-all duration-300 ${
-                                            sidebarOpen
-                                                ? "opacity-100"
-                                                : "opacity-0"
+                                            sidebarOpen ? "opacity-100" : "opacity-0"
                                         }`}
                                     >
                                         {item.name}
@@ -140,16 +134,12 @@ export default function AuthenticatedLayout({ header, children }) {
                     </div>
                 </nav>
 
-                {/* Sidebar footer */}
                 <div className="p-4 border-t border-gray-200 dark:border-gray-700">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center">
                             <div className="h-9 w-9 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center">
                                 <span className="text-sm font-medium text-indigo-600 dark:text-indigo-300">
-                                    {user.name
-                                        .split(" ")
-                                        .map((n) => n[0])
-                                        .join("")}
+                                    {user.name.split(" ").map((n) => n[0]).join("")}
                                 </span>
                             </div>
                             <div
@@ -170,25 +160,19 @@ export default function AuthenticatedLayout({ header, children }) {
                 </div>
             </div>
 
-            {/* Main content */}
-            <div
-                className={`flex-1 flex flex-col transition-all duration-300 ${
-                    sidebarOpen ? "lg:ml-64" : "lg:ml-20"
-                }`}
-            >
+            {/* Main content area - Corrections principales ici */}
+            <div className={`flex-1 flex flex-col min-w-0 ${
+                sidebarOpen ? "lg:ml-64" : "lg:ml-20"
+            }`}>
                 {/* Top navigation */}
-                <nav className="bg-white border-b border-gray-200 dark:bg-gray-800 dark:border-gray-700">
-                    <div className="px-4 sm:px-6 lg:px-8">
-                        <div className="flex h-16 justify-between">
+                <nav className="bg-white border-b border-gray-200 dark:bg-gray-800 dark:border-gray-700 w-full">
+                    <div className="px-4 sm:px-6 lg:px-8 w-full">
+                        <div className="flex h-16 items-center justify-between w-full">
                             <div className="flex items-center">
                                 <button
                                     onClick={() => setSidebarOpen(!sidebarOpen)}
                                     className="p-2 text-gray-500 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-gray-400 dark:hover:bg-gray-700"
-                                    aria-label={
-                                        sidebarOpen
-                                            ? "Collapse sidebar"
-                                            : "Expand sidebar"
-                                    }
+                                    aria-label={sidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
                                 >
                                     {sidebarOpen ? (
                                         <ChevronLeft className="h-6 w-6" />
@@ -210,10 +194,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                             >
                                                 <div className="h-8 w-8 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center">
                                                     <span className="text-xs font-medium text-indigo-600 dark:text-indigo-300">
-                                                        {user.name
-                                                            .split(" ")
-                                                            .map((n) => n[0])
-                                                            .join("")}
+                                                        {user.name.split(" ").map((n) => n[0]).join("")}
                                                     </span>
                                                 </div>
                                                 <span className="ml-3 hidden md:inline-block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -246,19 +227,19 @@ export default function AuthenticatedLayout({ header, children }) {
                     </div>
                 </nav>
 
-                {/* Header and main content */}
-                <main className="flex-1 overflow-y-auto">
+                {/* Main content */}
+                <main className="flex-1 overflow-y-auto w-full">
                     {header && (
-                        <header className="bg-white shadow-sm dark:bg-gray-800">
-                            <div className="mx-auto px-4 py-4 sm:px-6 lg:px-8">
-                                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                        <header className="bg-white shadow-sm dark:bg-gray-800 w-full">
+                            <div className="mx-auto w-full px-4 py-4 sm:px-6 lg:px-8">
+                                <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
                                     {header}
                                 </h1>
                             </div>
                         </header>
                     )}
 
-                    <div className="mx-auto px-4 py-6 sm:px-6 lg:px-8 bg-gray-100 dark:bg-gray-900">
+                    <div className="mx-auto w-full px-4 py-6 sm:px-6 lg:px-8 bg-gray-100 dark:bg-gray-900">
                         {children}
                     </div>
                 </main>

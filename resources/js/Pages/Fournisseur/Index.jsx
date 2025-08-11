@@ -1,63 +1,51 @@
-import React, { useState } from "react";
-import { Link } from "@inertiajs/react";
-import { Edit, Trash2, Plus, X, PlusCircle } from "lucide-react";
-import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import FormBuilder from "@/Components/ui/FormBuilder";
 import DataTable from "@/Components/ui/DataTable";
+import FormBuilder from "@/Components/ui/FormBuilder";
+import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
+import { Edit2, PlusCircle, Trash2, X } from "lucide-react";
+import React, { useState } from "react";
+import Edit from "../Profile/Edit";
+import { Link } from "@inertiajs/react";
 
-export default function Produits({ produits }) {
+export default function Index({ fournisseurs }) {
+    console.log(fournisseurs);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
-    const [selectedProduit, setSelectedProduit] = useState(null);
+    const [selectedFournisseur, setSelectedFournisseur] = useState(null);
     const [showForm, setShowForm] = useState(false);
-    const [formValues, setFormValues] = useState(null); // Pour modifier un produit existant
+    const [formValues, setFormValues] = useState(null); // Pour modifier un Fournisseur existant
     const [deleting, setDeleting] = useState(false);
     const handleFormSuccess = () => {
         setFormValues(null); // Réinitialise les valeurs du formulaire
         setShowForm(false); // Ferme le formulaire
     };
+    const handleSubmitSuccess = () => {
+        setShowForm(false);
+        setFormValues(null);
+    };
     const fields = [
         {
             name: "nom",
-            label: "Nom du produit",
+            label: "Nom du Fournisseur",
             type: "text",
             required: true,
         },
 
         {
-            name: "prix_achat",
-            label: "Prix d'achat",
-            type: "number",
+            name: "telephone",
+            label: "Téléphone",
+            type: "text",
             required: true,
         },
         {
-            name: "prix_vente",
-            label: "Prix de vente",
-            type: "number",
-            required: true,
+            name: "email",
+            label: "Email",
+            type: "email",
+            required: false,
         },
         {
-            name: "stock",
-            label: "Quantité en stock",
-            type: "number",
-            required: true,
-        },
-        {
-            name: "unite",
-            label: "Unité",
-            type: "select",
-            options: [
-                { value: "kg", label: "Kilogramme" },
-                { value: "g", label: "Gramme" },
-                { value: "L", label: "Litre" },
-                { value: "ml", label: "Millilitre" },
-                { value: "pcs", label: "Pièce" },
-            ],
-            required: true,
-        },
-        {
-            name: "description",
-            label: "Description",
+            name: "adresse",
+            label: "Adresse",
             type: "textarea",
+            required: false,
         },
     ];
 
@@ -77,69 +65,34 @@ export default function Produits({ produits }) {
             render: (item) => <span className="font-medium">{item.nom}</span>,
         },
         {
-            key: "description",
-            title: "Description",
+            key: "telephone",
+            title: "Téléphone",
             render: (item) => (
                 <span className="text-gray-600 dark:text-gray-300">
-                    {item.description || "N/A"}
+                    {item.telephone || "N/A"}
                 </span>
             ),
         },
         {
-            key: "prix_achat",
-            title: "Prix Achat",
+            key: "email",
+            title: "Email",
             render: (item) => (
-                <span className="text-red-600 dark:text-red-400">
-                    {item.prix_achat.toFixed(2)} DHS
+                <span className="text-gray-600 dark:text-gray-300">
+                    {item.email || "N/A"}
                 </span>
             ),
         },
+
         {
-            key: "prix_vente",
-            title: "Prix Vente",
+            key: "adresse",
+            title: "Adresse",
             render: (item) => (
-                <span className="text-green-600 dark:text-green-400">
-                    {item.prix_vente.toFixed(2)} DHS
+                <span className="text-gray-600 dark:text-gray-300">
+                    {item.adresse || "N/A"}
                 </span>
             ),
         },
-        {
-            key: "marge",
-            title: "Marge",
-            render: (item) => {
-                const marge = item.prix_vente - item.prix_achat;
-                const margePercent = ((marge / item.prix_achat) * 100).toFixed(
-                    1
-                );
-                return (
-                    <div>
-                        <span className="block text-indigo-600 dark:text-indigo-400">
-                            {marge.toFixed(2)} DHS
-                        </span>
-                        <span className="block text-xs text-gray-500 dark:text-gray-400">
-                            {margePercent}%
-                        </span>
-                    </div>
-                );
-            },
-        },
-        {
-            key: "stock",
-            title: "Stock",
-            render: (item) => (
-                <span
-                    className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        item.stock > 10
-                            ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-                            : item.stock > 0
-                            ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
-                            : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
-                    }`}
-                >
-                    {item.stock} {item.unite}
-                </span>
-            ),
-        },
+
         {
             key: "actions",
             title: "Actions",
@@ -147,16 +100,16 @@ export default function Produits({ produits }) {
                 <div className="flex space-x-2">
                     <button
                         onClick={() => {
-                            setFormValues(item); // Remplit le formulaire avec les données du produit
+                            setFormValues(item); // Remplit le formulaire avec les données du Fournisseur
                             setShowForm(true); // Affiche le formulaire
                         }}
                         className="p-1 text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
                     >
-                        <Edit className="h-5 w-5" />
+                        <Edit2 className="h-5 w-5" />
                     </button>
                     <button
                         onClick={() => {
-                            setSelectedProduit(item);
+                            setSelectedFournisseur(item);
                             setShowDeleteModal(true);
                         }}
                         className="p-1 text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
@@ -167,7 +120,6 @@ export default function Produits({ produits }) {
             ),
         },
     ];
-
     return (
         <AuthenticatedLayout>
             <div className="py-6">
@@ -176,9 +128,8 @@ export default function Produits({ produits }) {
                     <div className="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6">
                         <div className="flex justify-between items-center">
                             <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                                Gestion des Produits
+                                Gestion des Fournisseurs
                             </h2>
-
                             <button
                                 onClick={() => {
                                     setShowForm(!showForm);
@@ -194,7 +145,7 @@ export default function Produits({ produits }) {
                                 ) : (
                                     <>
                                         <PlusCircle className="h-4 w-4 mr-2" />
-                                        Ajouter un produit
+                                        Ajouter un Fournisseur
                                     </>
                                 )}
                             </button>
@@ -210,16 +161,16 @@ export default function Produits({ produits }) {
                                 onSubmit={
                                     formValues?.id
                                         ? route(
-                                              "produits.update",
+                                              "fournisseurs.update",
                                               formValues.id
                                           )
-                                        : route("produits.store")
+                                        : route("fournisseurs.store")
                                 }
                                 submitText={
                                     formValues ? "Mettre à jour" : "Créer"
                                 }
                                 resetText="Réinitialiser"
-                                onSuccess={handleFormSuccess}
+                                onSuccess={handleSubmitSuccess} // Utilisez la nouvelle fonction
                             />
                         </div>
                     )}
@@ -228,10 +179,10 @@ export default function Produits({ produits }) {
                     <div className="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6">
                         <DataTable
                             columns={columns}
-                            data={produits.data} // 👈 important !
+                            data={fournisseurs.data} // 👈 important !
                             searchable
                             sortable
-                            pagination={true}
+                            pagination={false}
                         />
                     </div>
 
@@ -254,8 +205,8 @@ export default function Produits({ produits }) {
                                 </h3>
                                 <p className="text-gray-600 dark:text-gray-300 mb-6">
                                     Êtes-vous sûr de vouloir supprimer le
-                                    produit "{selectedProduit?.nom}" ? Cette
-                                    action est irréversible.
+                                    Fournisseur "{selectedFournisseur?.nom}" ?
+                                    Cette action est irréversible.
                                 </p>
                                 <div className="flex justify-end space-x-3">
                                     <button
@@ -268,8 +219,8 @@ export default function Produits({ produits }) {
                                     </button>
                                     <Link
                                         href={route(
-                                            "produits.destroy",
-                                            selectedProduit?.id
+                                            "fournisseurs.destroy",
+                                            selectedFournisseur?.id
                                         )}
                                         method="delete"
                                         as="button"

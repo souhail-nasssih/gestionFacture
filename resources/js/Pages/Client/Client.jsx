@@ -1,63 +1,57 @@
 import React, { useState } from "react";
-import { Link } from "@inertiajs/react";
-import { Edit, Trash2, Plus, X, PlusCircle } from "lucide-react";
-import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import FormBuilder from "@/Components/ui/FormBuilder";
 import DataTable from "@/Components/ui/DataTable";
+import FormBuilder from "@/Components/ui/FormBuilder";
+import { Edit2, PlusCircle, Trash2, X } from "lucide-react";
+import Edit from "../Profile/Edit";
+import { Link } from "@inertiajs/react";
+import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 
-export default function Produits({ produits }) {
+export default function Client({ clients }) {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
-    const [selectedProduit, setSelectedProduit] = useState(null);
+    const [selectedClient, setSelectedClient] = useState(null);
     const [showForm, setShowForm] = useState(false);
-    const [formValues, setFormValues] = useState(null); // Pour modifier un produit existant
+    const [formValues, setFormValues] = useState(null); // Pour modifier un Client existant
     const [deleting, setDeleting] = useState(false);
     const handleFormSuccess = () => {
         setFormValues(null); // Réinitialise les valeurs du formulaire
         setShowForm(false); // Ferme le formulaire
     };
+    const handleSubmitSuccess = () => {
+        setShowForm(false);
+        setFormValues(null);
+    };
     const fields = [
         {
             name: "nom",
-            label: "Nom du produit",
+            label: "Nom du Client",
             type: "text",
             required: true,
         },
 
         {
-            name: "prix_achat",
-            label: "Prix d'achat",
+            name: "telephone",
+            label: "Téléphone",
+            type: "text",
+            required: true,
+        },
+        {
+            name: "email",
+            label: "Email",
+            type: "email",
+            required: false,
+        },
+        {
+            name: "delai_paiement",
+            label: "Délai de Paiement (en jours)",
             type: "number",
             required: true,
+            defaultValue: 30, // Valeur par défaut de 30 jours
         },
         {
-            name: "prix_vente",
-            label: "Prix de vente",
-            type: "number",
-            required: true,
-        },
-        {
-            name: "stock",
-            label: "Quantité en stock",
-            type: "number",
-            required: true,
-        },
-        {
-            name: "unite",
-            label: "Unité",
-            type: "select",
-            options: [
-                { value: "kg", label: "Kilogramme" },
-                { value: "g", label: "Gramme" },
-                { value: "L", label: "Litre" },
-                { value: "ml", label: "Millilitre" },
-                { value: "pcs", label: "Pièce" },
-            ],
-            required: true,
-        },
-        {
-            name: "description",
-            label: "Description",
+            name: "adresse",
+            label: "Adresse",
             type: "textarea",
+            required: false,
         },
     ];
 
@@ -77,69 +71,43 @@ export default function Produits({ produits }) {
             render: (item) => <span className="font-medium">{item.nom}</span>,
         },
         {
-            key: "description",
-            title: "Description",
+            key: "telephone",
+            title: "Téléphone",
             render: (item) => (
                 <span className="text-gray-600 dark:text-gray-300">
-                    {item.description || "N/A"}
+                    {item.telephone || "N/A"}
                 </span>
             ),
         },
         {
-            key: "prix_achat",
-            title: "Prix Achat",
+            key: "email",
+            title: "Email",
             render: (item) => (
-                <span className="text-red-600 dark:text-red-400">
-                    {item.prix_achat.toFixed(2)} DHS
+                <span className="text-gray-600 dark:text-gray-300">
+                    {item.email || "N/A"}
                 </span>
             ),
         },
+
         {
-            key: "prix_vente",
-            title: "Prix Vente",
+            key: "adresse",
+            title: "Adresse",
             render: (item) => (
-                <span className="text-green-600 dark:text-green-400">
-                    {item.prix_vente.toFixed(2)} DHS
+                <span className="text-gray-600 dark:text-gray-300">
+                    {item.adresse || "N/A"}
                 </span>
             ),
         },
         {
-            key: "marge",
-            title: "Marge",
-            render: (item) => {
-                const marge = item.prix_vente - item.prix_achat;
-                const margePercent = ((marge / item.prix_achat) * 100).toFixed(
-                    1
-                );
-                return (
-                    <div>
-                        <span className="block text-indigo-600 dark:text-indigo-400">
-                            {marge.toFixed(2)} DHS
-                        </span>
-                        <span className="block text-xs text-gray-500 dark:text-gray-400">
-                            {margePercent}%
-                        </span>
-                    </div>
-                );
-            },
-        },
-        {
-            key: "stock",
-            title: "Stock",
+            key: "delai_paiement",
+            title: "Délai de Paiement (jours)",
             render: (item) => (
-                <span
-                    className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        item.stock > 10
-                            ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-                            : item.stock > 0
-                            ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
-                            : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
-                    }`}
-                >
-                    {item.stock} {item.unite}
+                <span className="text-gray-600 dark:text-gray-300">
+                    {item.delai_paiement || "N/A"}
                 </span>
             ),
         },
+
         {
             key: "actions",
             title: "Actions",
@@ -147,16 +115,16 @@ export default function Produits({ produits }) {
                 <div className="flex space-x-2">
                     <button
                         onClick={() => {
-                            setFormValues(item); // Remplit le formulaire avec les données du produit
+                            setFormValues(item); // Remplit le formulaire avec les données du Client
                             setShowForm(true); // Affiche le formulaire
                         }}
                         className="p-1 text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
                     >
-                        <Edit className="h-5 w-5" />
+                        <Edit2 className="h-5 w-5" />
                     </button>
                     <button
                         onClick={() => {
-                            setSelectedProduit(item);
+                            setSelectedClient(item);
                             setShowDeleteModal(true);
                         }}
                         className="p-1 text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
@@ -167,18 +135,22 @@ export default function Produits({ produits }) {
             ),
         },
     ];
-
     return (
         <AuthenticatedLayout>
-            <div className="py-6">
-                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
+            <div className="py-6 px-4 sm:px-0">
+                {" "}
+                {/* Ajout de px-4 pour mobile et sm:px-0 pour desktop */}
+                <div className="mx-auto max-w-full overflow-x-hidden">
+                    {" "}
+                    {/* Modification ici */}
                     {/* Carte pour le titre et le bouton */}
-                    <div className="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6">
-                        <div className="flex justify-between items-center">
-                            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                                Gestion des Produits
+                    <div className="bg-white dark:bg-gray-800 shadow-sm sm:rounded-lg p-4 mb-6 mx-2 sm:mx-0">
+                        {" "}
+                        {/* Ajout de mx-2 pour mobile */}
+                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
+                                Gestion des Clients
                             </h2>
-
                             <button
                                 onClick={() => {
                                     setShowForm(!showForm);
@@ -194,13 +166,12 @@ export default function Produits({ produits }) {
                                 ) : (
                                     <>
                                         <PlusCircle className="h-4 w-4 mr-2" />
-                                        Ajouter un produit
+                                        Ajouter un Client
                                     </>
                                 )}
                             </button>
                         </div>
                     </div>
-
                     {/* Formulaire d'ajout (dans sa propre carte si visible) */}
                     {showForm && (
                         <div className="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6 transition-all duration-300">
@@ -209,32 +180,27 @@ export default function Produits({ produits }) {
                                 initialData={formValues || {}}
                                 onSubmit={
                                     formValues?.id
-                                        ? route(
-                                              "produits.update",
-                                              formValues.id
-                                          )
-                                        : route("produits.store")
+                                        ? route("clients.update", formValues.id)
+                                        : route("clients.store")
                                 }
                                 submitText={
                                     formValues ? "Mettre à jour" : "Créer"
                                 }
                                 resetText="Réinitialiser"
-                                onSuccess={handleFormSuccess}
+                                onSuccess={handleSubmitSuccess} // Utilisez la nouvelle fonction
                             />
                         </div>
                     )}
-
                     {/* Carte pour le tableau */}
-                    <div className="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6">
+                    <div className="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-4">
                         <DataTable
                             columns={columns}
-                            data={produits.data} // 👈 important !
+                            data={clients.data} // 👈 important !
                             searchable
                             sortable
-                            pagination={true}
+                            pagination={false}
                         />
                     </div>
-
                     {/* Modal de suppression */}
                     {showDeleteModal && (
                         <div
@@ -253,9 +219,9 @@ export default function Produits({ produits }) {
                                     Confirmer la suppression
                                 </h3>
                                 <p className="text-gray-600 dark:text-gray-300 mb-6">
-                                    Êtes-vous sûr de vouloir supprimer le
-                                    produit "{selectedProduit?.nom}" ? Cette
-                                    action est irréversible.
+                                    Êtes-vous sûr de vouloir supprimer le client
+                                    "{selectedClient?.nom}" ? Cette action est
+                                    irréversible.
                                 </p>
                                 <div className="flex justify-end space-x-3">
                                     <button
@@ -268,8 +234,8 @@ export default function Produits({ produits }) {
                                     </button>
                                     <Link
                                         href={route(
-                                            "produits.destroy",
-                                            selectedProduit?.id
+                                            "clients.destroy",
+                                            selectedClient?.id
                                         )}
                                         method="delete"
                                         as="button"
