@@ -67,11 +67,13 @@ export default function Index({
         }
 
         // Log de débogage pour identifier le problème
-        console.log('=== DÉBUG FRONTEND ===', {
+        console.log("=== DÉBUG FRONTEND ===", {
             isEditing,
             editingBlId,
-            url: isEditing ? route("bl-fournisseurs.update", editingBlId) : route("bl-fournisseurs.store"),
-            submissionData
+            url: isEditing
+                ? route("bl-fournisseurs.update", editingBlId)
+                : route("bl-fournisseurs.store"),
+            submissionData,
         });
 
         const url = isEditing
@@ -80,7 +82,7 @@ export default function Index({
 
         const requestOptions = {
             onSuccess: () => {
-                setShowForm(false);
+                setShowForm(false); // ← fermeture du formulaire
                 setIsEditing(false);
                 setEditingBlId(null);
                 reset();
@@ -99,13 +101,12 @@ export default function Index({
             onError: (errors) => {
                 let errorMessage = "Erreurs de validation :\n";
 
-
-
                 if (errors.fournisseur_id) {
                     if (errors.fournisseur_id.includes("required")) {
                         errorMessage += "- Le fournisseur est obligatoire\n";
                     } else if (errors.fournisseur_id.includes("exists")) {
-                        errorMessage += "- Le fournisseur sélectionné n'existe pas\n";
+                        errorMessage +=
+                            "- Le fournisseur sélectionné n'existe pas\n";
                     } else {
                         errorMessage += `- Fournisseur: ${errors.fournisseur_id}\n`;
                     }
@@ -115,7 +116,8 @@ export default function Index({
                     if (errors.date_bl.includes("required")) {
                         errorMessage += "- La date BL est obligatoire\n";
                     } else if (errors.date_bl.includes("date")) {
-                        errorMessage += "- La date BL doit être une date valide\n";
+                        errorMessage +=
+                            "- La date BL doit être une date valide\n";
                     } else {
                         errorMessage += `- Date BL: ${errors.date_bl}\n`;
                     }
@@ -125,10 +127,14 @@ export default function Index({
                     errorMessage += "- Erreurs dans les produits :\n";
                     if (Array.isArray(errors.details)) {
                         errors.details.forEach((error, index) => {
-                            errorMessage += `  Produit #${index + 1}: ${error}\n`;
+                            errorMessage += `  Produit #${
+                                index + 1
+                            }: ${error}\n`;
                         });
                     } else {
-                        errorMessage += Object.values(errors.details).join("\n");
+                        errorMessage += Object.values(errors.details).join(
+                            "\n"
+                        );
                     }
                 }
 
@@ -141,12 +147,15 @@ export default function Index({
                 if (errors.numero_bl) {
                     if (errors.numero_bl.includes("existe déjà")) {
                         errorMessage += `- ${errors.numero_bl}\n`;
-                    } else if (errors.numero_bl.includes("already been taken")) {
+                    } else if (
+                        errors.numero_bl.includes("already been taken")
+                    ) {
                         errorMessage += "- Ce numéro de BL existe déjà\n";
                     } else if (errors.numero_bl.includes("required")) {
                         errorMessage += "- Le numéro BL est obligatoire\n";
                     } else if (errors.numero_bl.includes("string")) {
-                        errorMessage += "- Le numéro BL doit être une chaîne de caractères\n";
+                        errorMessage +=
+                            "- Le numéro BL doit être une chaîne de caractères\n";
                     } else {
                         errorMessage += `- Numéro BL: ${errors.numero_bl}\n`;
                     }
@@ -241,10 +250,10 @@ export default function Index({
     };
 
     const handleEdit = (blFournisseur) => {
-        console.log('=== DÉBUG HANDLE EDIT ===', {
+        console.log("=== DÉBUG HANDLE EDIT ===", {
             blFournisseur,
             id: blFournisseur.id,
-            numero_bl: blFournisseur.numero_bl
+            numero_bl: blFournisseur.numero_bl,
         });
 
         setIsEditing(true);
@@ -258,7 +267,7 @@ export default function Index({
             fournisseur_id: blFournisseur.fournisseur_id,
             date_bl: blFournisseur.date_bl,
             numero_bl: blFournisseur.numero_bl,
-            details: blFournisseur.details.map(detail => ({
+            details: blFournisseur.details.map((detail) => ({
                 produit_id: detail.produit_id,
                 quantite: detail.quantite,
                 prix_unitaire: detail.prix_unitaire,
@@ -520,7 +529,9 @@ export default function Index({
                                 {showForm ? (
                                     <>
                                         <X className="h-4 w-4 mr-2" />
-                                        {isEditing ? "Annuler la modification" : "Annuler"}
+                                        {isEditing
+                                            ? "Annuler la modification"
+                                            : "Annuler"}
                                     </>
                                 ) : (
                                     <>
@@ -537,7 +548,9 @@ export default function Index({
                             <div className="space-y-4">
                                 <div className="border-b border-gray-200 dark:border-gray-700 pb-4 mb-4">
                                     <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-                                        {isEditing ? `Modifier le BL Fournisseur #${editingBlId}` : "Créer un nouveau BL Fournisseur"}
+                                        {isEditing
+                                            ? `Modifier le BL Fournisseur #${editingBlId}`
+                                            : "Créer un nouveau BL Fournisseur"}
                                     </h3>
                                 </div>
                                 {basicFields.map((field) => (
@@ -662,7 +675,9 @@ export default function Index({
                                     >
                                         {processing
                                             ? "Envoi..."
-                                            : isEditing ? "Modifier" : "Créer"}
+                                            : isEditing
+                                            ? "Modifier"
+                                            : "Créer"}
                                     </button>
                                 </div>
                             </div>
@@ -948,7 +963,9 @@ export default function Index({
                                                             <Eye className="h-5 w-5" />
                                                         </button>
                                                         <button
-                                                            onClick={() => handleEdit(item)}
+                                                            onClick={() =>
+                                                                handleEdit(item)
+                                                            }
                                                             className="p-1 text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300"
                                                             title="Modifier ce BL Fournisseur"
                                                         >

@@ -256,8 +256,37 @@ class BLFournisseurController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(BLFournisseur $bLFournisseur)
+    public function destroy(BLFournisseur $bl_fournisseur)
     {
-        //
+        DB::beginTransaction();
+
+        try {
+            // Supprimer d'abord les détails liés
+            $bl_fournisseur->details()->delete();
+
+            // Supprimer le BL Fournisseur
+            $bl_fournisseur->delete();
+
+            DB::commit();
+
+            \Log::info('BL Fournisseur supprimé', [
+                'bl_id' => $bl_fournisseur->id,
+                'numero_bl' => $bl_fournisseur->numero_bl
+            ]);
+
+            return redirect()->route('bl-fournisseurs.index')
+                ->with('success', 'BL supprimé avec succès.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            \Log::error('Erreur lors de la suppression du BL Fournisseur', [
+                'error' => $e->getMessage(),
+                'bl_id' => $bl_fournisseur->id
+            ]);
+
+            return back()->withErrors(['general' => 'Erreur: ' . $e->getMessage()]);
+        }
     }
+
 }
