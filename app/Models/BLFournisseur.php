@@ -6,8 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class BLFournisseur extends Model
 {
-    //
-
     protected $fillable = [
         'fournisseur_id',
         'date_bl',
@@ -22,7 +20,7 @@ class BLFournisseur extends Model
 
     public function details()
     {
-        return $this->hasMany(BLFournisseurDetail::class);
+        return $this->hasMany(BLFournisseurDetail::class, 'b_l_fournisseur_id');
     }
 
     public function facture()

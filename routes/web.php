@@ -64,8 +64,6 @@ Route::resource(('bl-fournisseurs'), BLFournisseurController::class)->names([
     'destroy' => 'bl-fournisseurs.destroy',
 ])->middleware(['auth']);
 
-Route::put('bl-fournisseurs/{bLFournisseur}', [\App\Http\Controllers\BLFournisseurController::class, 'update'])->name('bl-fournisseurs.update');
-
 
 
 

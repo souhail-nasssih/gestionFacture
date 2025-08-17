@@ -16,6 +16,8 @@ export default function Index({
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [selectedBlFournisseur, setSelectedBlFournisseur] = useState(null);
     const [showForm, setShowForm] = useState(false);
+    const [isEditing, setIsEditing] = useState(false);
+    const [editingBlId, setEditingBlId] = useState(null);
     const [expandedRows, setExpandedRows] = useState(new Set());
     const [formValues, setFormValues] = useState({
         fournisseur_id: "",
@@ -29,7 +31,7 @@ export default function Index({
         numero_bl: "",
     });
 
-    const { data, setData, post, processing, errors, reset } = useForm({
+    const { data, setData, post, put, processing, errors, reset } = useForm({
         numero_bl: "",
         date_bl: new Date().toISOString().split("T")[0],
         fournisseur_id: "",
@@ -64,11 +66,23 @@ export default function Index({
             return;
         }
 
-        const url = route("bl-fournisseurs.store");
+        // Log de débogage pour identifier le problème
+        console.log('=== DÉBUG FRONTEND ===', {
+            isEditing,
+            editingBlId,
+            url: isEditing ? route("bl-fournisseurs.update", editingBlId) : route("bl-fournisseurs.store"),
+            submissionData
+        });
+
+        const url = isEditing
+            ? route("bl-fournisseurs.update", editingBlId)
+            : route("bl-fournisseurs.store");
 
         const requestOptions = {
             onSuccess: () => {
                 setShowForm(false);
+                setIsEditing(false);
+                setEditingBlId(null);
                 reset();
                 setFormValues({
                     fournisseur_id: "",
@@ -83,27 +97,75 @@ export default function Index({
                 });
             },
             onError: (errors) => {
-                let errorMessage = "Erreurs :\n";
+                let errorMessage = "Erreurs de validation :\n";
+
+
+
+                if (errors.fournisseur_id) {
+                    if (errors.fournisseur_id.includes("required")) {
+                        errorMessage += "- Le fournisseur est obligatoire\n";
+                    } else if (errors.fournisseur_id.includes("exists")) {
+                        errorMessage += "- Le fournisseur sélectionné n'existe pas\n";
+                    } else {
+                        errorMessage += `- Fournisseur: ${errors.fournisseur_id}\n`;
+                    }
+                }
+
+                if (errors.date_bl) {
+                    if (errors.date_bl.includes("required")) {
+                        errorMessage += "- La date BL est obligatoire\n";
+                    } else if (errors.date_bl.includes("date")) {
+                        errorMessage += "- La date BL doit être une date valide\n";
+                    } else {
+                        errorMessage += `- Date BL: ${errors.date_bl}\n`;
+                    }
+                }
+
+                if (errors.details) {
+                    errorMessage += "- Erreurs dans les produits :\n";
+                    if (Array.isArray(errors.details)) {
+                        errors.details.forEach((error, index) => {
+                            errorMessage += `  Produit #${index + 1}: ${error}\n`;
+                        });
+                    } else {
+                        errorMessage += Object.values(errors.details).join("\n");
+                    }
+                }
+
+                // Gestion des erreurs générales (validation personnalisée côté serveur)
+                if (errors.general) {
+                    errorMessage += `- ${errors.general}\n`;
+                }
+
+                // Gestion des erreurs de validation personnalisées
                 if (errors.numero_bl) {
-                    if (errors.numero_bl.includes("already been taken")) {
+                    if (errors.numero_bl.includes("existe déjà")) {
+                        errorMessage += `- ${errors.numero_bl}\n`;
+                    } else if (errors.numero_bl.includes("already been taken")) {
                         errorMessage += "- Ce numéro de BL existe déjà\n";
+                    } else if (errors.numero_bl.includes("required")) {
+                        errorMessage += "- Le numéro BL est obligatoire\n";
+                    } else if (errors.numero_bl.includes("string")) {
+                        errorMessage += "- Le numéro BL doit être une chaîne de caractères\n";
                     } else {
                         errorMessage += `- Numéro BL: ${errors.numero_bl}\n`;
                     }
                 }
-                if (errors.details) {
-                    errorMessage += "- Erreurs dans les produits :\n";
-                    errorMessage += Object.values(errors.details).join("\n");
-                }
-                if (errorMessage === "Erreurs :\n") {
+
+                if (errorMessage === "Erreurs de validation :\n") {
                     errorMessage = "Une erreur inconnue est survenue";
                 }
+
                 alert(errorMessage);
             },
             preserveScroll: true,
         };
 
-        post(url, submissionData, requestOptions);
+        if (isEditing) {
+            put(url, submissionData, requestOptions);
+        } else {
+            post(url, submissionData, requestOptions);
+        }
     };
 
     // Fonction de validation séparée
@@ -175,6 +237,70 @@ export default function Index({
             const newDetails = [...prev.details];
             newDetails.splice(index, 1);
             return { ...prev, details: newDetails };
+        });
+    };
+
+    const handleEdit = (blFournisseur) => {
+        console.log('=== DÉBUG HANDLE EDIT ===', {
+            blFournisseur,
+            id: blFournisseur.id,
+            numero_bl: blFournisseur.numero_bl
+        });
+
+        setIsEditing(true);
+        setEditingBlId(blFournisseur.id);
+        setFormData({
+            fournisseur_id: blFournisseur.fournisseur_id,
+            date_bl: blFournisseur.date_bl,
+            numero_bl: blFournisseur.numero_bl,
+        });
+        setFormValues({
+            fournisseur_id: blFournisseur.fournisseur_id,
+            date_bl: blFournisseur.date_bl,
+            numero_bl: blFournisseur.numero_bl,
+            details: blFournisseur.details.map(detail => ({
+                produit_id: detail.produit_id,
+                quantite: detail.quantite,
+                prix_unitaire: detail.prix_unitaire,
+                montantBL: detail.montantBL,
+            })),
+        });
+        setShowForm(true);
+    };
+
+    const handleCancelEdit = () => {
+        setIsEditing(false);
+        setEditingBlId(null);
+        setShowForm(false);
+        reset();
+        setFormValues({
+            fournisseur_id: "",
+            date_bl: new Date().toISOString().split("T")[0],
+            numero_bl: "",
+            details: [],
+        });
+        setFormData({
+            fournisseur_id: "",
+            date_bl: new Date().toISOString().split("T")[0],
+            numero_bl: "",
+        });
+    };
+
+    const openCreateForm = () => {
+        setIsEditing(false);
+        setEditingBlId(null);
+        setShowForm(true);
+        reset();
+        setFormValues({
+            fournisseur_id: "",
+            date_bl: new Date().toISOString().split("T")[0],
+            numero_bl: "",
+            details: [],
+        });
+        setFormData({
+            fournisseur_id: "",
+            date_bl: new Date().toISOString().split("T")[0],
+            numero_bl: "",
         });
     };
 
@@ -363,23 +489,30 @@ export default function Index({
                             </h2>
                             <button
                                 onClick={() => {
-                                    setShowForm(!showForm);
-                                    if (!showForm) {
-                                        setFormValues({
-                                            fournisseur_id: "",
-                                            date_bl: new Date()
-                                                .toISOString()
-                                                .split("T")[0],
-                                            numero_bl: "",
-                                            details: [],
-                                        });
-                                        setFormData({
-                                            fournisseur_id: "",
-                                            date_bl: new Date()
-                                                .toISOString()
-                                                .split("T")[0],
-                                            numero_bl: "",
-                                        });
+                                    if (showForm) {
+                                        if (isEditing) {
+                                            handleCancelEdit();
+                                        } else {
+                                            setShowForm(false);
+                                            reset();
+                                            setFormValues({
+                                                fournisseur_id: "",
+                                                date_bl: new Date()
+                                                    .toISOString()
+                                                    .split("T")[0],
+                                                numero_bl: "",
+                                                details: [],
+                                            });
+                                            setFormData({
+                                                fournisseur_id: "",
+                                                date_bl: new Date()
+                                                    .toISOString()
+                                                    .split("T")[0],
+                                                numero_bl: "",
+                                            });
+                                        }
+                                    } else {
+                                        openCreateForm();
                                     }
                                 }}
                                 className="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150"
@@ -387,7 +520,7 @@ export default function Index({
                                 {showForm ? (
                                     <>
                                         <X className="h-4 w-4 mr-2" />
-                                        Annuler
+                                        {isEditing ? "Annuler la modification" : "Annuler"}
                                     </>
                                 ) : (
                                     <>
@@ -402,6 +535,11 @@ export default function Index({
                     {showForm && (
                         <div className="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6 transition-all duration-300 mb-6">
                             <div className="space-y-4">
+                                <div className="border-b border-gray-200 dark:border-gray-700 pb-4 mb-4">
+                                    <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+                                        {isEditing ? `Modifier le BL Fournisseur #${editingBlId}` : "Créer un nouveau BL Fournisseur"}
+                                    </h3>
+                                </div>
                                 {basicFields.map((field) => (
                                     <div key={field.name}>
                                         <label
@@ -524,7 +662,7 @@ export default function Index({
                                     >
                                         {processing
                                             ? "Envoi..."
-                                            : "Créer"}
+                                            : isEditing ? "Modifier" : "Créer"}
                                     </button>
                                 </div>
                             </div>
@@ -810,6 +948,13 @@ export default function Index({
                                                             <Eye className="h-5 w-5" />
                                                         </button>
                                                         <button
+                                                            onClick={() => handleEdit(item)}
+                                                            className="p-1 text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300"
+                                                            title="Modifier ce BL Fournisseur"
+                                                        >
+                                                            <Edit2 className="h-5 w-5" />
+                                                        </button>
+                                                        <button
                                                             onClick={() => {
                                                                 setSelectedBlFournisseur(
                                                                     item
@@ -819,6 +964,7 @@ export default function Index({
                                                                 );
                                                             }}
                                                             className="p-1 text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                                                            title="Supprimer ce BL Fournisseur"
                                                         >
                                                             <Trash2 className="h-5 w-5" />
                                                         </button>

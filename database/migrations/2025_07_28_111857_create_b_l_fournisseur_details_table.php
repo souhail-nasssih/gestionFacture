@@ -18,10 +18,12 @@ return new class extends Migration {
             $table->decimal('prix_unitaire', 10, 2)->default(0);
             $table->decimal('montantBL', 10, 2);
             $table->timestamps();
-            $table->foreign('b_l_fournisseur_id')->references('id')->on('b_l_fournisseurs');
-            $table->foreign('produit_id')->references('id')->on('produits');
+
+            $table->foreign('b_l_fournisseur_id')->references('id')->on('b_l_fournisseurs')->cascadeOnDelete();
+            $table->foreign('produit_id')->references('id')->on('produits')->cascadeOnDelete();
         });
-    }   
+    }
+
 
     /**
      * Reverse the migrations.
