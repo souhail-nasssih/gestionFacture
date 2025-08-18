@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\BLFournisseur;
 use App\Models\FactureFournisseur;
+use App\Models\Fournisseur;
 use Illuminate\Http\Request;
 
 class FactureFournisseurController extends Controller
@@ -12,9 +14,21 @@ class FactureFournisseurController extends Controller
      */
     public function index()
     {
-        //
+        return inertia('Facture/Index', [
+            'facturesFournisseurs' => FactureFournisseur::with(['fournisseur', 'bonsLivraison'])->paginate(10),
+            'fournisseurs' => Fournisseur::all(),
+            'blFournisseurs' => BLFournisseur::with(['details', 'fournisseur'])->get(),
+        ]);
     }
-
+    public function getBLByFournisseur(Fournisseur $fournisseur)
+    {
+        // Récupère tous les BLs du fournisseur (même ceux déjà associés à une facture)
+        return response()->json(
+            BLFournisseur::with(['details', 'fournisseur'])
+                ->where('fournisseur_id', $fournisseur->id)
+                ->get()
+        );
+    }
     /**
      * Show the form for creating a new resource.
      */

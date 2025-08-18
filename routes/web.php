@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\BLFournisseurController;
 use App\Http\Controllers\ClientController;
+use App\Http\Controllers\FactureFournisseurController;
 use App\Http\Controllers\FournisseurController;
 use App\Http\Controllers\ProduitController;
 use App\Http\Controllers\ProfileController;
@@ -64,10 +65,19 @@ Route::resource(('bl-fournisseurs'), BLFournisseurController::class)->names([
     'destroy' => 'bl-fournisseurs.destroy',
 ])->middleware(['auth']);
 
+// la route les ressources des factures des fournisseurs
+Route::resource(('facture-fournisseurs'), FactureFournisseurController::class)->names([
+    'index' => 'facture-fournisseurs.index',
+    'create' => 'facture-fournisseurs.create',
+    'store' => 'facture-fournisseurs.store',
+    'show' => 'facture-fournisseurs.show',
+    'edit' => 'facture-fournisseurs.edit',
+    'update' => 'facture-fournisseurs.update',
+    'destroy' => 'facture-fournisseurs.destroy',
+])->middleware(['auth']);
 
 
-
-
+Route::get('/bl-fournisseurs/{fournisseur}', [FactureFournisseurController::class, 'getBLByFournisseur'])->name('api.bl-fournisseurs.by-fournisseur');
 
 
 
