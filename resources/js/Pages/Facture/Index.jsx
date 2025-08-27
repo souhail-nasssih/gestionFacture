@@ -20,7 +20,9 @@ export default function Index({
     success,
     errors: pageErrors,
 }) {
-    console.log(blFournisseurs);
+    console.log('BL Fournisseurs:', blFournisseurs);
+    console.log('Factures Fournisseurs:', facturesFournisseurs);
+
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [selectedFacture, setSelectedFacture] = useState(null);
     const [showForm, setShowForm] = useState(false);
@@ -51,14 +53,12 @@ export default function Index({
         });
     };
 
-    // On retire toute la logique d'appel API et on filtre localement
     const handleFournisseurChange = (e) => {
         const fournisseurId = e.target.value;
         setSelectedFournisseur(fournisseurId);
         setData("fournisseur_id", fournisseurId);
 
         if (fournisseurId) {
-            // On filtre localement les BL du fournisseur sélectionné ET non associés à une facture
             const filtered = blFournisseurs.filter(
                 (bl) => String(bl.fournisseur_id) === String(fournisseurId) && bl.facture_fournisseur_id === null
             );
@@ -99,8 +99,8 @@ export default function Index({
 
     const handleSubmit = () => {
         const url = isEditing
-            ? route("factures-fournisseurs.update", editingFactureId)
-            : route("factures-fournisseurs.store");
+            ? route("facture-fournisseurs.update", editingFactureId)
+            : route("facture-fournisseurs.store");
 
         const requestOptions = {
             onSuccess: () => {
@@ -496,15 +496,19 @@ export default function Index({
                                                         </td>
                                                         <td className="px-6 py-4 whitespace-nowrap">
                                                             <span className="text-gray-600 dark:text-gray-300">
-                                                                {item.bonsLivraison?.length || 0}
+                                                                {item.bonsLivraison && item.bonsLivraison.length > 0
+                                                                    ? `${item.bonsLivraison.length} BL(s)`
+                                                                    : 'Aucun'}
                                                             </span>
+                                                            {item.bonsLivraison && item.bonsLivraison.length > 0 && (
+                                                                <div className="text-xs text-gray-500 mt-1">
+                                                                    {item.bonsLivraison.map(bl => bl.numero_bl).join(', ')}
+                                                                </div>
+                                                            )}
                                                         </td>
                                                         <td className="px-6 py-4 whitespace-nowrap">
                                                             <span className="font-medium">
-                                                                {item.montant_total?.toFixed(
-                                                                    2
-                                                                )}{" "}
-                                                                DH
+                                                                {item.montant_total ? Number(item.montant_total).toFixed(2) : "0.00"} DH
                                                             </span>
                                                         </td>
                                                         <td className="px-6 py-4 whitespace-nowrap">
@@ -565,128 +569,68 @@ export default function Index({
                                                             >
                                                                 <div className="space-y-4">
                                                                     <h4 className="font-medium text-gray-900 dark:text-white">
-                                                                        Détails
-                                                                        de la
-                                                                        Facture
-                                                                        #
-                                                                        {
-                                                                            item.id
-                                                                        }
+                                                                        Détails de la Facture #{item.id}
                                                                     </h4>
 
-                                                                    {item.bonsLivraison?.length >
-                                                                    0 ? (
+                                                                    {item.bonsLivraison?.length > 0 ? (
                                                                         <div className="overflow-x-auto">
                                                                             <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                                                                                 <thead className="bg-gray-100 dark:bg-gray-600">
                                                                                     <tr>
                                                                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                                                                            Numéro
-                                                                                            BL
+                                                                                            Numéro BL
                                                                                         </th>
                                                                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                                                                            Date
-                                                                                            BL
+                                                                                            Date BL
                                                                                         </th>
                                                                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                                                                             Articles
                                                                                         </th>
                                                                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                                                                            Montant
-                                                                                            (DH)
+                                                                                            Montant (DH)
                                                                                         </th>
                                                                                     </tr>
                                                                                 </thead>
                                                                                 <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                                                                                    {item.bonsLivraison.map(
-                                                                                        (
-                                                                                            bl
-                                                                                        ) => (
-                                                                                            <tr
-                                                                                                key={
-                                                                                                    bl.id
-                                                                                                }
-                                                                                                className="hover:bg-gray-50 dark:hover:bg-gray-700"
-                                                                                            >
-                                                                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                                                                    <span className="font-medium">
-                                                                                                        {
-                                                                                                            bl.numero_bl
-                                                                                                        }
-                                                                                                    </span>
-                                                                                                </td>
-                                                                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                                                                    <span className="text-gray-600 dark:text-gray-300">
-                                                                                                        {new Date(
-                                                                                                            bl.date_bl
-                                                                                                        ).toLocaleDateString()}
-                                                                                                    </span>
-                                                                                                </td>
-                                                                                                <td className="px-6 py-4">
+                                                                                    {item.bonsLivraison.map((bl) => (
+                                                                                        <tr key={bl.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                                                                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                                                                <span className="font-medium">
+                                                                                                    {bl.numero_bl}
+                                                                                                </span>
+                                                                                            </td>
+                                                                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                                                                <span className="text-gray-600 dark:text-gray-300">
+                                                                                                    {new Date(bl.date_bl).toLocaleDateString()}
+                                                                                                </span>
+                                                                                            </td>
+                                                                                            <td className="px-6 py-4">
+                                                                                                {bl.details?.length > 0 ? (
                                                                                                     <ul className="list-disc pl-5">
-                                                                                                        {bl.details.map(
-                                                                                                            (
-                                                                                                                detail,
-                                                                                                                idx
-                                                                                                            ) => (
-                                                                                                                <li
-                                                                                                                    key={
-                                                                                                                        idx
-                                                                                                                    }
-                                                                                                                    className="text-gray-600 dark:text-gray-300"
-                                                                                                                >
-                                                                                                                    {
-                                                                                                                        detail
-                                                                                                                            .article
-                                                                                                                            ?.nom
-                                                                                                                    }{" "}
-                                                                                                                    (
-                                                                                                                    {
-                                                                                                                        detail.quantite
-                                                                                                                    }{" "}
-                                                                                                                    x{" "}
-                                                                                                                    {
-                                                                                                                        detail.prix_unitaire
-                                                                                                                    }
-                                                                                                                    DH)
-                                                                                                                </li>
-                                                                                                            )
-                                                                                                        )}
+                                                                                                        {bl.details.map((detail, idx) => (
+                                                                                                            <li key={idx} className="text-gray-600 dark:text-gray-300">
+                                                                                                                {detail.produit?.nom || "Produit inconnu"} (
+                                                                                                                {detail.quantite} x {detail.prix_unitaire}DH)
+                                                                                                            </li>
+                                                                                                        ))}
                                                                                                     </ul>
-                                                                                                </td>
-                                                                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                                                                    <span className="font-medium">
-                                                                                                        {bl.details
-                                                                                                            .reduce(
-                                                                                                                (
-                                                                                                                    sum,
-                                                                                                                    detail
-                                                                                                                ) =>
-                                                                                                                    sum +
-                                                                                                                    detail.quantite *
-                                                                                                                        detail.prix_unitaire,
-                                                                                                                0
-                                                                                                            )
-                                                                                                            .toFixed(
-                                                                                                                2
-                                                                                                            )}{" "}
-                                                                                                        DH
-                                                                                                    </span>
-                                                                                                </td>
-                                                                                            </tr>
-                                                                                        )
-                                                                                    )}
+                                                                                                ) : (
+                                                                                                    <span className="text-gray-500">Aucun détail</span>
+                                                                                                )}
+                                                                                            </td>
+                                                                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                                                                <span className="font-medium">
+                                                                                                    {bl.details?.reduce((sum, detail) => sum + (detail.quantite * detail.prix_unitaire), 0).toFixed(2) || "0.00"} DH
+                                                                                                </span>
+                                                                                            </td>
+                                                                                        </tr>
+                                                                                    ))}
                                                                                 </tbody>
                                                                             </table>
                                                                         </div>
                                                                     ) : (
                                                                         <p className="text-gray-500 dark:text-gray-400 text-center py-4">
-                                                                            Aucun
-                                                                            BL
-                                                                            associé
-                                                                            à
-                                                                            cette
-                                                                            facture
+                                                                            Aucun BL associé à cette facture
                                                                         </p>
                                                                     )}
                                                                 </div>
@@ -698,12 +642,8 @@ export default function Index({
                                         )
                                     ) : (
                                         <tr>
-                                            <td
-                                                colSpan="7"
-                                                className="text-center py-6 text-gray-500 dark:text-gray-400"
-                                            >
-                                                🚫 Aucune facture trouvée pour
-                                                l'instant
+                                            <td colSpan="7" className="text-center py-6 text-gray-500 dark:text-gray-400">
+                                                🚫 Aucune facture trouvée pour l'instant
                                             </td>
                                         </tr>
                                     )}
@@ -719,31 +659,22 @@ export default function Index({
                                     Confirmer la suppression
                                 </h3>
                                 <p className="text-gray-600 dark:text-gray-300 mb-6">
-                                    Êtes-vous sûr de vouloir supprimer la
-                                    facture n°
-                                    {selectedFacture?.numero_facture} ? Cette
-                                    action est irréversible.
+                                    Êtes-vous sûr de vouloir supprimer la facture n°
+                                    {selectedFacture?.numero_facture} ? Cette action est irréversible.
                                 </p>
                                 <div className="flex justify-end space-x-3">
                                     <button
-                                        onClick={() =>
-                                            setShowDeleteModal(false)
-                                        }
+                                        onClick={() => setShowDeleteModal(false)}
                                         className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
                                     >
                                         Annuler
                                     </button>
                                     <Link
-                                        href={route(
-                                            "factures-fournisseurs.destroy",
-                                            selectedFacture?.id
-                                        )}
+                                        href={route("facture-fournisseurs.destroy", selectedFacture?.id)}
                                         method="delete"
                                         as="button"
                                         className="px-4 py-2 bg-red-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-red-700"
-                                        onSuccess={() =>
-                                            setShowDeleteModal(false)
-                                        }
+                                        onSuccess={() => setShowDeleteModal(false)}
                                     >
                                         Supprimer
                                     </Link>

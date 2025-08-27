@@ -12,20 +12,25 @@ class FactureFournisseurController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
-    {
-        return inertia('Facture/Index', [
-            'facturesFournisseurs' => FactureFournisseur::with(['fournisseur', 'bonsLivraison'])->paginate(10),
-            'fournisseurs' => Fournisseur::all(),
-            'blFournisseurs' => BLFournisseur::with(['details', 'fournisseur'])->get(),
-        ]);
-    }
+public function index()
+{
+    return inertia('Facture/Index', [
+        'facturesFournisseurs' => FactureFournisseur::with([
+            'fournisseur',
+            'bonsLivraison.details.produit'
+        ])->paginate(10),
+        'fournisseurs' => Fournisseur::all(),
+        'blFournisseurs' => BLFournisseur::with(['details.produit', 'fournisseur'])
+            ->get(), // Retirez le whereNull pour avoir tous les BLs
+    ]);
+}
     public function getBLByFournisseur(Fournisseur $fournisseur)
     {
-        // Récupère tous les BLs du fournisseur (même ceux déjà associés à une facture)
+        // Récupère uniquement les BLs du fournisseur non associés à une facture
         return response()->json(
             BLFournisseur::with(['details', 'fournisseur'])
                 ->where('fournisseur_id', $fournisseur->id)
+                ->whereNull('facture_fournisseur_id')
                 ->get()
         );
     }
@@ -42,7 +47,32 @@ class FactureFournisseurController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        // Validation des données
+        $validated = $request->validate([
+            'fournisseur_id' => 'required|exists:fournisseurs,id',
+            'numero_facture' => 'required|string|unique:facture_fournisseurs,numero_facture',
+            'date_facture' => 'required|date',
+            'montant_total' => 'required|numeric',
+            'blFournisseurs' => 'required|array|min:1',
+            'blFournisseurs.*' => 'exists:b_l_fournisseurs,id',
+        ]);
+
+        // Création de la facture
+        $facture = FactureFournisseur::create([
+            'fournisseur_id' => $validated['fournisseur_id'],
+            'numero_facture' => $validated['numero_facture'],
+            'date_facture' => $validated['date_facture'],
+            'montant_total' => $validated['montant_total'],
+            // statut_paiement par défaut : 'en_attente'
+        ]);
+
+        // Association des BL sélectionnés à la facture (update en masse)
+        \DB::table('b_l_fournisseurs')
+            ->whereIn('id', $validated['blFournisseurs'])
+            ->update(['facture_fournisseur_id' => $facture->id]);
+
+        return redirect()->route('facture-fournisseurs.index')
+            ->with('success', 'Facture fournisseur créée avec succès.');
     }
 
     /**
