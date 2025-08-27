@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class BLFournisseur extends Model
 {
+    protected $table = 'b_l_fournisseurs';
+
     protected $fillable = [
         'fournisseur_id',
         'date_bl',
