@@ -21,7 +21,7 @@ export default function useBLForm({ fournisseurs, produits, isEditing, editingBl
                     produit_id: detail.produit_id,
                     quantite: detail.quantite,
                     prix_unitaire: detail.prix_unitaire,
-                    montantBL: detail.montantBL || (detail.quantite * detail.prix_unitaire).toFixed(2),
+                    montant_bl: detail.montant_bl || (detail.quantite * detail.prix_unitaire).toFixed(2),
                 })),
             });
         }
@@ -113,7 +113,7 @@ export default function useBLForm({ fournisseurs, produits, isEditing, editingBl
                 produit_id: '',
                 quantite: 1,
                 prix_unitaire: 0,
-                montantBL: 0,
+                montant_bl: 0,
             },
         ]);
     };
@@ -144,7 +144,7 @@ export default function useBLForm({ fournisseurs, produits, isEditing, editingBl
         if (field === 'quantite' || field === 'prix_unitaire') {
             const quantite = parseFloat(newDetails[index].quantite) || 0;
             const prix = parseFloat(newDetails[index].prix_unitaire) || 0;
-            newDetails[index].montantBL = (quantite * prix).toFixed(2);
+            newDetails[index].montant_bl = (quantite * prix).toFixed(2);
         }
 
         setData('details', newDetails);

@@ -29,7 +29,7 @@ export default function BLForm({
                     produit_id: detail.produit_id,
                     quantite: detail.quantite,
                     prix_unitaire: detail.prix_unitaire,
-                    montantBL: detail.montantBL || (detail.quantite * detail.prix_unitaire).toFixed(2),
+                    montant_bl: detail.montant_bl || (detail.quantite * detail.prix_unitaire).toFixed(2),
                 })),
             });
         }
@@ -72,7 +72,7 @@ export default function BLForm({
                 produit_id: "",
                 quantite: 1,
                 prix_unitaire: 0,
-                montantBL: 0,
+                montant_bl: 0,
             },
         ]);
     };
@@ -103,7 +103,7 @@ export default function BLForm({
         if (field === "quantite" || field === "prix_unitaire") {
             const quantite = parseFloat(newDetails[index].quantite) || 0;
             const prix = parseFloat(newDetails[index].prix_unitaire) || 0;
-            newDetails[index].montantBL = (quantite * prix).toFixed(2);
+            newDetails[index].montant_bl = (quantite * prix).toFixed(2);
         }
 
         setData('details', newDetails);
@@ -280,7 +280,7 @@ export default function BLForm({
                                             />
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
-                                            {detail.montantBL || 0} DH
+                                            {detail.montant_bl || 0} DH
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <button
@@ -302,7 +302,7 @@ export default function BLForm({
                                         {data.details
                                             .reduce(
                                                 (sum, detail) =>
-                                                    sum + parseFloat(detail.montantBL || 0),
+                                                    sum + parseFloat(detail.montant_bl || 0),
                                                 0
                                             )
                                             .toFixed(2)} DH

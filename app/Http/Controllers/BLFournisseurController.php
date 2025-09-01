@@ -97,7 +97,7 @@ class BLFournisseurController extends Controller
                     'produit_id' => $detail['produit_id'],
                     'quantite' => $detail['quantite'],
                     'prix_unitaire' => $detail['prix_unitaire'],
-                    'montantBL' => $detail['quantite'] * $detail['prix_unitaire'],
+                    'montant_bl' => $detail['quantite'] * $detail['prix_unitaire'],
                 ]);
                 $detailsCreated[] = $detailCreated;
             }
@@ -109,7 +109,7 @@ class BLFournisseurController extends Controller
                 'bl_id' => $blFournisseur->id,
                 'numero_bl' => $blFournisseur->numero_bl,
                 'nb_details' => count($detailsCreated),
-                'total_montant' => collect($detailsCreated)->sum('montantBL')
+                'total_montant' => collect($detailsCreated)->sum('montant_bl')
             ]);
 
             return redirect()->route('bl-fournisseurs.index')->with('success', 'BL créé avec succès - ' . count($detailsCreated) . ' produit(s) ajouté(s)');
@@ -217,7 +217,7 @@ class BLFournisseurController extends Controller
                     'produit_id' => $detail['produit_id'],
                     'quantite' => $detail['quantite'],
                     'prix_unitaire' => $detail['prix_unitaire'],
-                    'montantBL' => $detail['quantite'] * $detail['prix_unitaire'],
+                    'montant_bl' => $detail['quantite'] * $detail['prix_unitaire'],
                 ]);
                 $detailsCreated[] = $detailCreated;
             }
@@ -228,7 +228,7 @@ class BLFournisseurController extends Controller
                 'bl_id' => $bl_fournisseur->id,
                 'numero_bl' => $bl_fournisseur->numero_bl,
                 'nb_details' => count($detailsCreated),
-                'total_montant' => collect($detailsCreated)->sum('montantBL')
+                'total_montant' => collect($detailsCreated)->sum('montant_bl')
             ]);
 
             return redirect()->route('bl-fournisseurs.index')
