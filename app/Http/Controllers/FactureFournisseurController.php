@@ -12,18 +12,28 @@ class FactureFournisseurController extends Controller
     /**
      * Display a listing of the resource.
      */
-public function index()
-{
-    return inertia('Facture/Index', [
-        'facturesFournisseurs' => FactureFournisseur::with([
+    public function index()
+    {
+        $facturesFournisseurs = FactureFournisseur::with([
             'fournisseur',
             'bonsLivraison.details.produit'
-        ])->paginate(10),
-        'fournisseurs' => Fournisseur::all(),
-        'blFournisseurs' => BLFournisseur::with(['details.produit', 'fournisseur'])
-            ->get(), // Retirez le whereNull pour avoir tous les BLs
-    ]);
-}
+        ])->orderBy('created_at', 'desc')->paginate(10);
+
+        $fournisseurs = Fournisseur::all();
+
+        $blFournisseurs = BLFournisseur::with(['details.produit', 'fournisseur'])->get();
+
+        // Debug lisible (relations incluses)
+        // dd($facturesFournisseurs->toArray());
+
+        return inertia('Facture/Index', [
+            'facturesFournisseurs' => $facturesFournisseurs,
+            'fournisseurs' => $fournisseurs,
+            'blFournisseurs' => $blFournisseurs,
+        ]);
+    }
+
+
     public function getBLByFournisseur(Fournisseur $fournisseur)
     {
         // Récupère uniquement les BLs du fournisseur non associés à une facture
@@ -102,8 +112,16 @@ public function index()
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(FactureFournisseur $factureFournisseur)
-    {
-        //
-    }
+public function destroy(FactureFournisseur $factureFournisseur)
+{
+    // Supprimer la facture
+    $factureFournisseur->delete();
+
+    // Réponse vide pour rester sur la même page
+    return back()->with('success', 'Facture fournisseur supprimée avec succès.');
+}
+
+
+
+
 }

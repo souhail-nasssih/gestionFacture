@@ -96,7 +96,7 @@ export default function DeleteModal({ facture, onClose, onSuccess }) {
                 {/* Footer */}
                 <div className="bg-gray-50 dark:bg-gray-700 px-6 py-4 flex flex-col sm:flex-row-reverse sm:justify-start sm:space-x-reverse sm:space-x-3">
                     <Link
-                        href={route("factures-fournisseurs.destroy", facture?.id)}
+                        href={route("facture-fournisseurs.destroy", facture?.id)}
                         method="delete"
                         as="button"
                         className="w-full sm:w-auto inline-flex justify-center items-center px-4 py-2 bg-red-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 dark:focus:ring-offset-gray-800 transition-colors"

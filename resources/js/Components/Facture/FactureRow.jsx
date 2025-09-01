@@ -1,7 +1,13 @@
 import { Eye, Edit2, Trash2, ChevronDown, ChevronRight } from "lucide-react";
 import { useState } from "react";
 
-export default function FactureRow({ item, isExpanded, onToggleExpand, onEdit, onDelete }) {
+export default function FactureRow({
+    item,
+    isExpanded,
+    onToggleExpand,
+    onEdit,
+    onDelete,
+}) {
     const [localExpanded, setLocalExpanded] = useState(false);
 
     const handleToggleExpand = () => {
@@ -15,10 +21,12 @@ export default function FactureRow({ item, isExpanded, onToggleExpand, onEdit, o
     const expanded = onToggleExpand ? isExpanded : localExpanded;
 
     const calculateBlTotal = (bl) => {
-        return bl.details.reduce(
-            (sum, detail) => sum + detail.quantite * detail.prix_unitaire,
-            0
-        ).toFixed(2);
+        return bl.details
+            .reduce(
+                (sum, detail) => sum + detail.quantite * detail.prix_unitaire,
+                0
+            )
+            .toFixed(2);
     };
 
     return (
@@ -36,7 +44,9 @@ export default function FactureRow({ item, isExpanded, onToggleExpand, onEdit, o
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                     <span className="text-gray-600 dark:text-gray-300">
-                        {new Date(item.date_facture).toLocaleDateString('fr-FR')}
+                        {new Date(item.date_facture).toLocaleDateString(
+                            "fr-FR"
+                        )}
                     </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
@@ -51,7 +61,7 @@ export default function FactureRow({ item, isExpanded, onToggleExpand, onEdit, o
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                     <span className="font-medium text-green-600 dark:text-green-400">
-                        {item.montant_total?.toFixed(2)} DH
+                        {item.montant_total} DH
                     </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
@@ -59,12 +69,16 @@ export default function FactureRow({ item, isExpanded, onToggleExpand, onEdit, o
                         <button
                             onClick={handleToggleExpand}
                             className="p-1.5 text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900 rounded-md transition-colors"
-                            title={expanded ? "Masquer les détails" : "Afficher les détails"}
+                            title={
+                                expanded
+                                    ? "Masquer les détails"
+                                    : "Afficher les détails"
+                            }
                         >
                             {expanded ? (
-                                <ChevronDown className="h-5 w-5" />
+                                <Eye className="h-5 w-5" />
                             ) : (
-                                <ChevronRight className="h-5 w-5" />
+                                <Eye className="h-5 w-5" />
                             )}
                         </button>
                         <button
@@ -94,11 +108,14 @@ export default function FactureRow({ item, isExpanded, onToggleExpand, onEdit, o
                                     Détails de la Facture #{item.id}
                                 </h4>
                                 <span className="text-sm text-gray-500 dark:text-gray-400">
-                                    Créée le {new Date(item.created_at).toLocaleDateString('fr-FR')}
+                                    Créée le{" "}
+                                    {new Date(
+                                        item.created_at
+                                    ).toLocaleDateString("fr-FR")}
                                 </span>
                             </div>
 
-                            {item.bonsLivraison?.length > 0 ? (
+                            {item.bons_livraison?.length > 0 ? (
                                 <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-600">
                                     <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-600">
                                         <thead className="bg-gray-100 dark:bg-gray-600">
@@ -118,8 +135,11 @@ export default function FactureRow({ item, isExpanded, onToggleExpand, onEdit, o
                                             </tr>
                                         </thead>
                                         <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-600">
-                                            {item.bonsLivraison.map((bl) => (
-                                                <tr key={bl.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                                            {item.bons_livraison.map((bl) => (
+                                                <tr
+                                                    key={bl.id}
+                                                    className="hover:bg-gray-50 dark:hover:bg-gray-700"
+                                                >
                                                     <td className="px-6 py-4 whitespace-nowrap">
                                                         <span className="font-medium text-gray-900 dark:text-white">
                                                             {bl.numero_bl}
@@ -127,28 +147,56 @@ export default function FactureRow({ item, isExpanded, onToggleExpand, onEdit, o
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap">
                                                         <span className="text-gray-600 dark:text-gray-300">
-                                                            {new Date(bl.date_bl).toLocaleDateString('fr-FR')}
+                                                            {new Date(
+                                                                bl.date_bl
+                                                            ).toLocaleDateString(
+                                                                "fr-FR"
+                                                            )}
                                                         </span>
                                                     </td>
                                                     <td className="px-6 py-4">
                                                         <div className="max-w-md">
                                                             <ul className="space-y-1">
-                                                                {bl.details.map((detail, idx) => (
-                                                                    <li key={idx} className="text-sm text-gray-600 dark:text-gray-300 flex justify-between">
-                                                                        <span className="truncate">
-                                                                            {detail.article?.nom}
-                                                                        </span>
-                                                                        <span className="ml-2 font-medium">
-                                                                            {detail.quantite} x {detail.prix_unitaire} DH
-                                                                        </span>
-                                                                    </li>
-                                                                ))}
+                                                                {bl.details.map(
+                                                                    (
+                                                                        detail,
+                                                                        idx
+                                                                    ) => (
+                                                                        <li
+                                                                            key={
+                                                                                idx
+                                                                            }
+                                                                            className="text-sm text-gray-600 dark:text-gray-300 flex justify-between"
+                                                                        >
+                                                                            <span className="truncate">
+                                                                                {
+                                                                                    detail
+                                                                                        .produit
+                                                                                        ?.nom
+                                                                                }
+                                                                            </span>
+                                                                            <span className="ml-2 font-medium">
+                                                                                {
+                                                                                    detail.quantite
+                                                                                }{" "}
+                                                                                x{" "}
+                                                                                {
+                                                                                    detail.prix_unitaire
+                                                                                }{" "}
+                                                                                DH
+                                                                            </span>
+                                                                        </li>
+                                                                    )
+                                                                )}
                                                             </ul>
                                                         </div>
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap">
                                                         <span className="font-medium text-green-600 dark:text-green-400">
-                                                            {calculateBlTotal(bl)} DH
+                                                            {calculateBlTotal(
+                                                                bl
+                                                            )}{" "}
+                                                            DH
                                                         </span>
                                                     </td>
                                                 </tr>
@@ -156,11 +204,17 @@ export default function FactureRow({ item, isExpanded, onToggleExpand, onEdit, o
                                         </tbody>
                                         <tfoot className="bg-gray-50 dark:bg-gray-700 border-t border-gray-200 dark:border-gray-600">
                                             <tr>
-                                                <td colSpan="3" className="px-6 py-4 text-right font-bold text-gray-900 dark:text-white">
+                                                <td
+                                                    colSpan="3"
+                                                    className="px-6 py-4 text-right font-bold text-gray-900 dark:text-white"
+                                                >
                                                     Total de la facture:
                                                 </td>
                                                 <td className="px-6 py-4 font-bold text-lg text-green-600 dark:text-green-400">
-                                                    {item.montant_total?.toFixed(2)} DH
+                                                    {Number(
+                                                        item.montant_total
+                                                    ).toFixed(2)}{" "}
+                                                    DH
                                                 </td>
                                             </tr>
                                         </tfoot>
@@ -168,19 +222,6 @@ export default function FactureRow({ item, isExpanded, onToggleExpand, onEdit, o
                                 </div>
                             ) : (
                                 <div className="text-center py-6 bg-white dark:bg-gray-800 rounded-lg border border-dashed border-gray-300 dark:border-gray-600">
-                                    <svg
-                                        className="w-12 h-12 text-gray-400 dark:text-gray-500 mx-auto mb-3"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        viewBox="0 0 24 24"
-                                    >
-                                        <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth="2"
-                                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                                        />
-                                    </svg>
                                     <p className="text-gray-500 dark:text-gray-400">
                                         Aucun BL associé à cette facture
                                     </p>
