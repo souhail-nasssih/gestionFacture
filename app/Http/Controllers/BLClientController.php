@@ -3,63 +3,188 @@
 namespace App\Http\Controllers;
 
 use App\Models\BLClient;
+use App\Models\Client;
+use App\Models\Produit;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 
 class BLClientController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        //
+        $bl_clients = BLClient::with(['client', 'details.produit'])
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+
+        return Inertia::render('BLClients/Index', [
+            'blClients' => $bl_clients,
+            'clients' => Client::all(),
+            'produits' => Produit::where('stock', '>', 0)->get(),
+        ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
-        //
+        return Inertia::render('BLClients/Create', [
+            'clients' => Client::all(),
+            'produits' => Produit::where('stock', '>', 0)->get(),
+        ]);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        //
+        $validator = Validator::make($request->all(), [
+            'numero_bl' => 'required|string|unique:bl_clients,numero_bl',
+            'date_bl' => 'required|date',
+            'client_id' => 'required|exists:clients,id',
+            'details' => 'required|array|min:1',
+            'details.*.produit_id' => 'required|exists:produits,id',
+            'details.*.quantite' => 'required|integer|min:1',
+            'details.*.prix_unitaire' => 'required|numeric|min:0',
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()
+                ->withErrors($validator)
+                ->withInput();
+        }
+
+        try {
+            DB::beginTransaction();
+
+            $bl_client = BLClient::create($request->only([
+                'numero_bl', 'date_bl', 'client_id', 'notes'
+            ]));
+
+            foreach ($request->details as $detail) {
+                $produit = Produit::find($detail['produit_id']);
+
+                // Check stock availability
+                if ($produit->stock < $detail['quantite']) {
+                    throw new \Exception("Stock insuffisant pour le produit: {$produit->nom}. Stock disponible: {$produit->stock}");
+                }
+
+                $bl_client->details()->create([
+                    'produit_id' => $detail['produit_id'],
+                    'quantite' => $detail['quantite'],
+                    'prix_unitaire' => $detail['prix_unitaire'],
+                ]);
+            }
+
+            DB::commit();
+
+            return redirect()->route('bl-clients.index')
+                ->with('success', 'BL Client créé avec succès');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()
+                ->with('error', $e->getMessage())
+                ->withInput();
+        }
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(BLClient $bLClient)
+    public function show(BLClient $bl_client)
     {
-        //
+        $bl_client->load(['client', 'details.produit']);
+
+        return Inertia::render('BLClients/Show', [
+            'blClient' => $bl_client,
+        ]);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(BLClient $bLClient)
+    public function edit(BLClient $bl_client)
     {
-        //
+        $bl_client->load(['details.produit']);
+
+        return Inertia::render('BLClients/Edit', [
+            'blClient' => $bl_client,
+            'clients' => Client::all(),
+            'produits' => Produit::where('stock', '>', 0)->get(),
+        ]);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, BLClient $bLClient)
+    public function update(Request $request, BLClient $bl_client)
     {
-        //
+        $validator = Validator::make($request->all(), [
+            'numero_bl' => 'required|string|unique:bl_clients,numero_bl,' . $bl_client->id,
+            'date_bl' => 'required|date',
+            'client_id' => 'required|exists:clients,id',
+            'details' => 'required|array|min:1',
+            'details.*.produit_id' => 'required|exists:produits,id',
+            'details.*.quantite' => 'required|integer|min:1',
+            'details.*.prix_unitaire' => 'required|numeric|min:0',
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()
+                ->withErrors($validator)
+                ->withInput();
+        }
+
+        try {
+            DB::beginTransaction();
+
+            $bl_client->update($request->only([
+                'numero_bl', 'date_bl', 'client_id', 'notes'
+            ]));
+
+            // Delete existing details
+            $bl_client->details()->delete();
+
+            // Create new details
+            foreach ($request->details as $detail) {
+                $produit = Produit::find($detail['produit_id']);
+
+                // Check stock availability
+                if ($produit->stock < $detail['quantite']) {
+                    throw new \Exception("Stock insuffisant pour le produit: {$produit->nom}. Stock disponible: {$produit->stock}");
+                }
+
+                $bl_client->details()->create([
+                    'produit_id' => $detail['produit_id'],
+                    'quantite' => $detail['quantite'],
+                    'prix_unitaire' => $detail['prix_unitaire'],
+                ]);
+            }
+
+            DB::commit();
+
+            return redirect()->route('bl-clients.index')
+                ->with('success', 'BL Client modifié avec succès');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()
+                ->with('error', $e->getMessage())
+                ->withInput();
+        }
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(BLClient $bLClient)
+    public function destroy(BLClient $bl_client)
     {
-        //
+        try {
+            DB::beginTransaction();
+// dd($bl_client);
+
+            $bl_client->details()->delete();
+            $bl_client->delete();
+
+            DB::commit();
+            // Return a proper Inertia response
+            return redirect()->route('bl-clients.index')
+                ->with('success', 'BL Client supprimé avec succès');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            // Return JSON error response for Inertia
+            return response()->json([
+                'message' => $e->getMessage(),
+                'error' => 'Delete failed'
+            ], 500);
+        }
     }
 }

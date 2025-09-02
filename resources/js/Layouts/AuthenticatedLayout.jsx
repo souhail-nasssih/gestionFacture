@@ -47,7 +47,7 @@ export default function AuthenticatedLayout({ header, children }) {
         { name: "Factures Fournisseurs", href: route("facture-fournisseurs.index"), icon: FileText },
         { name: "Factures Clients", href: "#", icon: ReceiptText },
         { name: "BL Fournisseurs", href: route("bl-fournisseurs.index"), icon: ClipboardList },
-        { name: "BL Clients", href: "#", icon: ClipboardCheck },
+        { name: "BL Clients", href: route("bl-clients.index"), icon: ClipboardCheck },
         { name: "Settings", href: "#", icon: Settings },
     ];
 

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\BLClientController;
 use App\Http\Controllers\BLFournisseurController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\FactureClientController;
@@ -90,6 +91,9 @@ Route::get('/facture-clients/{factureClient}/print', [FactureClientController::c
     ->name('facture-clients.print')
     ->middleware(['auth']);
 
+
+// BL Clients Routes
+Route::resource('bl-clients', BLClientController::class)->middleware(['auth']);
 
 Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');

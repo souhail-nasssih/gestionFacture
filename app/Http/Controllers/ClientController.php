@@ -14,7 +14,7 @@ class ClientController extends Controller
     {
         //
         $clients = Client::paginate(10);
-        return inertia('Client/Client', [
+        return inertia('Client/index', [
             'clients' => $clients,
         ]);
     }

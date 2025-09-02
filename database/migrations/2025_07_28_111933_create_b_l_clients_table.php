@@ -6,22 +6,32 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
-    public function up(): void
+    public function up()
     {
-        Schema::create('b_l_clients', function (Blueprint $table) {
+        Schema::create('bl_clients', function (Blueprint $table) {
             $table->id();
+            $table->string('numero_bl')->unique();
+            $table->date('date_bl');
+            $table->foreignId('client_id')->constrained()->onDelete('cascade');
+            $table->text('notes')->nullable();
+            $table->enum('statut', ['brouillon', 'validé', 'livré', 'facturé'])->default('brouillon');
+            $table->timestamps();
+        });
+
+        Schema::create('bl_client_details', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('bl_client_id')->constrained()->onDelete('cascade');
+            $table->foreignId('produit_id')->constrained()->onDelete('cascade');
+            $table->integer('quantite');
+            $table->decimal('prix_unitaire', 10, 2);
+            $table->decimal('montant', 10, 2);
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
-    public function down(): void
+    public function down()
     {
-        Schema::dropIfExists('b_l_clients');
+        Schema::dropIfExists('bl_client_details');
+        Schema::dropIfExists('bl_clients');
     }
 };
