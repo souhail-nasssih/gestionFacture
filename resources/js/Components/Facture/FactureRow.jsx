@@ -1,4 +1,4 @@
-import { Eye, Edit2, Trash2, ChevronDown, ChevronRight } from "lucide-react";
+import { Eye, Edit2, Trash2, ChevronDown, ChevronRight, Printer } from "lucide-react";
 import { useState } from "react";
 
 export default function FactureRow({
@@ -16,6 +16,12 @@ export default function FactureRow({
         } else {
             setLocalExpanded(!localExpanded);
         }
+    };
+
+    const handlePrint = () => {
+        // Ouvrir la facture dans un nouvel onglet pour l'impression
+        const printUrl = `/facture-fournisseurs/${item.id}/print`;
+        window.open(printUrl, '_blank');
     };
 
     const expanded = onToggleExpand ? isExpanded : localExpanded;
@@ -94,6 +100,13 @@ export default function FactureRow({
                             title="Supprimer cette facture"
                         >
                             <Trash2 className="h-5 w-5" />
+                        </button>
+                        <button
+                            onClick={handlePrint}
+                            className="p-1.5 text-purple-600 hover:text-purple-900 dark:text-purple-400 dark:hover:text-purple-300 hover:bg-purple-100 dark:hover:bg-purple-900 rounded-md transition-colors"
+                            title="Imprimer cette facture"
+                        >
+                            <Printer className="h-5 w-5" />
                         </button>
                     </div>
                 </td>

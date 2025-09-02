@@ -79,11 +79,15 @@ Route::resource(('facture-fournisseurs'), FactureFournisseurController::class)->
 
 Route::get('/bl-fournisseurs/{fournisseur}', [FactureFournisseurController::class, 'getBLByFournisseur'])->name('api.bl-fournisseurs.by-fournisseur');
 
+// Route pour l'impression des factures fournisseurs
+Route::get('/facture-fournisseurs/{factureFournisseur}/print', [FactureFournisseurController::class, 'print'])
+    ->name('facture-fournisseurs.print')
+    ->middleware(['auth']);
 
-
-
-
-
+// Route pour l'impression des factures clients
+Route::get('/facture-clients/{factureClient}/print', [FactureClientController::class, 'print'])
+    ->name('facture-clients.print')
+    ->middleware(['auth']);
 
 
 Route::get('/dashboard', function () {

@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Facture Fournisseur</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 0;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            color: #000;
+        }
+        .invoice-container {
+            max-width: 800px;
+            margin: 0 auto;
+            border: 1px solid #ddd;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .company-name {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .invoice-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .client-info {
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f5f5f5;
+        }
+        .text-right {
+            text-align: right;
+        }
+        .total-section {
+            margin-left: auto;
+            width: 300px;
+        }
+        .total-line {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+        .signature-section {
+            margin-top: 50px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .signature-line {
+            border-top: 1px solid #000;
+            width: 200px;
+            padding-top: 5px;
+            text-align: center;
+        }
+        @media print {
+            body {
+                padding: 0;
+            }
+            .invoice-container {
+                border: none;
+                padding: 0;
+            }
+            .no-print {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="invoice-container">
+        <!-- En-tête -->
+        <div class="header">
+            <div class="company-name">FINDUCARR</div>
+            <div>FOURNITURE INDUSTRIELLE ET CARROSSERIES</div>
+        </div>
+
+        <!-- Informations de facture -->
+        <div class="invoice-info">
+            <div>
+                <div><strong>Facture N°:</strong> {{ $facture->numero_facture }}</div>
+                <div><strong>Date de Facture:</strong> {{ \Carbon\Carbon::parse($facture->date_facture)->format('d/m/Y') }}</div>
+            </div>
+            <div>
+                <div><strong>Date d'Échéance:</strong> {{ \Carbon\Carbon::parse($facture->date_facture)->addDays(30)->format('d/m/Y') }}</div>
+                <div><strong>Modalité de Paiement:</strong> Chèque ou Espèce</div>
+            </div>
+        </div>
+
+        <!-- Informations du fournisseur -->
+        <div class="client-info">
+            <div><strong>Société:</strong> {{ $facture->fournisseur->nom }}</div>
+            <div><strong>Adresse:</strong> {{ $facture->fournisseur->adresse }}</div>
+            <div><strong>Téléphone:</strong> {{ $facture->fournisseur->telephone }}</div>
+            <div><strong>Email:</strong> {{ $facture->fournisseur->email }}</div>
+        </div>
+
+        <!-- Tableau des articles -->
+        <table>
+            <thead>
+                <tr>
+                    <th>Référence</th>
+                    <th>Description</th>
+                    <th>Quantité</th>
+                    <th>Prix Unitaire</th>
+                    <th>Montant HT</th>
+                    <th>TVA</th>
+                    <th>Montant TTC</th>
+                </tr>
+            </thead>
+            <tbody>
+                @php
+                    $totalHT = 0;
+                    $totalTVA = 0;
+                    $totalTTC = 0;
+                @endphp
+
+                @foreach($facture->bonsLivraison as $bl)
+                    @foreach($bl->details as $detail)
+                        @php
+                            $montantHT = $detail->quantite * $detail->prix_unitaire;
+                            $tva = $montantHT * 0.2; // Supposons un taux de TVA de 20%
+                            $montantTTC = $montantHT + $tva;
+
+                            $totalHT += $montantHT;
+                            $totalTVA += $tva;
+                            $totalTTC += $montantTTC;
+                        @endphp
+                        <tr>
+                            <td>{{ $detail->produit->reference ?? 'N/A' }}</td>
+                            <td>{{ $detail->produit->designation ?? $detail->description }}</td>
+                            <td>{{ $detail->quantite }}</td>
+                            <td>{{ number_format($detail->prix_unitaire, 2, ',', ' ') }} DH</td>
+                            <td>{{ number_format($montantHT, 2, ',', ' ') }} DH</td>
+                            <td>20%</td>
+                            <td>{{ number_format($montantTTC, 2, ',', ' ') }} DH</td>
+                        </tr>
+                    @endforeach
+                @endforeach
+            </tbody>
+        </table>
+
+        <!-- Section totale -->
+        <div class="total-section">
+            <div class="total-line">
+                <span>Total HT:</span>
+                <span>{{ number_format($totalHT, 2, ',', ' ') }} DH</span>
+            </div>
+            <div class="total-line">
+                <span>TVA (20%):</span>
+                <span>{{ number_format($totalTVA, 2, ',', ' ') }} DH</span>
+            </div>
+            <div class="total-line" style="font-weight: bold;">
+                <span>Total TTC:</span>
+                <span>{{ number_format($totalTTC, 2, ',', ' ') }} DH</span>
+            </div>
+        </div>
+
+        <!-- Montant en lettres -->
+        <div style="margin-top: 20px;">
+            <strong>Arrêtée la présente facture à la somme de:</strong><br>
+            {{ ucfirst(\App\Helpers\NumberToWords::french($totalTTC)) }} DIRHAMS
+        </div>
+
+
+        <!-- Bouton d'impression (ne s'imprime pas) -->
+        <div class="no-print" style="margin-top: 30px; text-align: center;">
+            <button onclick="window.print()" style="padding: 10px 20px; background-color: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                Imprimer la Facture
+            </button>
+        </div>
+    </div>
+</body>
+</html>

@@ -105,56 +105,56 @@ class FactureFournisseurController extends Controller
     /**
      * Update the specified resource in storage.
      */
-/**
- * Update the specified resource in storage.
- */
-public function update(Request $request, FactureFournisseur $factureFournisseur)
-{
-    $validated = $request->validate([
-        'fournisseur_id' => 'required|exists:fournisseurs,id',
-        'numero_facture' => 'required|string|unique:facture_fournisseurs,numero_facture,' . $factureFournisseur->id,
-        'date_facture' => 'required|date',
-        'montant_total' => 'required|numeric',
-        'blFournisseurs' => 'required|array|min:1',
-        'blFournisseurs.*' => 'exists:b_l_fournisseurs,id',
-        'bls_to_remove' => 'sometimes|array',
-        'bls_to_remove.*' => 'exists:b_l_fournisseurs,id',
-    ]);
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, FactureFournisseur $factureFournisseur)
+    {
+        $validated = $request->validate([
+            'fournisseur_id' => 'required|exists:fournisseurs,id',
+            'numero_facture' => 'required|string|unique:facture_fournisseurs,numero_facture,' . $factureFournisseur->id,
+            'date_facture' => 'required|date',
+            'montant_total' => 'required|numeric',
+            'blFournisseurs' => 'required|array|min:1',
+            'blFournisseurs.*' => 'exists:b_l_fournisseurs,id',
+            'bls_to_remove' => 'sometimes|array',
+            'bls_to_remove.*' => 'exists:b_l_fournisseurs,id',
+        ]);
 
-    // Update the facture
-    $factureFournisseur->update([
-        'fournisseur_id' => $validated['fournisseur_id'],
-        'numero_facture' => $validated['numero_facture'],
-        'date_facture' => $validated['date_facture'],
-        'montant_total' => $validated['montant_total'],
-    ]);
+        // Update the facture
+        $factureFournisseur->update([
+            'fournisseur_id' => $validated['fournisseur_id'],
+            'numero_facture' => $validated['numero_facture'],
+            'date_facture' => $validated['date_facture'],
+            'montant_total' => $validated['montant_total'],
+        ]);
 
-    // Handle BLs to remove (disassociate only the ones marked for removal)
-    if (!empty($validated['bls_to_remove'])) {
-        DB::table('b_l_fournisseurs')
-            ->whereIn('id', $validated['bls_to_remove'])
-            ->update(['facture_fournisseur_id' => null]);
+        // Handle BLs to remove (disassociate only the ones marked for removal)
+        if (!empty($validated['bls_to_remove'])) {
+            DB::table('b_l_fournisseurs')
+                ->whereIn('id', $validated['bls_to_remove'])
+                ->update(['facture_fournisseur_id' => null]);
+        }
+
+        // Get current BLs associated with this facture
+        $currentBLs = DB::table('b_l_fournisseurs')
+            ->where('facture_fournisseur_id', $factureFournisseur->id)
+            ->pluck('id')
+            ->toArray();
+
+        // Identify BLs that need to be added (are in the new list but not currently associated)
+        $blsToAdd = array_diff($validated['blFournisseurs'], $currentBLs);
+
+        // Associate new BLs (only the ones that aren't already associated)
+        if (!empty($blsToAdd)) {
+            DB::table('b_l_fournisseurs')
+                ->whereIn('id', $blsToAdd)
+                ->update(['facture_fournisseur_id' => $factureFournisseur->id]);
+        }
+
+        return redirect()->route('facture-fournisseurs.index')
+            ->with('success', 'Facture fournisseur modifiée avec succès.');
     }
-
-    // Get current BLs associated with this facture
-    $currentBLs = DB::table('b_l_fournisseurs')
-        ->where('facture_fournisseur_id', $factureFournisseur->id)
-        ->pluck('id')
-        ->toArray();
-
-    // Identify BLs that need to be added (are in the new list but not currently associated)
-    $blsToAdd = array_diff($validated['blFournisseurs'], $currentBLs);
-
-    // Associate new BLs (only the ones that aren't already associated)
-    if (!empty($blsToAdd)) {
-        DB::table('b_l_fournisseurs')
-            ->whereIn('id', $blsToAdd)
-            ->update(['facture_fournisseur_id' => $factureFournisseur->id]);
-    }
-
-    return redirect()->route('facture-fournisseurs.index')
-        ->with('success', 'Facture fournisseur modifiée avec succès.');
-}
     /**
      * Remove the specified resource from storage.
      */
@@ -171,7 +171,15 @@ public function update(Request $request, FactureFournisseur $factureFournisseur)
         return back()->with('success', 'Facture fournisseur supprimée avec succès.');
     }
 
+    public function print(FactureFournisseur $factureFournisseur)
+    {
+        $facture = $factureFournisseur->load([
+            'fournisseur',
+            'bonsLivraison.details.produit'
+        ]);
 
+        return view('factures.print-new', compact('facture'));
+    }
 
 
 }

@@ -62,4 +62,17 @@ class FactureClientController extends Controller
     {
         //
     }
+
+    /**
+     * Print the specified invoice.
+     */
+    public function print(FactureClient $factureClient)
+    {
+        $facture = $factureClient->load([
+            'client',
+            'bonsLivraison.details.produit'
+        ]);
+
+        return view('factures.print-client', compact('facture'));
+    }
 }
