@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\BLFournisseurController;
 use App\Http\Controllers\ClientController;
+use App\Http\Controllers\FactureClientController;
 use App\Http\Controllers\FactureFournisseurController;
 use App\Http\Controllers\FournisseurController;
 use App\Http\Controllers\ProduitController;
