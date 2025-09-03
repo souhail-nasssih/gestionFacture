@@ -99,6 +99,11 @@ class BLFournisseurController extends Controller
                     'prix_unitaire' => $detail['prix_unitaire'],
                     'montant_bl' => $detail['quantite'] * $detail['prix_unitaire'],
                 ]);
+                // Augmenter le stock du produit
+                $produit = Produit::find($detail['produit_id']);
+                if ($produit) {
+                    $produit->increment('stock', $detail['quantite']);
+                }
                 $detailsCreated[] = $detailCreated;
             }
 
@@ -157,7 +162,6 @@ class BLFournisseurController extends Controller
 
     public function update(Request $request, BLFournisseur $bl_fournisseur)
     {
-        // dd($request->all());
         DB::beginTransaction();
 
         try {
@@ -199,6 +203,27 @@ class BLFournisseurController extends Controller
                 throw new \Exception('Un même produit ne peut pas être ajouté plusieurs fois.');
             }
 
+            // Récupérer les anciens détails avant de les supprimer
+            $oldDetails = $bl_fournisseur->details;
+
+            // Calculer la différence de stock pour chaque produit
+            $stockChanges = [];
+
+            // Initialiser avec les anciennes quantités (négatives car on va les retirer)
+            foreach ($oldDetails as $oldDetail) {
+                $produitId = $oldDetail->produit_id;
+                $stockChanges[$produitId] = -$oldDetail->quantite;
+            }
+
+            // Ajouter les nouvelles quantités (positives car on va les ajouter)
+            foreach ($validated['details'] as $detail) {
+                $produitId = $detail['produit_id'];
+                if (!isset($stockChanges[$produitId])) {
+                    $stockChanges[$produitId] = 0;
+                }
+                $stockChanges[$produitId] += $detail['quantite'];
+            }
+
             // Update du BL Fournisseur
             $bl_fournisseur->update([
                 'fournisseur_id' => $validated['fournisseur_id'],
@@ -222,13 +247,27 @@ class BLFournisseurController extends Controller
                 $detailsCreated[] = $detailCreated;
             }
 
+            // Mettre à jour les stocks en fonction des changements calculés
+            foreach ($stockChanges as $produitId => $change) {
+                $produit = Produit::find($produitId);
+                if ($produit) {
+                    if ($change > 0) {
+                        $produit->increment('stock', $change);
+                    } elseif ($change < 0) {
+                        $produit->decrement('stock', abs($change));
+                    }
+                    // Si $change == 0, pas de modification nécessaire
+                }
+            }
+
             DB::commit();
 
             \Log::info('BL Fournisseur mis à jour', [
                 'bl_id' => $bl_fournisseur->id,
                 'numero_bl' => $bl_fournisseur->numero_bl,
                 'nb_details' => count($detailsCreated),
-                'total_montant' => collect($detailsCreated)->sum('montant_bl')
+                'total_montant' => collect($detailsCreated)->sum('montant_bl'),
+                'stock_changes' => $stockChanges
             ]);
 
             return redirect()->route('bl-fournisseurs.index')
@@ -236,7 +275,7 @@ class BLFournisseurController extends Controller
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             DB::rollBack();
-            throw $e; // Laisser Inertia ou Laravel gérer les erreurs de validation
+            throw $e;
         } catch (\Exception $e) {
             DB::rollBack();
             \Log::error('Erreur lors de la mise à jour du BL Fournisseur', [
@@ -246,8 +285,6 @@ class BLFournisseurController extends Controller
             return back()->withErrors(['general' => 'Erreur: ' . $e->getMessage()]);
         }
     }
-
-
 
 
 

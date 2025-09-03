@@ -219,6 +219,9 @@ export default function BLClientForm({
                                             Quantité
                                         </th>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                            Stock actuel
+                                        </th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                             Prix unitaire (DH)
                                         </th>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
@@ -265,6 +268,15 @@ export default function BLClientForm({
                                                         )
                                                     }
                                                 />
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                {detail.produit_id ? (
+                                                    <span className="inline-block px-2 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-800 border border-blue-300">
+                                                        {produits.find(p => p.id == detail.produit_id)?.stock ?? '-'}
+                                                    </span>
+                                                ) : (
+                                                    <span className="text-xs text-gray-400">-</span>
+                                                )}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <Input

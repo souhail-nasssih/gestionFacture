@@ -15,6 +15,7 @@ import {
     ClipboardList,
     Settings,
     ClipboardCheck,
+    CalendarClock,
 } from "lucide-react";
 import ThemeToggle from "@/Components/ThemeToggle";
 
@@ -48,6 +49,7 @@ export default function AuthenticatedLayout({ header, children }) {
         { name: "Factures Clients", href: "#", icon: ReceiptText },
         { name: "BL Fournisseurs", href: route("bl-fournisseurs.index"), icon: ClipboardList },
         { name: "BL Clients", href: route("bl-clients.index"), icon: ClipboardCheck },
+        { name: "Échéancier", href: "/echeancier", icon: CalendarClock },
         { name: "Settings", href: "#", icon: Settings },
     ];
 

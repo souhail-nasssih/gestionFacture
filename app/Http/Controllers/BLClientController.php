@@ -73,6 +73,8 @@ class BLClientController extends Controller
                     'quantite' => $detail['quantite'],
                     'prix_unitaire' => $detail['prix_unitaire'],
                 ]);
+                // Diminuer le stock du produit
+                $produit->decrement('stock', $detail['quantite']);
             }
 
             DB::commit();
@@ -133,23 +135,31 @@ class BLClientController extends Controller
                 'numero_bl', 'date_bl', 'client_id', 'notes'
             ]));
 
-            // Delete existing details
+            // Réajuster le stock : ré-augmenter le stock pour chaque ancien détail
+            foreach ($bl_client->details as $oldDetail) {
+                $produit = Produit::find($oldDetail->produit_id);
+                if ($produit) {
+                    $produit->increment('stock', $oldDetail->quantite);
+                }
+            }
+
+            // Supprimer les anciens détails
             $bl_client->details()->delete();
 
-            // Create new details
+            // Créer les nouveaux détails et décrémenter le stock
             foreach ($request->details as $detail) {
                 $produit = Produit::find($detail['produit_id']);
-
-                // Check stock availability
+                // Vérifier le stock disponible
                 if ($produit->stock < $detail['quantite']) {
                     throw new \Exception("Stock insuffisant pour le produit: {$produit->nom}. Stock disponible: {$produit->stock}");
                 }
-
                 $bl_client->details()->create([
                     'produit_id' => $detail['produit_id'],
                     'quantite' => $detail['quantite'],
                     'prix_unitaire' => $detail['prix_unitaire'],
                 ]);
+                // Décrémenter le stock
+                $produit->decrement('stock', $detail['quantite']);
             }
 
             DB::commit();

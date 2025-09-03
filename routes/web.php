@@ -106,3 +106,12 @@ Route::middleware('auth')->group(function () {
 });
 
 require __DIR__ . '/auth.php';
+
+Route::get('/echeancier', function () {
+    return inertia('Echeancier');
+})->middleware(['auth', 'verified']);
+
+Route::get('/reglements', [\App\Http\Controllers\ReglementController::class, 'index'])->middleware(['auth', 'verified']);
+Route::post('/reglements', [\App\Http\Controllers\ReglementController::class, 'store'])->middleware(['auth', 'verified']);
+Route::put('/reglements/{reglement}', [\App\Http\Controllers\ReglementController::class, 'update'])->middleware(['auth', 'verified']);
+Route::delete('/reglements/{reglement}', [\App\Http\Controllers\ReglementController::class, 'destroy'])->middleware(['auth', 'verified']);
