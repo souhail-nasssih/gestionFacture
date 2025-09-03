@@ -206,22 +206,25 @@ class BLFournisseurController extends Controller
             // Récupérer les anciens détails avant de les supprimer
             $oldDetails = $bl_fournisseur->details;
 
-            // Calculer la différence de stock pour chaque produit
-            $stockChanges = [];
+            // Créer un tableau pour suivre les changements de quantité par produit
+            $stockAdjustments = [];
 
-            // Initialiser avec les anciennes quantités (négatives car on va les retirer)
+            // 1. Pour chaque ancien détail, diminuer le stock (car on va supprimer ces quantités)
             foreach ($oldDetails as $oldDetail) {
                 $produitId = $oldDetail->produit_id;
-                $stockChanges[$produitId] = -$oldDetail->quantite;
+                if (!isset($stockAdjustments[$produitId])) {
+                    $stockAdjustments[$produitId] = 0;
+                }
+                $stockAdjustments[$produitId] -= $oldDetail->quantite;
             }
 
-            // Ajouter les nouvelles quantités (positives car on va les ajouter)
+            // 2. Pour chaque nouveau détail, augmenter le stock (car on va ajouter ces quantités)
             foreach ($validated['details'] as $detail) {
                 $produitId = $detail['produit_id'];
-                if (!isset($stockChanges[$produitId])) {
-                    $stockChanges[$produitId] = 0;
+                if (!isset($stockAdjustments[$produitId])) {
+                    $stockAdjustments[$produitId] = 0;
                 }
-                $stockChanges[$produitId] += $detail['quantite'];
+                $stockAdjustments[$produitId] += $detail['quantite'];
             }
 
             // Update du BL Fournisseur
@@ -247,16 +250,16 @@ class BLFournisseurController extends Controller
                 $detailsCreated[] = $detailCreated;
             }
 
-            // Mettre à jour les stocks en fonction des changements calculés
-            foreach ($stockChanges as $produitId => $change) {
+            // 3. Appliquer les ajustements de stock
+            foreach ($stockAdjustments as $produitId => $adjustment) {
                 $produit = Produit::find($produitId);
                 if ($produit) {
-                    if ($change > 0) {
-                        $produit->increment('stock', $change);
-                    } elseif ($change < 0) {
-                        $produit->decrement('stock', abs($change));
+                    if ($adjustment > 0) {
+                        $produit->increment('stock', $adjustment);
+                    } elseif ($adjustment < 0) {
+                        $produit->decrement('stock', abs($adjustment));
                     }
-                    // Si $change == 0, pas de modification nécessaire
+                    // Si adjustment = 0, pas de changement nécessaire
                 }
             }
 
@@ -267,7 +270,7 @@ class BLFournisseurController extends Controller
                 'numero_bl' => $bl_fournisseur->numero_bl,
                 'nb_details' => count($detailsCreated),
                 'total_montant' => collect($detailsCreated)->sum('montant_bl'),
-                'stock_changes' => $stockChanges
+                'stock_adjustments' => $stockAdjustments
             ]);
 
             return redirect()->route('bl-fournisseurs.index')
