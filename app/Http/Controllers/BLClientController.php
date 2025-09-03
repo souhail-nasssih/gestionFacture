@@ -54,9 +54,11 @@ class BLClientController extends Controller
         try {
             DB::beginTransaction();
 
-            $bl_client = BLClient::create($request->only([
-                'numero_bl', 'date_bl', 'client_id', 'notes'
-            ]));
+            $data = $request->only(['numero_bl', 'date_bl', 'client_id', 'notes']);
+            if (empty($data['numero_bl'])) {
+                unset($data['numero_bl']);
+            }
+            $bl_client = BLClient::create($data);
 
             foreach ($request->details as $detail) {
                 $produit = Produit::find($detail['produit_id']);

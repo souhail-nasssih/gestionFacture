@@ -69,7 +69,7 @@ const BLClientTable = ({ blClients, onEdit, onDelete }) => {
                     {item.details
                         ?.reduce(
                             (sum, detail) =>
-                                sum + detail.quantite * detail.prix_unitaire,
+                                sum + parseFloat(detail.montant || 0),
                             0
                         )
                         .toFixed(2)}{" "}
@@ -150,7 +150,7 @@ const BLClientTable = ({ blClients, onEdit, onDelete }) => {
                                                     {detail.prix_unitaire} DH
                                                 </td>
                                                 <td className="px-4 py-2 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
-                                                    {(detail.quantite * detail.prix_unitaire).toFixed(2)} DH
+                                                    {parseFloat(detail.montant || 0).toFixed(2)} DH
                                                 </td>
                                             </tr>
                                         ))}
@@ -164,7 +164,7 @@ const BLClientTable = ({ blClients, onEdit, onDelete }) => {
                                                 {item.details
                                                     .reduce(
                                                         (sum, detail) =>
-                                                            sum + detail.quantite * detail.prix_unitaire,
+                                                            sum + parseFloat(detail.montant || 0),
                                                         0
                                                     )
                                                     .toFixed(2)} DH

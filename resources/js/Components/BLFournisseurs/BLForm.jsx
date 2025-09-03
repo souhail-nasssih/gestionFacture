@@ -49,17 +49,20 @@ export default function BLForm({
 
         if (isEditing) {
             put(route("bl-fournisseurs.update", editingBl.id), {
-                data: submissionData,
-                preserveScroll: true,
-                onSuccess: () => onCancel(),
-            });
-        } else {
-            post(route("bl-fournisseurs.store"), {
-                data: submissionData,
+                ...submissionData,
                 preserveScroll: true,
                 onSuccess: () => {
                     reset();
-                    onCancel();
+                    onCancel(); // Fermer le formulaire après modification réussie
+                },
+            });
+        } else {
+            post(route("bl-fournisseurs.store"), {
+                ...submissionData,
+                preserveScroll: true,
+                onSuccess: () => {
+                    reset();
+                    onCancel(); // Fermer le formulaire après ajout réussi
                 },
             });
         }

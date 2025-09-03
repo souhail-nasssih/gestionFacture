@@ -43,6 +43,13 @@ export default function Index({
         setShowDeleteModal(true);
     };
 
+    const handleFormSuccess = () => {
+        setShowForm(false);
+        setIsEditing(false);
+        setEditingBlId(null);
+        setSelectedBlClient(null);
+    };
+
     return (
         <AuthenticatedLayout>
             <div className="py-6 px-4 sm:px-0">
@@ -99,6 +106,7 @@ export default function Index({
                             isEditing={isEditing}
                             editingBl={selectedBlClient}
                             onCancel={handleCancelForm}
+                            onSuccess={handleFormSuccess}
                         />
                     )}
 

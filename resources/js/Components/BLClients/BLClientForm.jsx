@@ -9,7 +9,7 @@ export default function BLClientForm({
     produits,
     isEditing,
     editingBl,
-    onCancel,
+    onSuccess,
 }) {
     const { data, setData, post, put, processing, errors, reset } = useForm({
         numero_bl: "",
@@ -47,16 +47,19 @@ export default function BLClientForm({
         };
 
         if (isEditing) {
-            put(route("bl-clients.update", editingBl.id), submissionData, {
-                preserveScroll: true,
-                onSuccess: () => onCancel(),
-            });
-        } else {
-            post(route("bl-clients.store"), submissionData, {
-                preserveScroll: true,
+            put(route("bl-clients.update", editingBl.id), {
+                ...submissionData,
                 onSuccess: () => {
                     reset();
-                    onCancel();
+                    onSuccess(); // Fermer le formulaire après modification réussie
+                },
+            });
+        } else {
+            post(route("bl-clients.store"), {
+                ...submissionData,
+                onSuccess: () => {
+                    reset();
+                    onSuccess(); // Fermer le formulaire après ajout réussi
                 },
             });
         }
@@ -318,7 +321,7 @@ export default function BLClientForm({
                 <div className="flex justify-end space-x-3 pt-4">
                     <button
                         type="button"
-                        onClick={onCancel}
+                        onClick={onSuccess}
                         className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
                     >
                         Annuler

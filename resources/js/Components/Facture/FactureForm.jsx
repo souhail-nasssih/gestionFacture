@@ -130,10 +130,6 @@ export default function FactureForm({
     const handleSubmit = (e) => {
         e.preventDefault();
 
-        const url = isEditing
-            ? route("facture-fournisseurs.update", editingFactureId)
-            : route("facture-fournisseurs.store");
-
         // Préparer les données pour correspondre à la validation Laravel
         const formData = {
             numero_facture: data.numero_facture,
@@ -145,26 +141,30 @@ export default function FactureForm({
         };
 
         if (isEditing) {
-            put(url, formData, {
+            put(route("facture-fournisseurs.update", editingFactureId), {
+                ...formData,
+                preserveScroll: true,
                 onSuccess: () => {
                     reset();
                     setSelectedFournisseur(null);
                     setFilteredBlFournisseurs([]);
                     setSelectedBLs([]);
-                    onSuccess();
+                    onSuccess(); // Fermer le formulaire après modification réussie
                 },
                 onError: (errors) => {
                     console.error('Erreurs:', errors);
                 }
             });
         } else {
-            post(url, formData, {
+            post(route("facture-fournisseurs.store"), {
+                ...formData,
+                preserveScroll: true,
                 onSuccess: () => {
                     reset();
                     setSelectedFournisseur(null);
                     setFilteredBlFournisseurs([]);
                     setSelectedBLs([]);
-                    onSuccess();
+                    onSuccess(); // Fermer le formulaire après ajout réussi
                 },
                 onError: (errors) => {
                     console.error('Erreurs:', errors);
