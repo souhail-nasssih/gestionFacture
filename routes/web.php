@@ -91,6 +91,17 @@ Route::get('/facture-clients/{factureClient}/print', [FactureClientController::c
     ->name('facture-clients.print')
     ->middleware(['auth']);
 
+// Factures Clients Routes
+Route::resource(('facture-clients'), FactureClientController::class)->names([
+    'index' => 'facture-clients.index',
+    'create' => 'facture-clients.create',
+    'store' => 'facture-clients.store',
+    'show' => 'facture-clients.show',
+    'edit' => 'facture-clients.edit',
+    'update' => 'facture-clients.update',
+    'destroy' => 'facture-clients.destroy',
+])->middleware(['auth']);
+
 
 // BL Clients Routes
 Route::resource('bl-clients', BLClientController::class)->middleware(['auth']);

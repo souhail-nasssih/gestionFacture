@@ -46,7 +46,7 @@ export default function AuthenticatedLayout({ header, children }) {
         { name: "Fournisseurs", href: route("fournisseurs.index"), icon: Truck },
         { name: "Clients", href: route("clients.index"), icon: Users },
         { name: "Factures Fournisseurs", href: route("facture-fournisseurs.index"), icon: FileText },
-        { name: "Factures Clients", href: "#", icon: ReceiptText },
+        { name: "Factures Clients", href: route("facture-clients.index"), icon: ReceiptText },
         { name: "BL Fournisseurs", href: route("bl-fournisseurs.index"), icon: ClipboardList },
         { name: "BL Clients", href: route("bl-clients.index"), icon: ClipboardCheck },
         { name: "Échéancier", href: "/echeancier", icon: CalendarClock },

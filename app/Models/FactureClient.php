@@ -6,6 +6,24 @@ use Illuminate\Database\Eloquent\Model;
 
 class FactureClient extends Model
 {
+    protected $fillable = [
+        'client_id',
+        'numero_facture',
+        'date_facture',
+        'montant_total',
+        'statut_paiement',
+    ];
+
+    public function client()
+    {
+        return $this->belongsTo(Client::class);
+    }
+
+    public function bonsLivraison()
+    {
+        return $this->hasMany(BLClient::class, 'facture_client_id');
+    }
+
     public function reglements()
     {
         return $this->hasMany(Reglement::class, 'facture_id');

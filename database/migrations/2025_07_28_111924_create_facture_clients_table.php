@@ -13,6 +13,11 @@ return new class extends Migration
     {
         Schema::create('facture_clients', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('client_id')->constrained()->onDelete('cascade');
+            $table->string('numero_facture')->unique();
+            $table->date('date_facture');
+            $table->decimal('montant_total', 12, 2)->default(0);
+            $table->string('statut_paiement')->default('en_attente');
             $table->timestamps();
         });
     }
