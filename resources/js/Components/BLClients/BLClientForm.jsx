@@ -36,6 +36,7 @@ export default function BLClientForm({
 
     const handleSubmit = (e) => {
         e.preventDefault();
+        console.log('Submitting details:', data.details);
 
         const submissionData = {
             ...data,
@@ -66,6 +67,11 @@ export default function BLClientForm({
     };
 
     const addProduct = () => {
+        // Prevent adding a new row if there is already a row with empty produit_id
+        if (data.details.some((d) => !d.produit_id)) {
+            console.log('Cannot add: there is already a row with empty produit_id', data.details);
+            return;
+        }
         setData('details', [
             ...data.details,
             {
@@ -75,6 +81,7 @@ export default function BLClientForm({
                 montantBL: 0,
             },
         ]);
+        console.log('Added product row. Details:', [...data.details, {produit_id: "", quantite: 1, prix_unitaire: 0, montantBL: 0}]);
     };
 
     const removeProduct = (index) => {
@@ -238,19 +245,27 @@ export default function BLClientForm({
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <Select
                                                     value={detail.produit_id || ""}
-                                                    onChange={(e) =>
+                                                    onChange={(e) => {
+                                                        console.log('Changing produit_id for row', index, 'to', e.target.value);
                                                         updateProduct(
                                                             index,
                                                             "produit_id",
                                                             e.target.value
-                                                        )
-                                                    }
+                                                        );
+                                                    }}
                                                     options={[
                                                         { value: "", label: "Sélectionner un produit" },
-                                                        ...produits.map((p) => ({
-                                                            value: p.id,
-                                                            label: p.nom,
-                                                        })),
+                                                        ...produits.map((p) => {
+                                                            const isDisabled = data.details.some((d, i) => d.produit_id == p.id && i !== index);
+                                                            if (isDisabled) {
+                                                                console.log('Option disabled for produit_id', p.id, 'in row', index);
+                                                            }
+                                                            return {
+                                                                value: p.id,
+                                                                label: p.nom,
+                                                                disabled: isDisabled,
+                                                            };
+                                                        }),
                                                     ]}
                                                 />
                                             </td>

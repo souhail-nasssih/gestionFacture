@@ -34,4 +34,43 @@ class BLFournisseurDetail extends Model
     {
         return $this->belongsTo(Produit::class);
     }
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::saving(function ($detail) {
+            $detail->montant_bl = $detail->quantite * $detail->prix_unitaire;
+        });
+
+        static::created(function ($detail) {
+            $produit = $detail->produit;
+            if ($produit) {
+                $produit->increment('stock', $detail->quantite);
+            }
+        });
+
+        static::updated(function ($detail) {
+            $oldQuantite = $detail->getOriginal('quantite');
+            $newQuantite = $detail->quantite;
+            $difference = $newQuantite - $oldQuantite; // positive increases stock, negative decreases
+
+            $produit = $detail->produit;
+            if ($produit && $difference !== 0) {
+                if ($difference > 0) {
+                    $produit->increment('stock', $difference);
+                } else {
+                    $produit->decrement('stock', abs($difference));
+                }
+            }
+        });
+
+        static::deleted(function ($detail) {
+            $produit = $detail->produit;
+            if ($produit) {
+                // Deleting a supplier BL detail should remove the previously added stock
+                $produit->decrement('stock', $detail->quantite);
+            }
+        });
+    }
 }

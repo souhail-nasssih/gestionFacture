@@ -99,11 +99,6 @@ class BLFournisseurController extends Controller
                     'prix_unitaire' => $detail['prix_unitaire'],
                     'montant_bl' => $detail['quantite'] * $detail['prix_unitaire'],
                 ]);
-                // Augmenter le stock du produit
-                $produit = Produit::find($detail['produit_id']);
-                if ($produit) {
-                    $produit->increment('stock', $detail['quantite']);
-                }
                 $detailsCreated[] = $detailCreated;
             }
 
@@ -204,28 +199,7 @@ class BLFournisseurController extends Controller
             }
 
             // Récupérer les anciens détails avant de les supprimer
-            $oldDetails = $bl_fournisseur->details;
-
-            // Créer un tableau pour suivre les changements de quantité par produit
-            $stockAdjustments = [];
-
-            // 1. Pour chaque ancien détail, diminuer le stock (car on va supprimer ces quantités)
-            foreach ($oldDetails as $oldDetail) {
-                $produitId = $oldDetail->produit_id;
-                if (!isset($stockAdjustments[$produitId])) {
-                    $stockAdjustments[$produitId] = 0;
-                }
-                $stockAdjustments[$produitId] -= $oldDetail->quantite;
-            }
-
-            // 2. Pour chaque nouveau détail, augmenter le stock (car on va ajouter ces quantités)
-            foreach ($validated['details'] as $detail) {
-                $produitId = $detail['produit_id'];
-                if (!isset($stockAdjustments[$produitId])) {
-                    $stockAdjustments[$produitId] = 0;
-                }
-                $stockAdjustments[$produitId] += $detail['quantite'];
-            }
+            $oldDetails = $bl_fournisseur->details; // just to load if needed
 
             // Update du BL Fournisseur
             $bl_fournisseur->update([
@@ -235,7 +209,9 @@ class BLFournisseurController extends Controller
             ]);
 
             // Supprimer les anciens détails
-            $bl_fournisseur->details()->delete();
+            // Deleting old details will decrement stock accordingly via model event
+            // $bl_fournisseur->details()->delete();
+            $bl_fournisseur->details->each->delete();
 
             // Ajouter les nouveaux détails
             $detailsCreated = [];
@@ -250,19 +226,6 @@ class BLFournisseurController extends Controller
                 $detailsCreated[] = $detailCreated;
             }
 
-            // 3. Appliquer les ajustements de stock
-            foreach ($stockAdjustments as $produitId => $adjustment) {
-                $produit = Produit::find($produitId);
-                if ($produit) {
-                    if ($adjustment > 0) {
-                        $produit->increment('stock', $adjustment);
-                    } elseif ($adjustment < 0) {
-                        $produit->decrement('stock', abs($adjustment));
-                    }
-                    // Si adjustment = 0, pas de changement nécessaire
-                }
-            }
-
             DB::commit();
 
             \Log::info('BL Fournisseur mis à jour', [
@@ -270,7 +233,7 @@ class BLFournisseurController extends Controller
                 'numero_bl' => $bl_fournisseur->numero_bl,
                 'nb_details' => count($detailsCreated),
                 'total_montant' => collect($detailsCreated)->sum('montant_bl'),
-                'stock_adjustments' => $stockAdjustments
+                // 'stock_adjustments' => $stockAdjustments // Removed as per edit hint
             ]);
 
             return redirect()->route('bl-fournisseurs.index')
@@ -301,10 +264,10 @@ class BLFournisseurController extends Controller
         DB::beginTransaction();
 
         try {
-            // Supprimer d'abord les détails liés
-            $bl_fournisseur->details()->delete();
+            // Delete each detail individually to trigger model events (decrease stock)
+            $bl_fournisseur->details->each->delete();
 
-            // Supprimer le BL Fournisseur
+            // Delete the BL Fournisseur
             $bl_fournisseur->delete();
 
             DB::commit();

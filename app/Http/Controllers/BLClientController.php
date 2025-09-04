@@ -73,8 +73,6 @@ class BLClientController extends Controller
                     'quantite' => $detail['quantite'],
                     'prix_unitaire' => $detail['prix_unitaire'],
                 ]);
-                // Diminuer le stock du produit
-                $produit->decrement('stock', $detail['quantite']);
             }
 
             DB::commit();
@@ -131,66 +129,41 @@ class BLClientController extends Controller
     try {
         DB::beginTransaction();
 
-        // Mettre à jour les informations de base du BL
         $bl_client->update($request->only([
             'numero_bl', 'date_bl', 'client_id', 'notes'
         ]));
 
-        // Récupérer les anciens détails
-        $oldDetails = $bl_client->details;
+        $oldDetails = $bl_client->details->keyBy('produit_id');
+        $newDetails = collect($request->details)->keyBy('produit_id');
 
-        // Calculer les ajustements de stock nécessaires
-        $stockAdjustments = [];
-
-        // 1. Restaurer le stock des anciens produits (on va les supprimer)
-        foreach ($oldDetails as $oldDetail) {
-            $produitId = $oldDetail->produit_id;
-            if (!isset($stockAdjustments[$produitId])) {
-                $stockAdjustments[$produitId] = 0;
-            }
-            $stockAdjustments[$produitId] += $oldDetail->quantite; // On ajoute car on restaure le stock
-        }
-
-        // 2. Réserver le stock pour les nouveaux produits (on va les ajouter)
-        foreach ($request->details as $detail) {
-            $produitId = $detail['produit_id'];
-            if (!isset($stockAdjustments[$produitId])) {
-                $stockAdjustments[$produitId] = 0;
-            }
-            $stockAdjustments[$produitId] -= $detail['quantite']; // On soustrait car on va utiliser le stock
-
-            // Vérifier immédiatement si le stock est suffisant
-            $produit = Produit::find($produitId);
-            $currentStock = $produit->stock;
-            $adjustedStock = $currentStock + $stockAdjustments[$produitId];
-
-            if ($adjustedStock < 0) {
-                throw new \Exception("Stock insuffisant pour le produit: {$produit->nom}. Stock disponible: {$currentStock}, Quantité demandée: {$detail['quantite']}");
-            }
-        }
-
-        // 3. Appliquer les ajustements de stock
-        foreach ($stockAdjustments as $produitId => $adjustment) {
-            $produit = Produit::find($produitId);
-            if ($produit) {
-                if ($adjustment > 0) {
-                    $produit->increment('stock', $adjustment);
-                } elseif ($adjustment < 0) {
-                    $produit->decrement('stock', abs($adjustment));
+        // Update or create details
+        foreach ($newDetails as $produit_id => $detail) {
+            $existing = $oldDetails->get($produit_id);
+            if ($existing) {
+                // Update if changed
+                if (
+                    $existing->quantite != $detail['quantite'] ||
+                    $existing->prix_unitaire != $detail['prix_unitaire']
+                ) {
+                    $existing->update([
+                        'quantite' => $detail['quantite'],
+                        'prix_unitaire' => $detail['prix_unitaire'],
+                    ]);
                 }
+            } else {
+                // Create new detail
+                $bl_client->details()->create([
+                    'produit_id' => $detail['produit_id'],
+                    'quantite' => $detail['quantite'],
+                    'prix_unitaire' => $detail['prix_unitaire'],
+                ]);
             }
         }
 
-        // 4. Supprimer les anciens détails
-        $bl_client->details()->delete();
-
-        // 5. Créer les nouveaux détails
-        foreach ($request->details as $detail) {
-            $bl_client->details()->create([
-                'produit_id' => $detail['produit_id'],
-                'quantite' => $detail['quantite'],
-                'prix_unitaire' => $detail['prix_unitaire'],
-            ]);
+        // Delete removed details
+        $toDelete = $oldDetails->keys()->diff($newDetails->keys());
+        if ($toDelete->count()) {
+            $bl_client->details()->whereIn('produit_id', $toDelete)->delete();
         }
 
         DB::commit();
@@ -210,9 +183,11 @@ class BLClientController extends Controller
     {
         try {
             DB::beginTransaction();
-// dd($bl_client);
 
-            $bl_client->details()->delete();
+            // Delete each detail individually to trigger model events (restores stock)
+            $bl_client->details->each->delete();
+
+            // Delete the BL itself
             $bl_client->delete();
 
             DB::commit();
