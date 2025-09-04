@@ -173,10 +173,18 @@ class FactureFournisseurController extends Controller
 
     public function print(FactureFournisseur $factureFournisseur)
     {
-        $facture = $factureFournisseur->load([
-            'fournisseur',
-            'bonsLivraison.details.produit'
-        ]);
+        $facture = FactureFournisseur::select('id', 'fournisseur_id', 'numero_facture', 'date_facture', 'montant_total', 'created_at')
+            ->with([
+                'fournisseur:id,nom',
+                'bonsLivraison' => function ($q) {
+                    $q->select('id', 'numero_bl', 'date_bl', 'fournisseur_id', 'facture_fournisseur_id')
+                      ->with(['details' => function ($qd) {
+                          $qd->select('id', 'b_l_fournisseur_id', 'produit_id', 'quantite', 'prix_unitaire')
+                             ->with(['produit:id,nom']);
+                      }]);
+                }
+            ])
+            ->findOrFail($factureFournisseur->id);
 
         return view('factures.print-new', compact('facture'));
     }

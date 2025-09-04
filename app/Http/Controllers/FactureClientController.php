@@ -110,10 +110,18 @@ class FactureClientController extends Controller
 
     public function print(FactureClient $factureClient)
     {
-        $facture = $factureClient->load([
-            'client',
-            'bonsLivraison.details.produit'
-        ]);
+        $facture = FactureClient::select('id', 'client_id', 'numero_facture', 'date_facture', 'montant_total', 'created_at')
+            ->with([
+                'client:id,nom',
+                'bonsLivraison' => function ($q) {
+                    $q->select('id', 'numero_bl', 'date_bl', 'client_id', 'facture_client_id')
+                      ->with(['details' => function ($qd) {
+                          $qd->select('id', 'bl_client_id', 'produit_id', 'quantite', 'prix_unitaire')
+                             ->with(['produit:id,nom']);
+                      }]);
+                }
+            ])
+            ->findOrFail($factureClient->id);
 
         return view('factures.print-client', compact('facture'));
     }
