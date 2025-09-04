@@ -1,5 +1,5 @@
 import { useState } from "react";
-import FactureRow from "./FactureRow";
+import FactureClientRow from "./FactureClientRow";
 
 export default function FactureClientTable({ facturesClients, onEdit, onDelete }) {
     const [expandedRows, setExpandedRows] = useState(new Set());
@@ -77,7 +77,7 @@ export default function FactureClientTable({ facturesClients, onEdit, onDelete }
                     </thead>
                     <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                         {facturesClients.data.map((item) => (
-                            <FactureRow
+                            <FactureClientRow
                                 key={item.id}
                                 item={item}
                                 isExpanded={expandedRows.has(item.id)}
