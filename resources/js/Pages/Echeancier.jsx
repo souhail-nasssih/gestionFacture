@@ -17,37 +17,75 @@ export default function Echeancier() {
     return (
         <AuthenticatedLayout>
             <div className="py-6 px-4 sm:px-0">
-                <h2 className="text-2xl font-bold mb-6">Échéancier Client/Fournisseur</h2>
+                <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">
+                    Échéancier Client/Fournisseur
+                </h2>
                 {loading ? (
-                    <div>Chargement...</div>
+                    <div className="text-gray-900 dark:text-white">Chargement...</div>
                 ) : (
-                    <div className="overflow-x-auto">
-                        <table className="min-w-full divide-y divide-gray-200">
-                            <thead className="bg-gray-50">
+                    <div className="overflow-x-auto bg-white dark:bg-gray-800 shadow-sm sm:rounded-lg">
+                        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                            <thead className="bg-gray-50 dark:bg-gray-700">
                                 <tr>
-                                    <th className="px-4 py-2">N° Facture</th>
-                                    <th className="px-4 py-2">Nom Client</th>
-                                    <th className="px-4 py-2">Montant Facture</th>
-                                    <th className="px-4 py-2">Montant payé</th>
-                                    <th className="px-4 py-2">Reste à payer</th>
-                                    <th className="px-4 py-2">Mode paiement</th>
-                                    <th className="px-4 py-2">N° règlement</th>
-                                    <th className="px-4 py-2">Date règlement</th>
-                                    <th className="px-4 py-2">Statut</th>
+                                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                        N° Facture
+                                    </th>
+                                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                        Nom Client
+                                    </th>
+                                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                        Montant Facture
+                                    </th>
+                                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                        Montant payé
+                                    </th>
+                                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                        Reste à payer
+                                    </th>
+                                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                        Mode paiement
+                                    </th>
+                                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                        N° règlement
+                                    </th>
+                                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                        Date règlement
+                                    </th>
+                                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                        Statut
+                                    </th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                                 {reglements.map((r) => (
-                                    <tr key={r.id} className="border-b">
-                                        <td className="px-4 py-2">{r.facture?.numero_facture || '-'}</td>
-                                        <td className="px-4 py-2">{r.facture?.client?.nom || '-'}</td>
-                                        <td className="px-4 py-2">{r.facture?.montant_total || '-'}</td>
-                                        <td className="px-4 py-2">{r.montant}</td>
-                                        <td className="px-4 py-2">{r.facture?.reste_a_payer ?? '-'}</td>
-                                        <td className="px-4 py-2">{r.mode_paiement}</td>
-                                        <td className="px-4 py-2">{r.numero_reglement}</td>
-                                        <td className="px-4 py-2">{r.date_reglement}</td>
-                                        <td className="px-4 py-2">{r.facture?.statut_echeance || '-'}</td>
+                                    <tr key={r.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                                        <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                            {r.facture?.numero_facture || '-'}
+                                        </td>
+                                        <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                            {r.facture?.client?.nom || '-'}
+                                        </td>
+                                        <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                            {r.facture?.montant_total || '-'}
+                                        </td>
+                                        <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                            {r.montant}
+                                        </td>
+                                        <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                            {r.facture?.reste_a_payer ?? '-'}
+                                        </td>
+                                        <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                            {r.mode_paiement}
+                                        </td>
+                                        <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                            {r.numero_reglement}
+                                        </td>
+                                        <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                            {r.date_reglement}
+                                        </td>
+                                        <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                            {r.facture?.statut_echeance || '-'}
+                                        </td>
                                     </tr>
                                 ))}
                             </tbody>
