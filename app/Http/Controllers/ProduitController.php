@@ -96,4 +96,19 @@ class ProduitController extends Controller
         // Rediriger ou retourner une réponse
         return redirect()->back()->with('success', 'Produit supprimé avec succès.');
     }
+
+    public function historique($id)
+    {
+        $produit = Produit::with([
+            'historiqueAchats.bonLivraison.fournisseur'
+        ])->findOrFail($id);
+        // dd($produit->historiqueAchats);
+        return inertia('Produits/Historique', [
+            'produit' => $produit,
+            'historique' => $produit->historiqueAchats,
+        ]);
+    }
+
+
+
 }

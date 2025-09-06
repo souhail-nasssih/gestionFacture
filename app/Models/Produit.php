@@ -16,10 +16,10 @@ class Produit extends Model
         'unite'
     ];
     protected $casts = [
-    'prix_achat' => 'float',
-    'prix_vente' => 'float',
-    'stock' => 'integer',
-];
+        'prix_achat' => 'float',
+        'prix_vente' => 'float',
+        'stock' => 'integer',
+    ];
 
     public function blFournisseurDetails()
     {
@@ -41,4 +41,13 @@ class Produit extends Model
     {
         return $query->whereColumn('stock', '<=', 'seuil_alerte');
     }
+
+    public function historiqueAchats()
+    {
+        return $this->hasMany(BLFournisseurDetail::class, 'produit_id', 'id')
+            ->with(['bonLivraison.fournisseur']);
+    }
+
+
+
 }

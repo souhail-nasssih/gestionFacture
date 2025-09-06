@@ -126,3 +126,6 @@ Route::get('/reglements', [\App\Http\Controllers\ReglementController::class, 'in
 Route::post('/reglements', [\App\Http\Controllers\ReglementController::class, 'store'])->middleware(['auth', 'verified']);
 Route::put('/reglements/{reglement}', [\App\Http\Controllers\ReglementController::class, 'update'])->middleware(['auth', 'verified']);
 Route::delete('/reglements/{reglement}', [\App\Http\Controllers\ReglementController::class, 'destroy'])->middleware(['auth', 'verified']);
+
+Route::get('/produits/{id}/historique', [ProduitController::class, 'historique'])
+    ->name('produits.historique');

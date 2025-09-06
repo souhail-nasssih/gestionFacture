@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "@inertiajs/react";
-import { Edit, Trash2, Plus, X, PlusCircle } from "lucide-react";
+import { Edit, Trash2, Plus, X, PlusCircle, History } from "lucide-react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import FormBuilder from "@/Components/ui/FormBuilder";
 import DataTable from "@/Components/ui/DataTable";
@@ -163,6 +163,12 @@ export default function Produits({ produits }) {
                     >
                         <Trash2 className="h-5 w-5" />
                     </button>
+                    <Link
+                        href={route("produits.historique", item.id)}
+                        className="p-1 text-purple-600 hover:text-purple-900 dark:text-purple-400 dark:hover:text-purple-300"
+                    >
+                        <History className="h-5 w-5" />
+                    </Link>
                 </div>
             ),
         },

@@ -24,8 +24,9 @@ class BLFournisseurDetail extends Model
      */
     public function bonLivraison()
     {
-        return $this->belongsTo(BLFournisseur::class, 'b_l_fournisseur_id');
+        return $this->belongsTo(BLFournisseur::class, 'b_l_fournisseur_id', 'id');
     }
+
 
     /**
      * Produit lié à la ligne
