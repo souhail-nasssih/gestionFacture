@@ -129,3 +129,11 @@ Route::delete('/reglements/{reglement}', [\App\Http\Controllers\ReglementControl
 
 Route::get('/produits/{id}/historique', [ProduitController::class, 'historique'])
     ->name('produits.historique');
+
+Route::get('/produits/{id}/qmup', [ProduitController::class, 'qmup'])
+    ->name('produits.qmup')
+    ->middleware(['auth']);
+
+Route::post('/produits/initialize-prix-achat', [ProduitController::class, 'initializePrixAchat'])
+    ->name('produits.initialize-prix-achat')
+    ->middleware(['auth']);

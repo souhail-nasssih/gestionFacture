@@ -15,6 +15,12 @@ class ProduitController extends Controller
         // Paginer les produits par 10 (modifiable)
         $produits = Produit::paginate(10);
 
+        // Ajouter la QMUP calculée dynamiquement pour chaque produit
+        $produits->getCollection()->transform(function ($produit) {
+            $produit->qmup = $produit->calculerQMUP();
+            return $produit;
+        });
+
         // Retourner avec Inertia
         return inertia('Produits/Produits', [
             'produits' => $produits,
@@ -109,6 +115,44 @@ class ProduitController extends Controller
         ]);
     }
 
+    /**
+     * Calcule et retourne la QMUP (Quantité Moyenne Unitaire Pondérée) pour un produit.
+     * Calcul dynamique basé sur l'historique des achats.
+     */
+    public function qmup($id)
+    {
+        $produit = Produit::findOrFail($id);
+
+        // Calculer la QMUP dynamiquement
+        $qmup = $produit->calculerQMUP();
+
+        return response()->json([
+            'produit_id' => $produit->id,
+            'produit_nom' => $produit->nom,
+            'qmup' => round($qmup, 2), // Arrondir à 2 décimales
+            'message' => $qmup > 0 ? 'QMUP calculée avec succès' : 'Aucun achat trouvé pour ce produit'
+        ]);
+    }
+
+    /**
+     * Initialise le prix d'achat pour tous les produits basé sur leur dernier achat.
+     * Utile pour corriger les prix d'achat existants.
+     */
+    public function initializePrixAchat()
+    {
+        $produits = Produit::all();
+        $updated = 0;
+
+        foreach ($produits as $produit) {
+            $produit->updatePrixAchatFromLatestPurchase();
+            $updated++;
+        }
+
+        return response()->json([
+            'message' => "Prix d'achat initialisé pour {$updated} produits",
+            'updated_count' => $updated
+        ]);
+    }
 
 
 }

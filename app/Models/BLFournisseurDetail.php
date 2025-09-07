@@ -36,6 +36,22 @@ class BLFournisseurDetail extends Model
         return $this->belongsTo(Produit::class);
     }
 
+    /**
+     * Vérifie si cet achat était le plus récent pour le produit.
+     *
+     * @return bool
+     */
+    public function wasLatestPurchase()
+    {
+        $latestPurchase = $this->produit->blFournisseurDetails()
+            ->join('b_l_fournisseurs', 'b_l_fournisseur_details.b_l_fournisseur_id', '=', 'b_l_fournisseurs.id')
+            ->orderBy('b_l_fournisseurs.date_bl', 'desc')
+            ->orderBy('b_l_fournisseur_details.id', 'desc')
+            ->first();
+
+        return $latestPurchase && $latestPurchase->id === $this->id;
+    }
+
     protected static function boot()
     {
         parent::boot();
@@ -48,6 +64,9 @@ class BLFournisseurDetail extends Model
             $produit = $detail->produit;
             if ($produit) {
                 $produit->increment('stock', $detail->quantite);
+
+                // Mettre à jour le prix d'achat avec le prix unitaire du nouvel achat
+                $produit->update(['prix_achat' => $detail->prix_unitaire]);
             }
         });
 
@@ -64,6 +83,22 @@ class BLFournisseurDetail extends Model
                     $produit->decrement('stock', abs($difference));
                 }
             }
+
+            // Si le prix unitaire a changé, mettre à jour le prix d'achat
+            if ($produit && $detail->isDirty('prix_unitaire')) {
+                $produit->update(['prix_achat' => $detail->prix_unitaire]);
+            }
+        });
+
+        static::deleting(function ($detail) {
+            $produit = $detail->produit;
+            if ($produit) {
+                // Vérifier si l'achat à supprimer est le plus récent
+                $wasLatestPurchase = $detail->wasLatestPurchase();
+
+                // Stocker cette information pour l'utiliser après suppression
+                $detail->was_latest_purchase = $wasLatestPurchase;
+            }
         });
 
         static::deleted(function ($detail) {
@@ -71,6 +106,11 @@ class BLFournisseurDetail extends Model
             if ($produit) {
                 // Deleting a supplier BL detail should remove the previously added stock
                 $produit->decrement('stock', $detail->quantite);
+
+                // Si l'achat supprimé était le plus récent, recalculer le prix d'achat
+                if (isset($detail->was_latest_purchase) && $detail->was_latest_purchase) {
+                    $produit->updatePrixAchatFromLatestPurchase();
+                }
             }
         });
     }

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { Link } from "@inertiajs/react";
-import { Edit, Trash2, Plus, X, PlusCircle, History } from "lucide-react";
+import { Link, router } from "@inertiajs/react";
+import { Edit, Trash2, Plus, X, PlusCircle, History, Calculator } from "lucide-react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import FormBuilder from "@/Components/ui/FormBuilder";
 import DataTable from "@/Components/ui/DataTable";
@@ -11,9 +11,31 @@ export default function Produits({ produits }) {
     const [showForm, setShowForm] = useState(false);
     const [formValues, setFormValues] = useState(null); // Pour modifier un produit existant
     const [deleting, setDeleting] = useState(false);
+    const [qmupData, setQmupData] = useState({});
+    const [loadingQmup, setLoadingQmup] = useState({});
     const handleFormSuccess = () => {
         setFormValues(null); // Réinitialise les valeurs du formulaire
         setShowForm(false); // Ferme le formulaire
+    };
+
+    const fetchQmup = async (produitId) => {
+        if (loadingQmup[produitId]) return; // Éviter les appels multiples
+
+        setLoadingQmup(prev => ({ ...prev, [produitId]: true }));
+
+        try {
+            const response = await fetch(`/produits/${produitId}/qmup`);
+            const data = await response.json();
+
+            setQmupData(prev => ({
+                ...prev,
+                [produitId]: data.qmup
+            }));
+        } catch (error) {
+            console.error('Erreur lors du calcul de la QMUP:', error);
+        } finally {
+            setLoadingQmup(prev => ({ ...prev, [produitId]: false }));
+        }
     };
     const fields = [
         {
@@ -104,21 +126,28 @@ export default function Produits({ produits }) {
             ),
         },
         {
-            key: "marge",
-            title: "Marge",
+            key: "qmup",
+            title: "QMUP",
             render: (item) => {
-                const marge = item.prix_vente - item.prix_achat;
-                const margePercent = ((marge / item.prix_achat) * 100).toFixed(
-                    1
-                );
+                const qmup = qmupData[item.id] || item.qmup;
+                const isLoading = loadingQmup[item.id];
+
                 return (
-                    <div>
-                        <span className="block text-indigo-600 dark:text-indigo-400">
-                            {marge.toFixed(2)} DHS
-                        </span>
-                        <span className="block text-xs text-gray-500 dark:text-gray-400">
-                            {margePercent}%
-                        </span>
+                    <div className="flex items-center space-x-2">
+                        {isLoading ? (
+                            <span className="text-gray-500 text-sm">Calcul...</span>
+                        ) : qmup !== undefined ? (
+                            <span className="text-blue-600 dark:text-blue-400 font-medium">
+                                {qmup.toFixed(2)} DHS
+                            </span>
+                        ) : (
+                            <button
+                                onClick={() => fetchQmup(item.id)}
+                                className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-sm underline"
+                            >
+                                Calculer QMUP
+                            </button>
+                        )}
                     </div>
                 );
             },
@@ -166,9 +195,17 @@ export default function Produits({ produits }) {
                     <Link
                         href={route("produits.historique", item.id)}
                         className="p-1 text-purple-600 hover:text-purple-900 dark:text-purple-400 dark:hover:text-purple-300"
+                        title="Historique des achats"
                     >
                         <History className="h-5 w-5" />
                     </Link>
+                    <button
+                        onClick={() => fetchQmup(item.id)}
+                        className="p-1 text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
+                        title="Calculer QMUP"
+                    >
+                        <Calculator className="h-5 w-5" />
+                    </button>
                 </div>
             ),
         },

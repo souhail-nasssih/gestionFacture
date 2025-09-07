@@ -98,7 +98,7 @@ export default function Historique({ produit, historique }) {
                                 </div>
                                 <div>
                                     <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                                        Dépense totale
+                                        Prix Totale
                                     </p>
                                     <p className="text-2xl font-bold text-gray-900 dark:text-white">
                                         {depenseTotale.toFixed(2)} DHS
@@ -115,7 +115,7 @@ export default function Historique({ produit, historique }) {
                                 </div>
                                 <div>
                                     <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                                        Prix d'achat moyen
+                                        Qmup
                                     </p>
                                     <p className="text-2xl font-bold text-gray-900 dark:text-white">
                                         {prixMoyen} DHS
