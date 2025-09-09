@@ -18,6 +18,7 @@ import {
     CalendarClock,
 } from "lucide-react";
 import ThemeToggle from "@/Components/ThemeToggle";
+import NotificationCenter from "@/Components/NotificationCenter";
 
 export default function AuthenticatedLayout({ header, children }) {
     const { url } = usePage();
@@ -50,6 +51,7 @@ export default function AuthenticatedLayout({ header, children }) {
         { name: "BL Fournisseurs", href: route("bl-fournisseurs.index"), icon: ClipboardList },
         { name: "BL Clients", href: route("bl-clients.index"), icon: ClipboardCheck },
         { name: "Échéancier", href: "/echeancier", icon: CalendarClock },
+        // { name: "Règlement", href: "/reglements", icon: ReceiptText },
         { name: "Settings", href: "#", icon: Settings },
     ];
 
@@ -185,6 +187,7 @@ export default function AuthenticatedLayout({ header, children }) {
                             </div>
 
                             <div className="flex items-center ml-auto">
+                                <NotificationCenter />
                                 <ThemeToggle className="mr-4" />
                                 <div className="relative">
                                     <Dropdown>

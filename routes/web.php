@@ -118,14 +118,21 @@ Route::middleware('auth')->group(function () {
 
 require __DIR__ . '/auth.php';
 
-Route::get('/echeancier', function () {
-    return inertia('Echeancier');
-})->middleware(['auth', 'verified']);
+Route::get('/echeancier', [\App\Http\Controllers\EcheancierController::class, 'index'])->name('echeancier.index')->middleware(['auth', 'verified']);
 
-Route::get('/reglements', [\App\Http\Controllers\ReglementController::class, 'index'])->middleware(['auth', 'verified']);
-Route::post('/reglements', [\App\Http\Controllers\ReglementController::class, 'store'])->middleware(['auth', 'verified']);
-Route::put('/reglements/{reglement}', [\App\Http\Controllers\ReglementController::class, 'update'])->middleware(['auth', 'verified']);
-Route::delete('/reglements/{reglement}', [\App\Http\Controllers\ReglementController::class, 'destroy'])->middleware(['auth', 'verified']);
+Route::get('/reglements', [\App\Http\Controllers\ReglementController::class, 'index'])->name('reglements.index')->middleware(['auth', 'verified']);
+Route::post('/reglements', [\App\Http\Controllers\ReglementController::class, 'store'])->name('reglements.store')->middleware(['auth', 'verified']);
+Route::put('/reglements/{reglement}', [\App\Http\Controllers\ReglementController::class, 'update'])->name('reglements.update')->middleware(['auth', 'verified']);
+Route::delete('/reglements/{reglement}', [\App\Http\Controllers\ReglementController::class, 'destroy'])->name('reglements.destroy')->middleware(['auth', 'verified']);
+Route::get('/reglements/{type}/{id}', [\App\Http\Controllers\ReglementController::class, 'byFacture'])->name('reglements.byFacture')->middleware(['auth', 'verified']);
+
+// Notifications API
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/api/notifications', [\App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
+    Route::get('/api/notifications/unread-count', [\App\Http\Controllers\NotificationController::class, 'unreadCount'])->name('notifications.unreadCount');
+    Route::post('/api/notifications/{notification}/read', [\App\Http\Controllers\NotificationController::class, 'markRead'])->name('notifications.read');
+    Route::post('/api/notifications/read-all', [\App\Http\Controllers\NotificationController::class, 'markAllRead'])->name('notifications.readAll');
+});
 
 Route::get('/produits/{id}/historique', [ProduitController::class, 'historique'])
     ->name('produits.historique');

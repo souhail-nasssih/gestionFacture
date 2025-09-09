@@ -26,12 +26,12 @@ class FactureClient extends Model
 
     public function reglements()
     {
-        return $this->hasMany(Reglement::class, 'facture_id');
+        return $this->hasMany(Reglement::class, 'facture_id')->where('type', 'client');
     }
 
     public function getMontantRegleAttribute()
     {
-        return $this->reglements()->sum('montant');
+        return $this->reglements()->sum('montant_paye');
     }
 
     public function getResteAPayerAttribute()

@@ -47,6 +47,13 @@ export default function Index({ fournisseurs }) {
             type: "textarea",
             required: false,
         },
+        {
+            name: "delai_paiement",
+            label: "Délai de Paiement (en jours)",
+            type: "number",
+            min: 0,
+            required: true,
+        },
     ];
 
     const columns = [

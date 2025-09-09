@@ -14,14 +14,11 @@ return new class extends Migration
         Schema::create('reglements', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('facture_id');
-            $table->decimal('montant', 10, 2);
+            $table->decimal('montant_paye', 10, 2);
             $table->string('mode_paiement');
-            $table->string('numero_reglement')->nullable();
             $table->date('date_reglement');
             $table->enum('type', ['client', 'fournisseur']);
             $table->timestamps();
-
-            $table->foreign('facture_id')->references('id')->on('facture_clients')->onDelete('cascade');
         });
     }
 

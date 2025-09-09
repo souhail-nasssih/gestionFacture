@@ -12,6 +12,7 @@ class Fournisseur extends Model
         'telephone',
         'adresse',
         'email',
+        'delai_paiement',
     ];
 
     /**

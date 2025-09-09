@@ -57,6 +57,11 @@ export default function FactureRow({
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                     <span className="text-gray-600 dark:text-gray-300">
+                        {item.date_echeance ? new Date(item.date_echeance).toLocaleDateString("fr-FR") : '-'}
+                    </span>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                    <span className="text-gray-600 dark:text-gray-300">
                         {item.fournisseur?.nom || "N/A"}
                     </span>
                 </td>

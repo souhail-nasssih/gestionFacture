@@ -69,10 +69,15 @@ class FactureFournisseurController extends Controller
         ]);
 
         // Création de la facture
+        $fournisseur = Fournisseur::findOrFail($validated['fournisseur_id']);
+        $delai = (int)($fournisseur->delai_paiement ?? 0);
+        $dateEcheance = \Carbon\Carbon::parse($validated['date_facture'])->addDays($delai)->toDateString();
+
         $facture = FactureFournisseur::create([
             'fournisseur_id' => $validated['fournisseur_id'],
             'numero_facture' => $validated['numero_facture'],
             'date_facture' => $validated['date_facture'],
+            'date_echeance' => $dateEcheance,
             'montant_total' => $validated['montant_total'],
             // statut_paiement par défaut : 'en_attente'
         ]);
@@ -122,10 +127,15 @@ class FactureFournisseurController extends Controller
         ]);
 
         // Update the facture
+        $fournisseur = Fournisseur::findOrFail($validated['fournisseur_id']);
+        $delai = (int)($fournisseur->delai_paiement ?? 0);
+        $dateEcheance = \Carbon\Carbon::parse($validated['date_facture'])->addDays($delai)->toDateString();
+
         $factureFournisseur->update([
             'fournisseur_id' => $validated['fournisseur_id'],
             'numero_facture' => $validated['numero_facture'],
             'date_facture' => $validated['date_facture'],
+            'date_echeance' => $dateEcheance,
             'montant_total' => $validated['montant_total'],
         ]);
 

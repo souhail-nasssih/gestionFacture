@@ -39,6 +39,7 @@ class FournisseurController extends Controller
             'telephone' => 'required|string|max:20|unique:fournisseurs,telephone',
             'adresse' => 'nullable|string|max:255',
             'email' => 'nullable|email|max:255|unique:fournisseurs,email',
+            'delai_paiement' => 'required|integer|min:0',
         ]);
         // Créer le fournisseur
         Fournisseur::create($request->all());
@@ -74,6 +75,7 @@ class FournisseurController extends Controller
             'telephone' => 'required|string|max:20|unique:fournisseurs,telephone,' . $fournisseur->getKey(),
             'adresse' => 'nullable|string|max:255',
             'email' => 'nullable|email|max:255|unique:fournisseurs,email,' . $fournisseur->getKey(),
+            'delai_paiement' => 'required|integer|min:0',
         ]);
         // Mettre à jour le fournisseur
         $fournisseur->update($request->all());
