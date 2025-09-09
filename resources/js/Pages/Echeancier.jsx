@@ -129,7 +129,7 @@ export default function Echeancier({ type, factures, modesPaiement }) {
     // Fonction pour déterminer le statut visuel d'une facture
     const getStatusBadge = (facture) => {
         const reste = Number(facture.reste_a_payer || 0);
-        
+
         if (reste === 0) {
             return <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">Payée</span>;
         } else if (reste < Number(facture.montant_total || 0)) {
@@ -148,7 +148,7 @@ export default function Echeancier({ type, factures, modesPaiement }) {
     // Filtrer les factures selon l'onglet actif
     const filteredFactures = factures.filter(facture => {
         const reste = Number(facture.reste_a_payer || 0);
-        
+
         if (activeTab === 'en-attente') {
             return reste > 0;
         } else if (activeTab === 'payees') {
@@ -184,18 +184,18 @@ export default function Echeancier({ type, factures, modesPaiement }) {
                 {/* En-tête avec sélecteur de type */}
                 <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
                     <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Gestion des échéances</h2>
-                    
+
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         <div className="flex items-center gap-4">
                             <label className="font-medium text-gray-700 dark:text-gray-300">Type:</label>
                             <div className="flex items-center gap-2 bg-gray-100 dark:bg-gray-700 p-1 rounded-lg">
-                                <button 
+                                <button
                                     className={`px-4 py-2 text-sm font-medium rounded-md ${selectedType === 'client' ? 'bg-white dark:bg-gray-600 shadow text-indigo-600 dark:text-indigo-300' : 'text-gray-600 dark:text-gray-300'}`}
                                     onClick={() => {setSelectedType('client'); reloadWithType('client')}}
                                 >
                                     Clients
                                 </button>
-                                <button 
+                                <button
                                     className={`px-4 py-2 text-sm font-medium rounded-md ${selectedType === 'fournisseur' ? 'bg-white dark:bg-gray-600 shadow text-indigo-600 dark:text-indigo-300' : 'text-gray-600 dark:text-gray-300'}`}
                                     onClick={() => {setSelectedType('fournisseur'); reloadWithType('fournisseur')}}
                                 >
@@ -203,7 +203,7 @@ export default function Echeancier({ type, factures, modesPaiement }) {
                                 </button>
                             </div>
                         </div>
-                        
+
                         <div className="text-sm text-gray-600 dark:text-gray-400">
                             {filteredFactures.length} facture(s) {activeTab === 'en-attente' ? 'en attente' : activeTab === 'payees' ? 'payée(s)' : 'en retard'}
                         </div>
@@ -275,7 +275,7 @@ export default function Echeancier({ type, factures, modesPaiement }) {
                                     const reste = Number(f.reste_a_payer || 0);
                                     const montantTotal = Number(f.montant_total || 0);
                                     const pourcentagePaye = ((montantTotal - reste) / montantTotal) * 100;
-                                    
+
                                     return (
                                         <tr key={f.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                                             <td className="px-4 py-4 text-sm font-medium text-gray-900 dark:text-white">{f.numero_facture}</td>
@@ -289,19 +289,19 @@ export default function Echeancier({ type, factures, modesPaiement }) {
                                                 )}
                                             </td>
                                             <td className="px-4 py-4 text-sm text-right font-medium text-gray-900 dark:text-white">
-                                                {montantTotal.toFixed(2)} €
+                                                {montantTotal.toFixed(2)} DHS
                                             </td>
                                             <td className="px-4 py-4 text-sm text-right text-gray-900 dark:text-white">
-                                                {selectedType === 'client' ? Number(f.montant_regle||0).toFixed(2) : '0.00'} €
+                                                {selectedType === 'client' ? Number(f.montant_regle||0).toFixed(2) : '0.00'} DHS
                                             </td>
                                             <td className="px-4 py-4 text-sm text-right text-gray-900 dark:text-white">
-                                                {selectedType === 'fournisseur' ? Number(f.montant_regle||0).toFixed(2) : '0.00'} €
+                                                {selectedType === 'fournisseur' ? Number(f.montant_regle||0).toFixed(2) : '0.00'} DHS
                                             </td>
                                             <td className="px-4 py-4 text-right">
-                                                <div className="text-sm font-medium text-gray-900 dark:text-white">{reste.toFixed(2)} €</div>
+                                                <div className="text-sm font-medium text-gray-900 dark:text-white">{reste.toFixed(2)} DHS</div>
                                                 <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 mt-1">
-                                                    <div 
-                                                        className="bg-indigo-600 h-1.5 rounded-full" 
+                                                    <div
+                                                        className="bg-indigo-600 h-1.5 rounded-full"
                                                         style={{ width: `${pourcentagePaye}%` }}
                                                     ></div>
                                                 </div>
@@ -314,20 +314,20 @@ export default function Echeancier({ type, factures, modesPaiement }) {
                                             </td>
                                             <td className="px-4 py-4 text-center space-x-2">
                                                 {reste > 0 && (
-                                                    <button 
-                                                        onClick={() => { 
-                                                            setSelectedFacture(f); 
-                                                            setEditingId(null); 
-                                                            form.clearErrors(); 
-                                                            form.setData({ ...form.data, facture_id: f.id, type: selectedType, montant_paye: f.reste_a_payer, type_reglement: 'espèces', numero_reglement: '', numero_cheque: '', banque_nom: '', iban_rib: '', reference_paiement: '' }); 
-                                                        }} 
+                                                    <button
+                                                        onClick={() => {
+                                                            setSelectedFacture(f);
+                                                            setEditingId(null);
+                                                            form.clearErrors();
+                                                            form.setData({ ...form.data, facture_id: f.id, type: selectedType, montant_paye: f.reste_a_payer, type_reglement: 'espèces', numero_reglement: '', numero_cheque: '', banque_nom: '', iban_rib: '', reference_paiement: '' });
+                                                        }}
                                                         className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                                                     >
                                                         Régler
                                                     </button>
                                                 )}
-                                                <button 
-                                                    onClick={() => openHistory(f)} 
+                                                <button
+                                                    onClick={() => openHistory(f)}
                                                     className="inline-flex items-center px-3 py-1.5 border border-gray-300 dark:border-gray-600 text-xs font-medium rounded-md shadow-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                                                 >
                                                     Historique
@@ -347,7 +347,7 @@ export default function Echeancier({ type, factures, modesPaiement }) {
                         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto">
                             <div className="p-4 border-b border-gray-200 dark:border-gray-700 font-semibold flex items-center justify-between">
                                 <span>Historique des paiements - {historyFacture.numero_facture}</span>
-                                <button 
+                                <button
                                     className="text-sm p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
                                     onClick={() => setHistoryFacture(null)}
                                 >
@@ -366,18 +366,18 @@ export default function Echeancier({ type, factures, modesPaiement }) {
                                         <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
                                             <div className="text-center">
                                                 <div className="text-sm text-gray-500 dark:text-gray-400">Montant facture</div>
-                                                <div className="text-xl font-bold text-gray-900 dark:text-white">{Number(historyFacture?.montant_total || 0).toFixed(2)} €</div>
+                                                <div className="text-xl font-bold text-gray-900 dark:text-white">{Number(historyFacture?.montant_total || 0).toFixed(2)} DHS</div>
                                             </div>
                                             <div className="text-center">
                                                 <div className="text-sm text-gray-500 dark:text-gray-400">Total réglé</div>
-                                                <div className="text-xl font-bold text-green-600 dark:text-green-400">{Number(history.reduce((s, r) => s + Number(r.montant_paye || 0), 0)).toFixed(2)} €</div>
+                                                <div className="text-xl font-bold text-green-600 dark:text-green-400">{Number(history.reduce((s, r) => s + Number(r.montant_paye || 0), 0)).toFixed(2)} DHS</div>
                                             </div>
                                             <div className="text-center">
                                                 <div className="text-sm text-gray-500 dark:text-gray-400">Reste à payer</div>
-                                                <div className="text-xl font-bold text-red-600 dark:text-red-400">{Number((historyFacture?.montant_total || 0) - history.reduce((s, r) => s + Number(r.montant_paye || 0), 0)).toFixed(2)} €</div>
+                                                <div className="text-xl font-bold text-red-600 dark:text-red-400">{Number((historyFacture?.montant_total || 0) - history.reduce((s, r) => s + Number(r.montant_paye || 0), 0)).toFixed(2)} DHS</div>
                                             </div>
                                         </div>
-                                        
+
                                         <div className="overflow-x-auto">
                                             <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm">
                                                 <thead className="bg-gray-50 dark:bg-gray-700">
@@ -406,17 +406,17 @@ export default function Echeancier({ type, factures, modesPaiement }) {
                                                                     {r.type_reglement}
                                                                 </span>
                                                             </td>
-                                                            <td className="px-4 py-3 text-right font-medium">{Number(r.montant_paye).toFixed(2)} €</td>
+                                                            <td className="px-4 py-3 text-right font-medium">{Number(r.montant_paye).toFixed(2)} DHS</td>
                                                             <td className="px-4 py-3">{r.numero_reglement || '-'}</td>
                                                             <td className="px-4 py-3 max-w-xs truncate">{renderInfos(r)}</td>
                                                             <td className="px-4 py-3 text-center space-x-2">
-                                                                <button 
+                                                                <button
                                                                     className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300"
                                                                     onClick={() => startEdit(r)}
                                                                 >
                                                                     Modifier
                                                                 </button>
-                                                                <button 
+                                                                <button
                                                                     className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300"
                                                                     onClick={() => removeReglement(r)}
                                                                 >
@@ -440,7 +440,7 @@ export default function Echeancier({ type, factures, modesPaiement }) {
                         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg w-full max-w-md">
                             <div className="p-4 border-b border-gray-200 dark:border-gray-700 font-semibold flex items-center justify-between">
                                 <span>{editingId ? 'Modifier le' : 'Nouveau'} règlement - {selectedFacture.numero_facture}</span>
-                                <button 
+                                <button
                                     className="text-sm p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
                                     onClick={() => { setSelectedFacture(null); setEditingId(null); }}
                                 >
@@ -452,37 +452,37 @@ export default function Echeancier({ type, factures, modesPaiement }) {
                             <form onSubmit={(e) => {
                                 e.preventDefault();
                                 if (editingId) {
-                                    form.put(route('reglements.update', editingId), { 
-                                        onSuccess: () => { 
-                                            setSelectedFacture(null); 
-                                            setEditingId(null); 
-                                            if (historyFacture) openHistory(historyFacture); 
-                                        } 
+                                    form.put(route('reglements.update', editingId), {
+                                        onSuccess: () => {
+                                            setSelectedFacture(null);
+                                            setEditingId(null);
+                                            if (historyFacture) openHistory(historyFacture);
+                                        }
                                     });
                                 } else {
-                                    form.post(route('reglements.store'), { 
-                                        onSuccess: () => { 
-                                            setSelectedFacture(null); 
-                                            if (historyFacture) openHistory(historyFacture); 
-                                        } 
+                                    form.post(route('reglements.store'), {
+                                        onSuccess: () => {
+                                            setSelectedFacture(null);
+                                            if (historyFacture) openHistory(historyFacture);
+                                        }
                                     });
                                 }
                             }} className="p-4 space-y-4">
                                 <div>
                                     <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Montant à payer</label>
-                                    <input 
-                                        type="number" 
-                                        step="0.01" 
-                                        className="w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" 
-                                        value={form.data.montant_paye} 
-                                        onChange={e => form.setData('montant_paye', e.target.value)} 
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        className="w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                        value={form.data.montant_paye}
+                                        onChange={e => form.setData('montant_paye', e.target.value)}
                                     />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Type de règlement</label>
-                                    <select 
-                                        className="w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" 
-                                        value={form.data.type_reglement} 
+                                    <select
+                                        className="w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                        value={form.data.type_reglement}
                                         onChange={(e) => {
                                             const v = e.target.value;
                                             form.setData({ ...form.data, type_reglement: v, numero_cheque: '', banque_nom: '', iban_rib: '', reference_paiement: '' });
@@ -491,102 +491,102 @@ export default function Echeancier({ type, factures, modesPaiement }) {
                                         {modesPaiement.map((m) => <option key={m} value={m}>{m}</option>)}
                                     </select>
                                 </div>
-                                
+
                                 {form.data.type_reglement === 'chèque' && (
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <div>
                                             <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">N° Chèque</label>
-                                            <input 
-                                                type="text" 
-                                                className="w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" 
-                                                value={form.data.numero_cheque} 
-                                                onChange={e => form.setData('numero_cheque', e.target.value)} 
+                                            <input
+                                                type="text"
+                                                className="w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                                value={form.data.numero_cheque}
+                                                onChange={e => form.setData('numero_cheque', e.target.value)}
                                             />
                                         </div>
                                         <div>
                                             <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Banque</label>
-                                            <input 
-                                                type="text" 
-                                                className="w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" 
-                                                value={form.data.banque_nom} 
-                                                onChange={e => form.setData('banque_nom', e.target.value)} 
+                                            <input
+                                                type="text"
+                                                className="w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                                value={form.data.banque_nom}
+                                                onChange={e => form.setData('banque_nom', e.target.value)}
                                             />
                                         </div>
                                     </div>
                                 )}
-                                
+
                                 {form.data.type_reglement === 'virement' && (
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <div>
                                             <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Banque</label>
-                                            <input 
-                                                type="text" 
-                                                className="w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" 
-                                                value={form.data.banque_nom} 
-                                                onChange={e => form.setData('banque_nom', e.target.value)} 
+                                            <input
+                                                type="text"
+                                                className="w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                                value={form.data.banque_nom}
+                                                onChange={e => form.setData('banque_nom', e.target.value)}
                                             />
                                         </div>
                                         <div>
                                             <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">IBAN/RIB</label>
-                                            <input 
-                                                type="text" 
-                                                className="w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" 
-                                                value={form.data.iban_rib} 
-                                                onChange={e => form.setData('iban_rib', e.target.value)} 
+                                            <input
+                                                type="text"
+                                                className="w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                                value={form.data.iban_rib}
+                                                onChange={e => form.setData('iban_rib', e.target.value)}
                                             />
                                         </div>
                                         <div className="sm:col-span-2">
                                             <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Référence</label>
-                                            <input 
-                                                type="text" 
-                                                className="w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" 
-                                                value={form.data.reference_paiement} 
-                                                onChange={e => form.setData('reference_paiement', e.target.value)} 
+                                            <input
+                                                type="text"
+                                                className="w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                                value={form.data.reference_paiement}
+                                                onChange={e => form.setData('reference_paiement', e.target.value)}
                                             />
                                         </div>
                                     </div>
                                 )}
-                                
+
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Date de paiement</label>
-                                        <input 
-                                            type="date" 
-                                            className="w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" 
-                                            value={form.data.date_reglement} 
+                                        <input
+                                            type="date"
+                                            className="w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                            value={form.data.date_reglement}
                                             onChange={e => {
                                                 form.setData('date_reglement', e.target.value);
                                                 // keep datetime in sync if time already set
                                                 const time = form.data.date_reglement_at?.split('T')[1] || '00:00:00';
                                                 form.setData('date_reglement_at', `${e.target.value}T${time}`);
-                                            }} 
+                                            }}
                                         />
                                     </div>
                                     <div>
                                         <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Heure</label>
-                                        <input 
-                                            type="time" 
-                                            className="w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" 
-                                            value={(form.data.date_reglement_at && form.data.date_reglement_at.split('T')[1]?.substring(0,5)) || ''} 
+                                        <input
+                                            type="time"
+                                            className="w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                            value={(form.data.date_reglement_at && form.data.date_reglement_at.split('T')[1]?.substring(0,5)) || ''}
                                             onChange={e => {
                                                 const time = e.target.value || '00:00';
                                                 const date = form.data.date_reglement || new Date().toISOString().slice(0,10);
                                                 form.setData('date_reglement_at', `${date}T${time}:00`);
-                                            }} 
+                                            }}
                                         />
                                     </div>
                                 </div>
-                                
+
                                 <div className="flex justify-end gap-2 pt-4">
-                                    <button 
-                                        type="button" 
-                                        onClick={() => { setSelectedFacture(null); setEditingId(null); }} 
+                                    <button
+                                        type="button"
+                                        onClick={() => { setSelectedFacture(null); setEditingId(null); }}
                                         className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-600 rounded-md shadow-sm hover:bg-gray-200 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
                                     >
                                         Annuler
                                     </button>
-                                    <button 
-                                        type="submit" 
+                                    <button
+                                        type="submit"
                                         className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                                     >
                                         {editingId ? 'Modifier' : 'Enregistrer'}
