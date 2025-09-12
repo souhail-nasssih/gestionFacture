@@ -262,7 +262,7 @@ export default function Echeancier({ factures: initialFactures, filters, modesPa
                                             <td className="px-4 py-4 text-center">
                                                 {getStatusBadge(f)}
                                             </td>
-                                            <td className="px-4 py-4 text-center space-x-2">
+                                            <td className="px-4 py-4 text-center space-x-1">
                                                 {f.reste_a_payer > 0 && (
                                                     <button
                                                         onClick={() => {
@@ -284,16 +284,22 @@ export default function Echeancier({ factures: initialFactures, filters, modesPa
                                                                 infos_reglement: {}
                                                             });
                                                         }}
-                                                        className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                                                        title="Régler la facture"
+                                                        className="inline-flex items-center justify-center w-8 h-8 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                                                     >
-                                                        Régler
+                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                                                        </svg>
                                                     </button>
                                                 )}
                                                 <button
                                                     onClick={() => openHistory(f)}
-                                                    className="inline-flex items-center px-3 py-1.5 border border-gray-300 dark:border-gray-600 text-xs font-medium rounded-md shadow-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                                                    title="Voir l'historique des paiements"
+                                                    className="inline-flex items-center justify-center w-8 h-8 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md shadow-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                                                 >
-                                                    Historique
+                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                    </svg>
                                                 </button>
                                             </td>
                                         </tr>
@@ -389,15 +395,19 @@ export default function Echeancier({ factures: initialFactures, filters, modesPa
                                                                             ? `${infos.banque_nom || ''} ${infos.iban_rib || ''} ${infos.reference_paiement || ''}`.trim()
                                                                             : '-'}
                                                                 </td>
-                                                                <td className="px-4 py-3 text-center space-x-2">
+                                                                <td className="px-4 py-3 text-center space-x-1">
                                                                     <button
-                                                                        className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300"
+                                                                        title="Modifier le règlement"
+                                                                        className="inline-flex items-center justify-center w-7 h-7 text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-md transition-colors"
                                                                         onClick={() => startEdit(r)}
                                                                     >
-                                                                        Modifier
+                                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                                        </svg>
                                                                     </button>
                                                                     <button
-                                                                        className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300"
+                                                                        title="Supprimer le règlement"
+                                                                        className="inline-flex items-center justify-center w-7 h-7 text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors"
                                                                         onClick={() => {
                                                                             if (!confirm('Supprimer ce règlement ?')) return;
                                                                             form.delete(route('reglements.destroy', r.id), {
@@ -409,7 +419,9 @@ export default function Echeancier({ factures: initialFactures, filters, modesPa
                                                                             });
                                                                         }}
                                                                     >
-                                                                        Supprimer
+                                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                                        </svg>
                                                                     </button>
                                                                 </td>
                                                             </tr>
