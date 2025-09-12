@@ -23,7 +23,7 @@ export default function Echeancier({ factures: initialFactures, filters, modesPa
 
         // Filtrer par terme de recherche
         if (searchTerm) {
-            const term = searchTerm.toLowerCase();
+            const term = searchTerm.trim().toLowerCase();
             filtered = filtered.filter(f =>
                 f.numero_facture.toLowerCase().includes(term) ||
                 (f.nom_entite && f.nom_entite.toLowerCase().includes(term))

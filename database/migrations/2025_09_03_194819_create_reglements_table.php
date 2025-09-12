@@ -13,7 +13,6 @@ return new class extends Migration
     {
         Schema::create('reglements', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('facture_id');
             $table->decimal('montant_paye', 10, 2);
             $table->string('mode_paiement');
             $table->date('date_reglement');
