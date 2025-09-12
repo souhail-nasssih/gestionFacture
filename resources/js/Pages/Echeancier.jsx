@@ -228,8 +228,8 @@ export default function Echeancier({ factures: initialFactures, filters, modesPa
                                         </td>
                                     </tr>
                                 ) : (
-                                    filteredFactures.map((f) => (
-                                        <tr key={f.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                                    filteredFactures.map((f, index) => (
+                                        <tr key={`facture-${f.id}-${index}`} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                                             <td className="px-4 py-4 text-sm font-medium text-gray-900 dark:text-white">{f.numero_facture}</td>
                                             <td className="px-4 py-4 text-sm text-gray-900 dark:text-white">
                                                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${f.type === 'client' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'}`}>
@@ -361,13 +361,13 @@ export default function Echeancier({ factures: initialFactures, filters, modesPa
                                                             </td>
                                                         </tr>
                                                     )}
-                                                    {history.map((r) => {
+                                                    {history.map((r, index) => {
                                                         const infos = typeof r.infos_reglement === 'string'
                                                             ? JSON.parse(r.infos_reglement)
                                                             : (r.infos_reglement || {});
 
                                                         return (
-                                                            <tr key={r.id}>
+                                                            <tr key={`reglement-${r.id}-${index}`}>
                                                                 <td className="px-4 py-3 whitespace-nowrap">
                                                                     {r.date_reglement_at
                                                                         ? (r.date_reglement_at.includes('T')
