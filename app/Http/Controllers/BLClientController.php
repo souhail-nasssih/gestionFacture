@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class BLClientController extends Controller
 {
@@ -204,5 +205,18 @@ class BLClientController extends Controller
                 'error' => 'Delete failed'
             ], 500);
         }
+    }
+
+    public function print(BLClient $blClient)
+    {
+        $blClient->load(['client', 'details.produit']);
+
+        $pdf = Pdf::loadView('pdf.bl_client', [
+            'blClient' => $blClient
+        ]);
+
+        $pdf->setPaper('A4', 'portrait');
+
+        return $pdf->stream('BL-' . $blClient->numero_bl . '.pdf');
     }
 }

@@ -106,6 +106,11 @@ Route::resource(('facture-clients'), FactureClientController::class)->names([
 // BL Clients Routes
 Route::resource('bl-clients', BLClientController::class)->middleware(['auth']);
 
+// Route pour l'impression des BL clients
+Route::get('/bl-clients/{blClient}/print', [BLClientController::class, 'print'])
+    ->name('bl-clients.print')
+    ->middleware(['auth']);
+
 Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');

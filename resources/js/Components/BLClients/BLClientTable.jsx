@@ -1,8 +1,8 @@
-import { Eye, Edit2, Trash2 } from "lucide-react";
+import { Eye, Edit2, Trash2, Printer } from "lucide-react";
 import { useState } from "react";
 import React from "react";
 
-const BLClientTable = ({ blClients, onEdit, onDelete }) => {
+const BLClientTable = ({ blClients, onEdit, onDelete, onPrint }) => {
     const [expandedRows, setExpandedRows] = useState(new Set());
 
     const toggleRowExpansion = (blId) => {
@@ -88,6 +88,13 @@ const BLClientTable = ({ blClients, onEdit, onDelete }) => {
                         title={expandedRows.has(item.id) ? "Masquer les détails" : "Afficher les détails"}
                     >
                         <Eye className="h-5 w-5" />
+                    </button>
+                    <button
+                        onClick={() => onPrint(item)}
+                        className="p-1 text-purple-600 hover:text-purple-900 dark:text-purple-400 dark:hover:text-purple-300"
+                        title="Imprimer"
+                    >
+                        <Printer className="h-5 w-5" />
                     </button>
                     <button
                         onClick={() => onEdit(item)}

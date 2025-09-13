@@ -43,6 +43,11 @@ export default function Index({
         setShowDeleteModal(true);
     };
 
+    const handlePrint = (blClient) => {
+        // Open print route in new window
+        window.open(route('bl-clients.print', blClient.id), '_blank');
+    };
+
     const handleFormSuccess = () => {
         setShowForm(false);
         setIsEditing(false);
@@ -115,6 +120,7 @@ export default function Index({
                         blClients={blClients}
                         onEdit={handleEdit}
                         onDelete={handleDelete}
+                        onPrint={handlePrint}
                     />
 
                     {/* Delete Confirmation Modal */}
