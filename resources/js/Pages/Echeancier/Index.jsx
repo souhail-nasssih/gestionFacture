@@ -82,7 +82,7 @@ export default function Echeancier({
     function openHistory(facture) {
         setHistoryFacture(facture);
         setLoadingHistory(true);
-        fetch(route("reglements.byFacture", { id: facture.id }))
+        fetch(route("reglements.byFacture", { type: facture.type, id: facture.id }))
             .then((r) => r.json())
             .then((data) => {
                 setHistory(
