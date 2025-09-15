@@ -50,7 +50,7 @@ export default function AuthenticatedLayout({ header, children }) {
         { name: "Factures Clients", href: route("facture-clients.index"), icon: ReceiptText },
         { name: "BL Fournisseurs", href: route("bl-fournisseurs.index"), icon: ClipboardList },
         { name: "BL Clients", href: route("bl-clients.index"), icon: ClipboardCheck },
-        { name: "Échéancier", href: "/echeancier", icon: CalendarClock },
+        { name: "Échéancier", href: route("echeancier.index"), icon: CalendarClock },
         // { name: "Règlement", href: "/reglements", icon: ReceiptText },
         { name: "Settings", href: "#", icon: Settings },
     ];

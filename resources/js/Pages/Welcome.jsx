@@ -24,7 +24,7 @@ export default function Welcome({ auth, laravelVersion, phpVersion }) {
                 <div className="relative flex min-h-screen flex-col items-center justify-center selection:bg-[#FF2D20] selection:text-white">
                     <div className="relative w-full max-w-2xl px-6 lg:max-w-7xl">
                         <header className="grid grid-cols-2 items-center gap-2 py-10 lg:grid-cols-3">
-                            <div className="flex lg:col-start-2 lg:justify-center">
+                            <div className="flex lg:col-start-2 lg:justify-c448enter">
                                 <svg
                                     className="h-12 w-auto text-white lg:h-16 lg:text-[#FF2D20]"
                                     viewBox="0 0 62 65"

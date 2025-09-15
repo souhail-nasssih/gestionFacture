@@ -92,7 +92,7 @@ class EcheancierController extends Controller
         // Trier par date d'échéance
         $factures = $factures->sortBy('date_echeance')->values();
 
-        return Inertia::render('Echeancier', [
+        return Inertia::render('Echeancier/Index', [
             'type' => $type,
             'factures' => $factures,
             'filters' => [

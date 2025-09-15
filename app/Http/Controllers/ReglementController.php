@@ -41,7 +41,7 @@ class ReglementController extends Controller
                 ->values();
         }
 
-        return Inertia::render('Reglements/Index', [
+        return Inertia::render('Echeancier/Index', [
             'type' => $type,
             'factures' => $factures,
             'modesPaiement' => ['espèces', 'chèque', 'virement'],
