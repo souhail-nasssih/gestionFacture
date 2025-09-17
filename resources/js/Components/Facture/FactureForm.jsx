@@ -19,27 +19,39 @@ export default function FactureForm({
         initialData?.bonsLivraison?.map(bl => bl.id) || []
     );
 
+    const TVA_RATE = 20; // Fixed TVA rate of 20%
+
     const { data, setData, post, put, processing, errors, reset } = useForm({
         numero_facture: initialData?.numero_facture || "",
         date_facture: initialData?.date_facture || new Date().toISOString().split("T")[0],
         fournisseur_id: initialData?.fournisseur_id || "",
         blFournisseurs: initialData?.bonsLivraison?.map(bl => bl.id) || [],
+        montant_ht: initialData?.montant_ht || 0,
+        tva: TVA_RATE, // Fixed TVA rate
         montant_total: initialData?.montant_total || 0,
         bls_to_remove: [],
     });
 
-    // Calcul du total avec useCallback pour éviter les rendus infinis
-    const calculateTotal = useCallback(() => {
-        let total = 0;
+    // Calcul du total avec TVA fixe
+    const calculateTotals = useCallback(() => {
+        let montantHt = 0;
         filteredBlFournisseurs.forEach((bl) => {
             if (selectedBLs.includes(bl.id) && !data.bls_to_remove.includes(bl.id)) {
-                total += bl.details.reduce(
+                montantHt += bl.details.reduce(
                     (sum, detail) => sum + detail.quantite * detail.prix_unitaire,
                     0
                 );
             }
         });
-        return total.toFixed(2);
+
+        const tvaAmount = montantHt * (TVA_RATE / 100);
+        const montantTtc = montantHt + tvaAmount;
+
+        return {
+            montantHt: montantHt.toFixed(2),
+            tvaAmount: tvaAmount.toFixed(2),
+            montantTtc: montantTtc.toFixed(2)
+        };
     }, [selectedBLs, filteredBlFournisseurs, data.bls_to_remove]);
 
     // Initialize form when in edit mode
@@ -50,7 +62,9 @@ export default function FactureForm({
                 date_facture: initialData.date_facture,
                 fournisseur_id: initialData.fournisseur_id,
                 blFournisseurs: initialData.bonsLivraison?.map(bl => bl.id) || [],
-                montant_total: initialData.montant_total,
+                montant_ht: initialData.montant_ht || 0,
+                tva: TVA_RATE, // Fixed TVA rate
+                montant_total: initialData.montant_total || 0,
                 bls_to_remove: [],
             });
             setSelectedFournisseur(initialData.fournisseur_id);
@@ -119,13 +133,18 @@ export default function FactureForm({
         setData("blFournisseurs", [...data.blFournisseurs, blId]);
     };
 
-    // Mettre à jour le montant total seulement quand nécessaire
+    // Mettre à jour les montants quand nécessaire
     useEffect(() => {
-        const newTotal = calculateTotal();
-        if (parseFloat(data.montant_total) !== parseFloat(newTotal)) {
-            setData("montant_total", newTotal);
+        const { montantHt, montantTtc } = calculateTotals();
+
+        if (parseFloat(data.montant_ht) !== parseFloat(montantHt)) {
+            setData("montant_ht", montantHt);
         }
-    }, [calculateTotal, data.montant_total, setData]);
+
+        if (parseFloat(data.montant_total) !== parseFloat(montantTtc)) {
+            setData("montant_total", montantTtc);
+        }
+    }, [calculateTotals, data.montant_ht, data.montant_total, setData]);
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -135,6 +154,8 @@ export default function FactureForm({
             numero_facture: data.numero_facture,
             date_facture: data.date_facture,
             fournisseur_id: data.fournisseur_id,
+            montant_ht: data.montant_ht,
+            tva: TVA_RATE, // Fixed TVA rate
             montant_total: data.montant_total,
             blFournisseurs: data.blFournisseurs,
             ...(isEditing && { bls_to_remove: data.bls_to_remove })
@@ -172,6 +193,8 @@ export default function FactureForm({
             });
         }
     };
+
+    const { montantHt, tvaAmount, montantTtc } = calculateTotals();
 
     return (
         <div className="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6 transition-all duration-300 mb-6">
@@ -242,6 +265,35 @@ export default function FactureForm({
                             {errors.fournisseur_id}
                         </p>
                     )}
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            TVA (%)
+                        </label>
+                        <div className="block w-full p-2 rounded-md bg-gray-100 dark:bg-gray-700">
+                            {TVA_RATE}%
+                        </div>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            Montant HT (DH)
+                        </label>
+                        <div className="block w-full p-2 rounded-md bg-gray-100 dark:bg-gray-700">
+                            {montantHt} DH
+                        </div>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            Montant TTC (DH)
+                        </label>
+                        <div className="block w-full p-2 rounded-md bg-gray-100 dark:bg-gray-700 font-medium">
+                            {montantTtc} DH
+                        </div>
+                    </div>
                 </div>
 
                 {selectedFournisseur && (
@@ -407,10 +459,26 @@ export default function FactureForm({
                                         <tfoot className="bg-gray-50 dark:bg-gray-700">
                                             <tr>
                                                 <td colSpan="4" className="px-6 py-4 text-right font-bold">
-                                                    Total sélectionné:
+                                                    Total HT:
                                                 </td>
                                                 <td className="px-6 py-4 font-bold">
-                                                    {calculateTotal()} DH
+                                                    {montantHt} DH
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td colSpan="4" className="px-6 py-4 text-right font-bold">
+                                                    TVA ({TVA_RATE}%):
+                                                </td>
+                                                <td className="px-6 py-4 font-bold">
+                                                    {tvaAmount} DH
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td colSpan="4" className="px-6 py-4 text-right font-bold">
+                                                    Total TTC:
+                                                </td>
+                                                <td className="px-6 py-4 font-bold">
+                                                    {montantTtc} DH
                                                 </td>
                                             </tr>
                                         </tfoot>
