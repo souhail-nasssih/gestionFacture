@@ -14,11 +14,14 @@ class FournisseurController extends Controller
     {
         // Récupérer tous les fournisseurs
         $fournisseurs = Fournisseur::paginate(10);
-        //inettia de retour
+
+        // Return with flash messages
         return inertia('Fournisseur/Index', [
             'fournisseurs' => $fournisseurs,
+            'flash' => session()->get('flash') // Explicitly pass flash messages
         ]);
     }
+
 
     /**
      * Show the form for creating a new resource.
@@ -33,7 +36,6 @@ class FournisseurController extends Controller
      */
     public function store(Request $request)
     {
-        // Ajouter la validation des données
         $request->validate([
             'nom' => 'required|string|max:100',
             'telephone' => 'required|string|max:20|unique:fournisseurs,telephone',
@@ -41,10 +43,11 @@ class FournisseurController extends Controller
             'email' => 'nullable|email|max:255|unique:fournisseurs,email',
             'delai_paiement' => 'required|integer|min:0',
         ]);
-        // Créer le fournisseur
+
         Fournisseur::create($request->all());
-        // Rediriger ou retourner une réponse
-        return redirect()->back()->with('success', 'Fournisseur créé avec succès.');
+
+        return redirect()->route('fournisseurs.index')
+            ->with('success', 'Fournisseur créé avec succès.');
     }
 
     /**
@@ -68,8 +71,6 @@ class FournisseurController extends Controller
      */
     public function update(Request $request, Fournisseur $fournisseur)
     {
-        //
-        // Ajouter la validation des données
         $request->validate([
             'nom' => 'required|string|max:100',
             'telephone' => 'required|string|max:20|unique:fournisseurs,telephone,' . $fournisseur->getKey(),
@@ -77,10 +78,11 @@ class FournisseurController extends Controller
             'email' => 'nullable|email|max:255|unique:fournisseurs,email,' . $fournisseur->getKey(),
             'delai_paiement' => 'required|integer|min:0',
         ]);
-        // Mettre à jour le fournisseur
+
         $fournisseur->update($request->all());
-        // Rediriger ou retourner une réponse
-        return redirect()->back()->with('success', 'Fournisseur mis à jour avec succès.');
+
+        return redirect()->route('fournisseurs.index')
+            ->with('success', 'Fournisseur mis à jour avec succès.');
     }
 
     /**
@@ -88,10 +90,9 @@ class FournisseurController extends Controller
      */
     public function destroy(Fournisseur $fournisseur)
     {
-        //
         // Supprimer le fournisseur
         $fournisseur->delete();
-        // Rediriger ou retourner une réponse
-        return redirect()->back()->with('success', 'Fournisseur supprimé avec succès.');
+        // Rediriger vers la page index
+        return redirect()->route('fournisseurs.index')->with('success', 'Fournisseur supprimé avec succès.');
     }
 }

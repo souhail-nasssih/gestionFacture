@@ -2,25 +2,28 @@ import DataTable from "@/Components/ui/DataTable";
 import FormBuilder from "@/Components/ui/FormBuilder";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Edit2, PlusCircle, Trash2, X } from "lucide-react";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Edit from "../Profile/Edit";
-import { Link } from "@inertiajs/react";
+import { Link, usePage } from "@inertiajs/react";
 
 export default function Index({ fournisseurs }) {
-    console.log(fournisseurs);
+    const { props } = usePage();
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [selectedFournisseur, setSelectedFournisseur] = useState(null);
     const [showForm, setShowForm] = useState(false);
-    const [formValues, setFormValues] = useState(null); // Pour modifier un Fournisseur existant
+    const [formValues, setFormValues] = useState(null);
     const [deleting, setDeleting] = useState(false);
-    const handleFormSuccess = () => {
-        setFormValues(null); // Réinitialise les valeurs du formulaire
-        setShowForm(false); // Ferme le formulaire
-    };
-    const handleSubmitSuccess = () => {
+
+    // Close form when the page loads (after redirect from store/update)
+    useEffect(() => {
         setShowForm(false);
         setFormValues(null);
+    }, [fournisseurs]);
+
+    const handleFormSuccess = () => {
+        setFormValues(null);
     };
+
     const fields = [
         {
             name: "nom",
@@ -28,7 +31,6 @@ export default function Index({ fournisseurs }) {
             type: "text",
             required: true,
         },
-
         {
             name: "telephone",
             label: "Téléphone",
@@ -89,7 +91,6 @@ export default function Index({ fournisseurs }) {
                 </span>
             ),
         },
-
         {
             key: "adresse",
             title: "Adresse",
@@ -99,7 +100,6 @@ export default function Index({ fournisseurs }) {
                 </span>
             ),
         },
-
         {
             key: "actions",
             title: "Actions",
@@ -107,8 +107,8 @@ export default function Index({ fournisseurs }) {
                 <div className="flex space-x-2">
                     <button
                         onClick={() => {
-                            setFormValues(item); // Remplit le formulaire avec les données du Fournisseur
-                            setShowForm(true); // Affiche le formulaire
+                            setFormValues(item);
+                            setShowForm(true);
                         }}
                         className="p-1 text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
                     >
@@ -127,10 +127,18 @@ export default function Index({ fournisseurs }) {
             ),
         },
     ];
+
     return (
         <AuthenticatedLayout>
             <div className="py-6">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
+                    {/* Success message display - safe check for flash */}
+                    {props?.flash?.success && (
+                        <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative">
+                            {props.flash.success}
+                        </div>
+                    )}
+
                     {/* Carte pour le titre et le bouton */}
                     <div className="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6">
                         <div className="flex justify-between items-center">
@@ -159,7 +167,7 @@ export default function Index({ fournisseurs }) {
                         </div>
                     </div>
 
-                    {/* Formulaire d'ajout (dans sa propre carte si visible) */}
+                    {/* Formulaire d'ajout */}
                     {showForm && (
                         <div className="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6 transition-all duration-300">
                             <FormBuilder
@@ -177,7 +185,7 @@ export default function Index({ fournisseurs }) {
                                     formValues ? "Mettre à jour" : "Créer"
                                 }
                                 resetText="Réinitialiser"
-                                onSuccess={handleSubmitSuccess} // Utilisez la nouvelle fonction
+                                onSuccess={handleFormSuccess}
                             />
                         </div>
                     )}
@@ -186,7 +194,7 @@ export default function Index({ fournisseurs }) {
                     <div className="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6">
                         <DataTable
                             columns={columns}
-                            data={fournisseurs.data} // 👈 important !
+                            data={fournisseurs.data}
                             searchable
                             sortable
                             pagination={false}
@@ -195,18 +203,8 @@ export default function Index({ fournisseurs }) {
 
                     {/* Modal de suppression */}
                     {showDeleteModal && (
-                        <div
-                            className={`fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 transition-opacity duration-300 ${
-                                showDeleteModal
-                                    ? "opacity-100"
-                                    : "opacity-0 pointer-events-none"
-                            }`}
-                        >
-                            <div
-                                className={`bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-md transform transition-all duration-300 ${
-                                    showDeleteModal ? "scale-100" : "scale-95"
-                                }`}
-                            >
+                        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-md">
                                 <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
                                     Confirmer la suppression
                                 </h3>
@@ -217,9 +215,7 @@ export default function Index({ fournisseurs }) {
                                 </p>
                                 <div className="flex justify-end space-x-3">
                                     <button
-                                        onClick={() =>
-                                            setShowDeleteModal(false)
-                                        }
+                                        onClick={() => setShowDeleteModal(false)}
                                         className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                                     >
                                         Annuler
@@ -232,9 +228,9 @@ export default function Index({ fournisseurs }) {
                                         method="delete"
                                         as="button"
                                         className="px-4 py-2 bg-red-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
-                                        onSuccess={() =>
-                                            setShowDeleteModal(false)
-                                        }
+                                        onSuccess={() => {
+                                            setShowDeleteModal(false);
+                                        }}
                                     >
                                         Supprimer
                                     </Link>

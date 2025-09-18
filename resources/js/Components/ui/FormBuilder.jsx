@@ -29,11 +29,9 @@ const FormBuilder = ({
 
     const { data, setData, post, put, reset } = useForm(initialData);
 
-
-
     // Validation côté client
     const validateField = (fieldName, value) => {
-        const field = fields.find(f => f.name === fieldName);
+        const field = fields.find((f) => f.name === fieldName);
         if (!field) return null;
 
         const errors = {};
@@ -48,12 +46,14 @@ const FormBuilder = ({
         switch (field.type) {
             case "email":
                 if (value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-                    errors[fieldName] = "Veuillez entrer une adresse email valide";
+                    errors[fieldName] =
+                        "Veuillez entrer une adresse email valide";
                 }
                 break;
             case "tel":
                 if (value && !/^[+\-\s\d]{10,15}$/.test(value)) {
-                    errors[fieldName] = "Veuillez entrer un numéro de téléphone valide";
+                    errors[fieldName] =
+                        "Veuillez entrer un numéro de téléphone valide";
                 }
                 break;
             case "number":
@@ -61,18 +61,26 @@ const FormBuilder = ({
                     errors[fieldName] = "Veuillez entrer un nombre valide";
                 }
                 if (field.min && +value < field.min) {
-                    errors[fieldName] = `La valeur doit être au moins ${field.min}`;
+                    errors[
+                        fieldName
+                    ] = `La valeur doit être au moins ${field.min}`;
                 }
                 if (field.max && +value > field.max) {
-                    errors[fieldName] = `La valeur ne doit pas dépasser ${field.max}`;
+                    errors[
+                        fieldName
+                    ] = `La valeur ne doit pas dépasser ${field.max}`;
                 }
                 break;
             case "text":
                 if (field.minLength && value.length < field.minLength) {
-                    errors[fieldName] = `Doit contenir au moins ${field.minLength} caractères`;
+                    errors[
+                        fieldName
+                    ] = `Doit contenir au moins ${field.minLength} caractères`;
                 }
                 if (field.maxLength && value.length > field.maxLength) {
-                    errors[fieldName] = `Ne doit pas dépasser ${field.maxLength} caractères`;
+                    errors[
+                        fieldName
+                    ] = `Ne doit pas dépasser ${field.maxLength} caractères`;
                 }
                 break;
             default:
@@ -84,13 +92,13 @@ const FormBuilder = ({
 
     // Marquer un champ comme "touché" (modifié par l'utilisateur)
     const handleBlur = (fieldName) => {
-        setTouchedFields(prev => ({ ...prev, [fieldName]: true }));
+        setTouchedFields((prev) => ({ ...prev, [fieldName]: true }));
 
         if (clientSideValidation) {
             const error = validateField(fieldName, data[fieldName]);
-            setClientErrors(prev => ({
+            setClientErrors((prev) => ({
                 ...prev,
-                [fieldName]: error || null
+                [fieldName]: error || null,
             }));
         }
     };
@@ -102,7 +110,7 @@ const FormBuilder = ({
         const newErrors = {};
         let isValid = true;
 
-        fields.forEach(field => {
+        fields.forEach((field) => {
             const error = validateField(field.name, data[field.name]);
             if (error) {
                 newErrors[field.name] = error;
@@ -141,32 +149,38 @@ const FormBuilder = ({
         // Créer un objet avec toutes les données à envoyer
         const allData = { ...data, ...additionalData };
 
-        console.log('Données envoyées:', allData);
+        console.log("Données envoyées:", allData);
 
-        method(onSubmit, allData, {
-            onSuccess: () => {
-                setShowSuccess(true);
-                if (!initialData.id) reset();
-                onSuccess?.();
-                setClientErrors({});
+        method(
+            onSubmit,
+            {
+                ...allData,
             },
-            onError: (errors) => {
-                // Traitement des erreurs spécifiques du serveur
-                const processedErrors = {};
-                Object.keys(errors).forEach(key => {
-                    if (errors[key].includes("has already been taken")) {
-                        processedErrors[key] = `Ce ${key} est déjà utilisé`;
-                    } else if (errors[key].includes("invalid format")) {
-                        processedErrors[key] = `Format de ${key} invalide`;
-                    } else {
-                        processedErrors[key] = errors[key];
-                    }
-                });
-                // Mettre à jour les erreurs pour affichage
-                setClientErrors(processedErrors);
-            },
-            onFinish: () => setProcessing(false),
-        });
+            {
+                onSuccess: () => {
+                    setShowSuccess(true);
+                    if (!initialData.id) reset();
+                    onSuccess?.(); // ✅ now parent handleSubmitSuccess will run
+                    setClientErrors({});
+                },
+                onError: (errors) => {
+                    // Traitement des erreurs spécifiques du serveur
+                    const processedErrors = {};
+                    Object.keys(errors).forEach((key) => {
+                        if (errors[key].includes("has already been taken")) {
+                            processedErrors[key] = `Ce ${key} est déjà utilisé`;
+                        } else if (errors[key].includes("invalid format")) {
+                            processedErrors[key] = `Format de ${key} invalide`;
+                        } else {
+                            processedErrors[key] = errors[key];
+                        }
+                    });
+                    // Mettre à jour les erreurs pour affichage
+                    setClientErrors(processedErrors);
+                },
+                onFinish: () => setProcessing(false),
+            }
+        );
     };
 
     const renderField = (field) => {
@@ -184,9 +198,9 @@ const FormBuilder = ({
                 setData(field.name, e.target.value);
                 if (clientSideValidation && isTouched) {
                     const error = validateField(field.name, e.target.value);
-                    setClientErrors(prev => ({
+                    setClientErrors((prev) => ({
                         ...prev,
-                        [field.name]: error || null
+                        [field.name]: error || null,
                     }));
                 }
             },
@@ -317,9 +331,11 @@ const FormBuilder = ({
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {fields.map((field) => {
-                        const error = clientErrors[field.name] || errors[field.name];
+                        const error =
+                            clientErrors[field.name] || errors[field.name];
                         const isTouched = touchedFields[field.name];
-                        const showError = (isTouched || errors[field.name]) && error;
+                        const showError =
+                            (isTouched || errors[field.name]) && error;
 
                         return (
                             <div
@@ -334,7 +350,9 @@ const FormBuilder = ({
                                 >
                                     {field.label}
                                     {field.required && (
-                                        <span className="text-red-500 ml-1">*</span>
+                                        <span className="text-red-500 ml-1">
+                                            *
+                                        </span>
                                     )}
                                 </label>
 
