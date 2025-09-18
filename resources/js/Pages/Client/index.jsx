@@ -1,20 +1,27 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Edit2, PlusCircle, X } from "lucide-react";
-import { Link } from "@inertiajs/react";
+import { Link, usePage } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import ClientForm from "../../Components/Client/ClientForm";
 import ClientTable from "../../Components/Client/ClientTable";
 import DeleteModal from "../../Components/Client/DeleteModal";
 
 export default function Client({ clients }) {
+    const { props } = usePage();
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [selectedClient, setSelectedClient] = useState(null);
     const [showForm, setShowForm] = useState(false);
     const [formValues, setFormValues] = useState(null);
 
+    // Close form when clients data changes (after redirect)
+    useEffect(() => {
+        setShowForm(false);
+        setFormValues(null);
+    }, [clients]);
+
     const handleFormSuccess = () => {
         setFormValues(null);
-        setShowForm(false);
+        // The form will be closed by the useEffect
     };
 
     const handleEdit = (client) => {
@@ -40,6 +47,13 @@ export default function Client({ clients }) {
         <AuthenticatedLayout>
             <div className="py-6 px-4 sm:px-0">
                 <div className="mx-auto max-w-full overflow-x-hidden">
+                    {/* Success message display */}
+                    {props?.flash?.success && (
+                        <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-6">
+                            {props.flash.success}
+                        </div>
+                    )}
+
                     <div className="bg-white dark:bg-gray-800 shadow-sm sm:rounded-lg p-4 mb-6 mx-2 sm:mx-0">
                         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                             <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">

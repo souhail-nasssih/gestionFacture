@@ -32,19 +32,18 @@ class ClientController extends Controller
      */
     public function store(Request $request)
     {
-
-        // Ajouter la validation des données
         $request->validate([
             'nom' => 'required|string|max:100',
             'telephone' => 'required|string|max:20|unique:clients,telephone',
             'adresse' => 'nullable|string|max:255',
             'email' => 'nullable|email|max:255|unique:clients,email',
-            'delai_paiement' => 'nullable|integer|min:0', // Ex: 30 jours
+            'delai_paiement' => 'nullable|integer|min:0',
         ]);
-        // Créer le client
+
         Client::create($request->all());
-        // Rediriger ou retourner une réponse
-        return redirect()->back()->with('success', 'Client créé avec succès.');
+
+        // Redirect to index instead of back
+        return redirect()->route('clients.index')->with('success', 'Client créé avec succès.');
     }
 
     /**
@@ -68,30 +67,27 @@ class ClientController extends Controller
      */
     public function update(Request $request, Client $client)
     {
-        //
-        // Ajouter la validation des données
         $request->validate([
             'nom' => 'required|string|max:100',
             'telephone' => 'required|string|max:20|unique:clients,telephone,' . $client->getKey(),
             'adresse' => 'nullable|string|max:255',
             'email' => 'nullable|email|max:255|unique:clients,email,' . $client->getKey(),
-            'delai_paiement' => 'nullable|integer|min:0', // Ex: 30 jours
+            'delai_paiement' => 'nullable|integer|min:0',
         ]);
-        // Mettre à jour le client
-        $client->update($request->all());
-        // Rediriger ou retourner une réponse
-        return redirect()->back()->with('success', 'Client mis à jour avec succès.');
-    }
 
+        $client->update($request->all());
+
+        // Redirect to index instead of back
+        return redirect()->route('clients.index')->with('success', 'Client mis à jour avec succès.');
+    }
     /**
      * Remove the specified resource from storage.
      */
     public function destroy(Client $client)
     {
-        //
-        // Supprimer le client
         $client->delete();
-        // Rediriger ou retourner une réponse
-        return redirect()->back()->with('success', 'Client supprimé avec succès.');
+
+        // Redirect to index instead of back
+        return redirect()->route('clients.index')->with('success', 'Client supprimé avec succès.');
     }
 }
