@@ -1,42 +1,59 @@
-import React, { useState } from "react";
-import { Link, router } from "@inertiajs/react";
-import { Edit, Trash2, Plus, X, PlusCircle, History, Calculator } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Link, router, usePage } from "@inertiajs/react"; // Add usePage
+import {
+    Edit,
+    Trash2,
+    Plus,
+    X,
+    PlusCircle,
+    History,
+    Calculator,
+} from "lucide-react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import FormBuilder from "@/Components/ui/FormBuilder";
 import DataTable from "@/Components/ui/DataTable";
 
 export default function Produits({ produits }) {
+    const { props } = usePage(); // Add usePage hook
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [selectedProduit, setSelectedProduit] = useState(null);
     const [showForm, setShowForm] = useState(false);
-    const [formValues, setFormValues] = useState(null); // Pour modifier un produit existant
+    const [formValues, setFormValues] = useState(null);
     const [deleting, setDeleting] = useState(false);
     const [qmupData, setQmupData] = useState({});
     const [loadingQmup, setLoadingQmup] = useState({});
+
+    // Close form when produits data changes (after redirect)
+    useEffect(() => {
+        setShowForm(false);
+        setFormValues(null);
+    }, [produits]);
+
     const handleFormSuccess = () => {
-        setFormValues(null); // Réinitialise les valeurs du formulaire
-        setShowForm(false); // Ferme le formulaire
+        setFormValues(null);
+        // The form will be closed by the useEffect
     };
 
     const fetchQmup = async (produitId) => {
-        if (loadingQmup[produitId]) return; // Éviter les appels multiples
+        if (loadingQmup[produitId]) return;
 
-        setLoadingQmup(prev => ({ ...prev, [produitId]: true }));
+        setLoadingQmup((prev) => ({ ...prev, [produitId]: true }));
 
         try {
             const response = await fetch(`/produits/${produitId}/qmup`);
             const data = await response.json();
 
-            setQmupData(prev => ({
+            setQmupData((prev) => ({
                 ...prev,
-                [produitId]: data.qmup
+                [produitId]: data.qmup,
             }));
         } catch (error) {
-            console.error('Erreur lors du calcul de la QMUP:', error);
+            console.error("Erreur lors du calcul de la QMUP:", error);
         } finally {
-            setLoadingQmup(prev => ({ ...prev, [produitId]: false }));
+            setLoadingQmup((prev) => ({ ...prev, [produitId]: false }));
         }
     };
+
     const fields = [
         {
             name: "nom",
@@ -135,7 +152,9 @@ export default function Produits({ produits }) {
                 return (
                     <div className="flex items-center space-x-2">
                         {isLoading ? (
-                            <span className="text-gray-500 text-sm">Calcul...</span>
+                            <span className="text-gray-500 text-sm">
+                                Calcul...
+                            </span>
                         ) : qmup !== undefined ? (
                             <span className="text-blue-600 dark:text-blue-400 font-medium">
                                 {qmup.toFixed(2)} DHS
@@ -215,6 +234,13 @@ export default function Produits({ produits }) {
         <AuthenticatedLayout>
             <div className="py-6">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
+                    {/* Success message display */}
+                    {props?.flash?.success && (
+                        <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative">
+                            {props.flash.success}
+                        </div>
+                    )}
+
                     {/* Carte pour le titre et le bouton */}
                     <div className="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6">
                         <div className="flex justify-between items-center">
@@ -244,7 +270,7 @@ export default function Produits({ produits }) {
                         </div>
                     </div>
 
-                    {/* Formulaire d'ajout (dans sa propre carte si visible) */}
+                    {/* Formulaire d'ajout */}
                     {showForm && (
                         <div className="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6 transition-all duration-300">
                             <FormBuilder
@@ -271,7 +297,7 @@ export default function Produits({ produits }) {
                     <div className="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6">
                         <DataTable
                             columns={columns}
-                            data={produits.data} // 👈 important !
+                            data={produits.data}
                             searchable
                             sortable
                             pagination={true}
@@ -280,18 +306,8 @@ export default function Produits({ produits }) {
 
                     {/* Modal de suppression */}
                     {showDeleteModal && (
-                        <div
-                            className={`fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 transition-opacity duration-300 ${
-                                showDeleteModal
-                                    ? "opacity-100"
-                                    : "opacity-0 pointer-events-none"
-                            }`}
-                        >
-                            <div
-                                className={`bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-md transform transition-all duration-300 ${
-                                    showDeleteModal ? "scale-100" : "scale-95"
-                                }`}
-                            >
+                        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-md">
                                 <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
                                     Confirmer la suppression
                                 </h3>

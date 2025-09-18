@@ -40,7 +40,6 @@ class ProduitController extends Controller
      */
     public function store(Request $request)
     {
-        // ajouter la validation des données
         $request->validate([
             'nom' => 'required|string|max:255',
             'description' => 'nullable|string',
@@ -49,11 +48,13 @@ class ProduitController extends Controller
             'stock' => 'required|integer|min:0',
             'unite' => 'required|string',
         ]);
-        // Créer le produit
+
         Produit::create($request->all());
-        // Rediriger ou retourner une réponse
-        return redirect()->back()->with('success', 'Produit créé avec succès.');
+
+        // Redirect to index instead of back
+        return redirect()->route('produits.index')->with('success', 'Produit créé avec succès.');
     }
+
 
     /**
      * Display the specified resource.
@@ -76,8 +77,6 @@ class ProduitController extends Controller
      */
     public function update(Request $request, Produit $produit)
     {
-        //
-        // ajouter la validation des données
         $request->validate([
             'nom' => 'required|string|max:255',
             'description' => 'nullable|string',
@@ -86,21 +85,21 @@ class ProduitController extends Controller
             'stock' => 'required|integer|min:0',
             'unite' => 'required|string',
         ]);
-        // Mettre à jour le produit
-        $produit->update($request->all());
-        // Rediriger ou retourner une réponse
-        return redirect()->back()->with('success', 'Produit mis à jour avec succès.');
-    }
 
+        $produit->update($request->all());
+
+        // Redirect to index instead of back
+        return redirect()->route('produits.index')->with('success', 'Produit mis à jour avec succès.');
+    }
     /**
      * Remove the specified resource from storage.
      */
     public function destroy(Produit $produit)
     {
-        // Supprimer le produit
         $produit->delete();
-        // Rediriger ou retourner une réponse
-        return redirect()->back()->with('success', 'Produit supprimé avec succès.');
+
+        // Redirect to index instead of back
+        return redirect()->route('produits.index')->with('success', 'Produit supprimé avec succès.');
     }
 
     public function historique($id)
