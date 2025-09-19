@@ -59,15 +59,15 @@ export default function Index({ fournisseurs }) {
     ];
 
     const columns = [
-        {
-            key: "id",
-            title: "ID",
-            render: (item) => (
-                <span className="font-mono text-gray-500 dark:text-gray-400">
-                    #{item.id}
-                </span>
-            ),
-        },
+        // {
+        //     key: "id",
+        //     title: "ID",
+        //     render: (item) => (
+        //         <span className="font-mono text-gray-500 dark:text-gray-400">
+        //             #{item.id}
+        //         </span>
+        //     ),
+        // },
         {
             key: "nom",
             title: "Nom",
