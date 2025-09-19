@@ -7,190 +7,172 @@
     <style>
         @page {
             size: A4;
-            margin: 0;
+            margin: 20mm;
         }
         body {
             font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
+            font-size: 12px;
             color: #000;
         }
-        .invoice-container {
-            max-width: 800px;
-            margin: 0 auto;
-            border: 1px solid #ddd;
-            padding: 20px;
-            box-sizing: border-box;
-        }
         .header {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        .company-name {
-            font-size: 24px;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-        .invoice-info {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 20px;
+            align-items: flex-start;
+            border-bottom: 2px solid #000;
+            padding-bottom: 10px;
+            margin-bottom: 10px;
         }
-        .client-info {
-            margin-bottom: 20px;
+        .logo img {
+             max-height: 60px;
+            margin-bottom: 10px;
+        }
+        .invoice-title {
+            text-align: right;
+            font-size: 14px;
+        }
+        .section {
+            margin-bottom: 15px;
+        }
+        .section h3 {
+            margin: 0 0 5px 0;
+            font-size: 13px;
         }
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 20px;
+            font-size: 11px;
         }
         th, td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
+            border: 1px solid #000;
+            padding: 4px;
+            text-align: center;
         }
         th {
-            background-color: #f5f5f5;
+            background: #f0f0f0;
         }
-        .text-right {
-            text-align: right;
-        }
-        .total-section {
+        .totals {
+            margin-top: 20px;
+            width: 40%;
             margin-left: auto;
-            width: 300px;
+            border: 1px solid #000;
         }
-        .total-line {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 5px;
+        .totals td {
+            padding: 5px;
         }
-        .signature-section {
-            margin-top: 50px;
-            display: flex;
-            justify-content: space-between;
+        .totals tr:last-child td {
+            font-weight: bold;
         }
-        .signature-line {
-            border-top: 1px solid #000;
-            width: 200px;
-            padding-top: 5px;
+        .amount-words {
+            margin-top: 15px;
+            font-style: italic;
+        }
+        .footer {
+            margin-top: 30px;
+            font-size: 10px;
             text-align: center;
         }
         @media print {
-            body {
-                padding: 0;
-            }
-            .invoice-container {
-                border: none;
-                padding: 0;
-            }
-            .no-print {
-                display: none;
-            }
+            .no-print { display: none; }
         }
     </style>
 </head>
 <body>
-    <div class="invoice-container">
-        <!-- En-tête -->
-        <div class="header">
-            <div class="company-name">FINDUCARR</div>
-            <div>FOURNITURE INDUSTRIELLE ET CARROSSERIES</div>
+    <!-- HEADER -->
+    <div class="header">
+        <div class="logo">
+            <img src="{{ public_path('logo.jpg') }}" alt="Logo">
+            <div style="font-size: 12px; font-weight: bold;">FOURNITURE INDUSTRIELLE<br>ET CARROSSERIES</div>
         </div>
-
-        <!-- Informations de facture -->
-        <div class="invoice-info">
-            <div>
-                <div><strong>Facture N°:</strong> {{ $facture->numero_facture }}</div>
-                <div><strong>Date de Facture:</strong> {{ \Carbon\Carbon::parse($facture->date_facture)->format('d/m/Y') }}</div>
-            </div>
-            <div>
-                <div><strong>Date d'Échéance:</strong> {{ \Carbon\Carbon::parse($facture->date_facture)->addDays(30)->format('d/m/Y') }}</div>
-                <div><strong>Modalité de Paiement:</strong> Chèque ou Espèce</div>
-            </div>
+        <div class="invoice-title">
+            <div><strong>Facture :</strong> {{ $facture->numero_facture }}</div>
+            <div><strong>Établie le :</strong> {{ \Carbon\Carbon::parse($facture->date_facture)->format('d/m/Y') }}</div>
+            <div><strong>Échéance le :</strong> {{ \Carbon\Carbon::parse($facture->date_facture)->addDays(30)->format('d/m/Y') }}</div>
         </div>
+    </div>
 
-        <!-- Informations du fournisseur -->
-        <div class="client-info">
-            <div><strong>Société:</strong> {{ $facture->fournisseur->nom }}</div>
-            <div><strong>Adresse:</strong> {{ $facture->fournisseur->adresse }}</div>
-            <div><strong>Téléphone:</strong> {{ $facture->fournisseur->telephone }}</div>
-            <div><strong>Email:</strong> {{ $facture->fournisseur->email }}</div>
-        </div>
+    <!-- DESTINATAIRE -->
+    <div class="section">
+        <h3>Destinataire :</h3>
+        <strong>{{ $facture->fournisseur->nom }}</strong><br>
+        {{ $facture->fournisseur->adresse }}<br>
+        ICE : {{ $facture->fournisseur->ice ?? '------' }}<br>
+        Email : {{ $facture->fournisseur->email }}
+    </div>
 
-        <!-- Tableau des articles -->
-        <table>
-            <thead>
-                <tr>
-                    <th>Référence</th>
-                    <th>Description</th>
-                    <th>Quantité</th>
-                    <th>Prix Unitaire</th>
-                    <th>Montant HT</th>
-                    <th>TVA</th>
-                    <th>Montant TTC</th>
-                </tr>
-            </thead>
-            <tbody>
-                @php
-                    $totalHT = 0;
-                    $totalTVA = 0;
-                    $totalTTC = 0;
-                @endphp
-
-                @foreach($facture->bonsLivraison as $bl)
-                    @foreach($bl->details as $detail)
-                        @php
-                            $montantHT = $detail->quantite * $detail->prix_unitaire;
-                            $tva = $montantHT * 0.2; // Supposons un taux de TVA de 20%
-                            $montantTTC = $montantHT + $tva;
-
-                            $totalHT += $montantHT;
-                            $totalTVA += $tva;
-                            $totalTTC += $montantTTC;
-                        @endphp
-                        <tr>
-                            <td>{{ $detail->produit->reference ?? 'N/A' }}</td>
-                            <td>{{ $detail->produit->designation ?? $detail->description }}</td>
-                            <td>{{ $detail->quantite }}</td>
-                            <td>{{ number_format($detail->prix_unitaire, 2, ',', ' ') }} DH</td>
-                            <td>{{ number_format($montantHT, 2, ',', ' ') }} DH</td>
-                            <td>20%</td>
-                            <td>{{ number_format($montantTTC, 2, ',', ' ') }} DH</td>
-                        </tr>
-                    @endforeach
+    <!-- TABLE -->
+    <table>
+        <thead>
+            <tr>
+                <th>Réf</th>
+                <th>Description</th>
+                <th>Qté</th>
+                <th>Prix unitaire</th>
+                <th>Remise</th>
+                <th>Total HT</th>
+                <th>Total TTC</th>
+            </tr>
+        </thead>
+        <tbody>
+            @php
+                $totalHT = 0;
+                $totalTVA = 0;
+                $totalTTC = 0;
+            @endphp
+            @foreach($facture->bonsLivraison as $bl)
+                @foreach($bl->details as $detail)
+                    @php
+                        $montantHT = $detail->quantite * $detail->prix_unitaire;
+                        $tva = $montantHT * 0.2; // TVA 20%
+                        $montantTTC = $montantHT + $tva;
+                        $totalHT += $montantHT;
+                        $totalTVA += $tva;
+                        $totalTTC += $montantTTC;
+                    @endphp
+                    <tr>
+                        <td>{{ $detail->produit->reference ?? '---' }}</td>
+                        <td>{{ $detail->produit->designation ?? $detail->description }}</td>
+                        <td>{{ $detail->quantite }}</td>
+                        <td>{{ number_format($detail->prix_unitaire, 2, ',', ' ') }} DH</td>
+                        <td>0.00%</td>
+                        <td>{{ number_format($montantHT, 2, ',', ' ') }} DH</td>
+                        <td>{{ number_format($montantTTC, 2, ',', ' ') }} DH</td>
+                    </tr>
                 @endforeach
-            </tbody>
-        </table>
+            @endforeach
+        </tbody>
+    </table>
 
-        <!-- Section totale -->
-        <div class="total-section">
-            <div class="total-line">
-                <span>Total HT:</span>
-                <span>{{ number_format($totalHT, 2, ',', ' ') }} DH</span>
-            </div>
-            <div class="total-line">
-                <span>TVA (20%):</span>
-                <span>{{ number_format($totalTVA, 2, ',', ' ') }} DH</span>
-            </div>
-            <div class="total-line" style="font-weight: bold;">
-                <span>Total TTC:</span>
-                <span>{{ number_format($totalTTC, 2, ',', ' ') }} DH</span>
-            </div>
-        </div>
+    <!-- TOTALS -->
+    <table class="totals">
+        <tr>
+            <td>Total Facture HT</td>
+            <td>{{ number_format($totalHT, 2, ',', ' ') }} DH</td>
+        </tr>
+        <tr>
+            <td>TVA (20%)</td>
+            <td>{{ number_format($totalTVA, 2, ',', ' ') }} DH</td>
+        </tr>
+        <tr>
+            <td>Total TTC</td>
+            <td>{{ number_format($totalTTC, 2, ',', ' ') }} DH</td>
+        </tr>
+    </table>
 
-        <!-- Montant en lettres -->
-        <div style="margin-top: 20px;">
-            <strong>Arrêtée la présente facture à la somme de:</strong><br>
-            {{ ucfirst(\App\Helpers\NumberToWords::french($totalTTC)) }} DIRHAMS
-        </div>
+    <!-- MONTANT EN LETTRES -->
+    <div class="amount-words">
+        Arrêtée la présente facture à la somme de :
+        <strong>{{ ucfirst(\App\Helpers\NumberToWords::french($totalTTC)) }} DIRHAMS</strong>
+    </div>
 
+    <!-- FOOTER -->
+    <div class="footer">
+        SARL au capital : 100000,00 DH – Siège social : 77 Rue Mohamed Smiha 10 Et Appt N°57 Casablanca<br>
+        RC : 34329 – PATENTE : --- – IF : ---
+    </div>
 
-        <!-- Bouton d'impression (ne s'imprime pas) -->
-        <div class="no-print" style="margin-top: 30px; text-align: center;">
-            <button onclick="window.print()" style="padding: 10px 20px; background-color: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer;">
-                Imprimer la Facture
-            </button>
-        </div>
+    <!-- PRINT BUTTON -->
+    <div class="no-print" style="text-align:center; margin-top:20px;">
+        <button onclick="window.print()">Imprimer la Facture</button>
     </div>
 </body>
 </html>
