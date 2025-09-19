@@ -10,10 +10,26 @@ class ProduitController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        // Paginer les produits par 10 (modifiable)
-        $produits = Produit::paginate(10);
+        $query = Produit::query();
+        $searchTerm = $request->input('search');
+
+        // Recherche
+        if ($searchTerm) {
+            $searchTerm = '%' . $searchTerm . '%';
+            $query->where(function($q) use ($searchTerm) {
+                $q->where('nom', 'like', $searchTerm)
+                  ->orWhere('reference', 'like', $searchTerm)
+                  ->orWhere('description', 'like', $searchTerm)
+                  ->orWhere('unite', 'like', $searchTerm);
+            });
+        }
+
+        // Paginer les produits
+        $produits = $query->orderBy('created_at', 'desc')
+                         ->paginate(10)
+                         ->withQueryString();
 
         // Ajouter la QMUP calculée dynamiquement pour chaque produit
         $produits->getCollection()->transform(function ($produit) {
@@ -21,9 +37,11 @@ class ProduitController extends Controller
             return $produit;
         });
 
-        // Retourner avec Inertia
         return inertia('Produits/Produits', [
             'produits' => $produits,
+            'filters' => [
+                'search' => $request->input('search'),
+            ],
         ]);
     }
 
@@ -41,6 +59,7 @@ class ProduitController extends Controller
     public function store(Request $request)
     {
         $request->validate([
+            'reference' => 'required|string|max:50|unique:produits,reference',
             'nom' => 'required|string|max:255',
             'description' => 'nullable|string',
             'prix_achat' => 'required|numeric|min:0',
@@ -78,6 +97,7 @@ class ProduitController extends Controller
     public function update(Request $request, Produit $produit)
     {
         $request->validate([
+            'reference' => 'required|string|max:50|unique:produits,reference,'.$produit->id,
             'nom' => 'required|string|max:255',
             'description' => 'nullable|string',
             'prix_achat' => 'required|numeric|min:0',

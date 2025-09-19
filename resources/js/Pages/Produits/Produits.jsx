@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { Link, router, usePage } from "@inertiajs/react"; // Add usePage
+import { Link, router, usePage } from "@inertiajs/react";
+import debounce from 'lodash/debounce';
 import {
     Edit,
     Trash2,
@@ -8,13 +9,15 @@ import {
     PlusCircle,
     History,
     Calculator,
+    Edit2,
 } from "lucide-react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import FormBuilder from "@/Components/ui/FormBuilder";
 import DataTable from "@/Components/ui/DataTable";
+import Pagination from "@/Components/ui/Pagination";
 
-export default function Produits({ produits }) {
-    const { props } = usePage(); // Add usePage hook
+export default function Produits({ produits: produitsData, filters }) {
+    const { props } = usePage();
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [selectedProduit, setSelectedProduit] = useState(null);
     const [showForm, setShowForm] = useState(false);
@@ -22,12 +25,29 @@ export default function Produits({ produits }) {
     const [deleting, setDeleting] = useState(false);
     const [qmupData, setQmupData] = useState({});
     const [loadingQmup, setLoadingQmup] = useState({});
+    const [currentPage, setCurrentPage] = useState(produitsData.current_page || 1);
+    const [searchTerm, setSearchTerm] = useState(filters?.search || '');
+    const [isSearching, setIsSearching] = useState(false);
+
+    // Fonction de debounce pour la recherche
+    const handleSearch = debounce((value) => {
+        setIsSearching(true);
+        router.get(
+            route('produits.index'),
+            { search: value },
+            {
+                preserveState: true,
+                preserveScroll: true,
+                onFinish: () => setIsSearching(false)
+            }
+        );
+    }, 300);
 
     // Close form when produits data changes (after redirect)
     useEffect(() => {
         setShowForm(false);
         setFormValues(null);
-    }, [produits]);
+    }, [produitsData]);
 
     const handleFormSuccess = () => {
         setFormValues(null);
@@ -55,6 +75,12 @@ export default function Produits({ produits }) {
     };
 
     const fields = [
+        {
+            name: "reference",
+            label: "Référence du produit",
+            type: "text",
+            required: true,
+        },
         {
             name: "nom",
             label: "Nom du produit",
@@ -101,12 +127,21 @@ export default function Produits({ produits }) {
     ];
 
     const columns = [
+        // {
+        //     key: "id",
+        //     title: "ID",
+        //     render: (item) => (
+        //         <span className="font-mono text-gray-500 dark:text-gray-400">
+        //             #{item.id}
+        //         </span>
+        //     ),
+        // },
         {
-            key: "id",
-            title: "ID",
+            key: "reference",
+            title: "Référence",
             render: (item) => (
-                <span className="font-mono text-gray-500 dark:text-gray-400">
-                    #{item.id}
+                <span className="font-mono text-gray-600 dark:text-gray-300">
+                    {item.reference}
                 </span>
             ),
         },
@@ -162,9 +197,10 @@ export default function Produits({ produits }) {
                         ) : (
                             <button
                                 onClick={() => fetchQmup(item.id)}
-                                className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-sm underline"
+                                className="p-1 text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-full"
+                                title="Calculer QMUP"
                             >
-                                Calculer QMUP
+                                <Calculator className="h-4 w-4" />
                             </button>
                         )}
                     </div>
@@ -192,38 +228,40 @@ export default function Produits({ produits }) {
             key: "actions",
             title: "Actions",
             render: (item) => (
-                <div className="flex space-x-2">
+                <div className="flex items-center gap-1">
                     <button
                         onClick={() => {
-                            setFormValues(item); // Remplit le formulaire avec les données du produit
-                            setShowForm(true); // Affiche le formulaire
+                            setFormValues(item);
+                            setShowForm(true);
                         }}
-                        className="p-1 text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
+                        className="p-1 text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-full"
+                        title="Modifier"
                     >
-                        <Edit className="h-5 w-5" />
+                        <Edit2 className="h-4 w-4" />
                     </button>
                     <button
                         onClick={() => {
                             setSelectedProduit(item);
                             setShowDeleteModal(true);
                         }}
-                        className="p-1 text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                        className="p-1 text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full"
+                        title="Supprimer"
                     >
-                        <Trash2 className="h-5 w-5" />
+                        <Trash2 className="h-4 w-4" />
                     </button>
                     <Link
                         href={route("produits.historique", item.id)}
-                        className="p-1 text-purple-600 hover:text-purple-900 dark:text-purple-400 dark:hover:text-purple-300"
+                        className="p-1 text-purple-600 hover:text-purple-900 dark:text-purple-400 dark:hover:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-full"
                         title="Historique des achats"
                     >
-                        <History className="h-5 w-5" />
+                        <History className="h-4 w-4" />
                     </Link>
                     <button
                         onClick={() => fetchQmup(item.id)}
-                        className="p-1 text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
+                        className="hover:bg-gray-100 dark:hover:bg-gray-700 p-1 rounded-full"
                         title="Calculer QMUP"
                     >
-                        <Calculator className="h-5 w-5" />
+                        <Calculator className="h-4 w-4 text-blue-600" />
                     </button>
                 </div>
             ),
@@ -243,10 +281,38 @@ export default function Produits({ produits }) {
 
                     {/* Carte pour le titre et le bouton */}
                     <div className="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6">
-                        <div className="flex justify-between items-center">
-                            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                                Gestion des Produits
-                            </h2>
+                        <div className="flex justify-between items-center mb-6">
+                            <div className="flex flex-col">
+                                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                                    Gestion des Produits
+                                </h2>
+                                {/* Barre de recherche */}
+                                <div className="relative">
+                                    <div className="relative">
+                                        <input
+                                            type="text"
+                                            value={searchTerm}
+                                            onChange={(e) => {
+                                                const value = e.target.value;
+                                                setSearchTerm(value);
+                                                handleSearch(value);
+                                            }}
+                                            placeholder="Rechercher par nom, description, référence..."
+                                            className="w-96 pl-10 pr-4 py-2 rounded-md border border-gray-300 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white dark:border-gray-600"
+                                        />
+                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    {isSearching && (
+                                        <div className="absolute right-3 top-2">
+                                            <div className="animate-spin rounded-full h-4 w-4 border-2 border-indigo-500 border-t-transparent"></div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
 
                             <button
                                 onClick={() => {
@@ -256,15 +322,15 @@ export default function Produits({ produits }) {
                                 className="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150"
                             >
                                 {showForm ? (
-                                    <>
-                                        <X className="h-4 w-4 mr-2" />
-                                        Annuler
-                                    </>
+                                    <div className="flex items-center gap-2">
+                                        <X className="h-4 w-4" />
+                                        <span>Annuler</span>
+                                    </div>
                                 ) : (
-                                    <>
-                                        <PlusCircle className="h-4 w-4 mr-2" />
-                                        Ajouter un produit
-                                    </>
+                                    <div className="flex items-center gap-2">
+                                        <PlusCircle className="h-4 w-4" />
+                                        <span>Ajouter un produit</span>
+                                    </div>
                                 )}
                             </button>
                         </div>
@@ -295,16 +361,46 @@ export default function Produits({ produits }) {
 
                     {/* Carte pour le tableau */}
                     <div className="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6">
-                        <DataTable
-                            columns={columns}
-                            data={produits.data}
-                            searchable
-                            sortable
-                            pagination={true}
-                        />
-                    </div>
+                        {produitsData.data.length > 0 ? (
+                            <div>
+                                <DataTable
+                                    columns={columns}
+                                    data={produitsData.data}
+                                    searchable={false}
+                                    sortable
+                                    pagination={false}
+                                />
+                            </div>
+                        ) : (
+                            <div className="text-center py-12">
+                                <div className="rounded-full bg-gray-100 dark:bg-gray-700 p-3 inline-flex">
+                                    <svg className="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
+                                <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">Aucun produit trouvé</h3>
+                                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                                    {searchTerm ? `Aucun résultat pour "${searchTerm}"` : 'Aucun produit disponible.'}
+                                </p>
+                            </div>
+                        )}
 
-                    {/* Modal de suppression */}
+                        {produitsData.data.length > 0 && (
+                            <div className="mt-4">
+                                <Pagination
+                                    links={produitsData.links}
+                                    onPageChange={(page) => {
+                                        router.get(
+                                            route('produits.index', { page }),
+                                            {},
+                                            { preserveScroll: true, preserveState: true }
+                                        );
+                                    }}
+                                />
+                            </div>
+                        )}
+
+                        {/* Modal de suppression */}
                     {showDeleteModal && (
                         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-md">
@@ -343,6 +439,7 @@ export default function Produits({ produits }) {
                             </div>
                         </div>
                     )}
+                </div>
                 </div>
             </div>
         </AuthenticatedLayout>

@@ -285,7 +285,7 @@ export default function Echeancier({ factures: initialFactures, filters, modesPa
                                                             });
                                                         }}
                                                         title="Régler la facture"
-                                                        className="inline-flex items-center justify-center w-8 h-8 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                                                        className="inline-flex items-center justify-center p-1 border border-transparent text-sm font-medium rounded-full text-white bg-indigo-600 hover:bg-indigo-700"
                                                     >
                                                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
@@ -295,7 +295,7 @@ export default function Echeancier({ factures: initialFactures, filters, modesPa
                                                 <button
                                                     onClick={() => openHistory(f)}
                                                     title="Voir l'historique des paiements"
-                                                    className="inline-flex items-center justify-center w-8 h-8 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md shadow-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                                                    className="inline-flex items-center justify-center p-1 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-full text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
                                                 >
                                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -398,7 +398,7 @@ export default function Echeancier({ factures: initialFactures, filters, modesPa
                                                                 <td className="px-4 py-3 text-center space-x-1">
                                                                     <button
                                                                         title="Modifier le règlement"
-                                                                        className="inline-flex items-center justify-center w-7 h-7 text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-md transition-colors"
+                                                                        className="inline-flex items-center justify-center p-1 text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-full transition-colors"
                                                                         onClick={() => startEdit(r)}
                                                                     >
                                                                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -407,7 +407,7 @@ export default function Echeancier({ factures: initialFactures, filters, modesPa
                                                                     </button>
                                                                     <button
                                                                         title="Supprimer le règlement"
-                                                                        className="inline-flex items-center justify-center w-7 h-7 text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors"
+                                                                        className="inline-flex items-center justify-center p-1 text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition-colors"
                                                                         onClick={() => {
                                                                             if (!confirm('Supprimer ce règlement ?')) return;
                                                                             form.delete(route('reglements.destroy', r.id), {

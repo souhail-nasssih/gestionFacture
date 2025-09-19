@@ -79,7 +79,7 @@ export default function FactureRow({
                     <div className="flex space-x-2">
                         <button
                             onClick={handleToggleExpand}
-                            className="p-1.5 text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900 rounded-md transition-colors"
+                            className="p-1 text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-full"
                             title={
                                 expanded
                                     ? "Masquer les détails"
@@ -87,31 +87,31 @@ export default function FactureRow({
                             }
                         >
                             {expanded ? (
-                                <Eye className="h-5 w-5" />
+                                <Eye className="h-4 w-4" />
                             ) : (
-                                <Eye className="h-5 w-5" />
+                                <Eye className="h-4 w-4" />
                             )}
                         </button>
                         <button
                             onClick={() => onEdit(item)}
-                            className="p-1.5 text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300 hover:bg-green-100 dark:hover:bg-green-900 rounded-md transition-colors"
+                            className="p-1 text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-full"
                             title="Modifier cette facture"
                         >
-                            <Edit2 className="h-5 w-5" />
+                            <Edit2 className="h-4 w-4" />
                         </button>
                         <button
                             onClick={() => onDelete(item)}
-                            className="p-1.5 text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-100 dark:hover:bg-red-900 rounded-md transition-colors"
+                            className="p-1 text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full"
                             title="Supprimer cette facture"
                         >
-                            <Trash2 className="h-5 w-5" />
+                            <Trash2 className="h-4 w-4" />
                         </button>
                         <button
                             onClick={handlePrint}
-                            className="p-1.5 text-purple-600 hover:text-purple-900 dark:text-purple-400 dark:hover:text-purple-300 hover:bg-purple-100 dark:hover:bg-purple-900 rounded-md transition-colors"
+                            className="p-1 text-purple-600 hover:text-purple-900 dark:text-purple-400 dark:hover:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-full"
                             title="Imprimer cette facture"
                         >
-                            <Printer className="h-5 w-5" />
+                            <Printer className="h-4 w-4" />
                         </button>
                     </div>
                 </td>

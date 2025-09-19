@@ -72,6 +72,7 @@ class ReglementController extends Controller
             'reference_paiement' => 'nullable|string',
             'iban_rib' => 'nullable|string',
             'numero_cheque' => 'nullable|string',
+            'numero_reglement' => 'nullable|string|max:50',
         ]);
 
         // Mode-specific requirements
@@ -114,7 +115,7 @@ class ReglementController extends Controller
         }
 
         $payload = Arr::only($validated, [
-            'facture_id','type','montant_paye','type_reglement','date_reglement','date_reglement_at'
+            'facture_id','type','montant_paye','type_reglement','date_reglement','date_reglement_at','numero_reglement'
         ]);
         $payload['infos_reglement'] = $infos;
         $reglement = Reglement::create($payload);
@@ -210,6 +211,7 @@ class ReglementController extends Controller
             'type_reglement' => $validated['type_reglement'],
             'date_reglement' => $validated['date_reglement'],
             'date_reglement_at' => $validated['date_reglement_at'] ?? $reglement->date_reglement_at,
+            'numero_reglement' => $validated['numero_reglement'] ?? null,
             'infos_reglement' => $infos,
         ]);
 
@@ -248,8 +250,20 @@ class ReglementController extends Controller
 
     public function byFacture(string $type, int $id)
     {
-        $query = Reglement::query()->where('type', $type)->where('facture_id', $id)
-            ->orderBy('date_reglement', 'desc');
-        return response()->json($query->get());
-    }
+        $reglements = Reglement::where('type', $type)
+            ->where('facture_id', $id)
+            ->orderBy('date_reglement', 'desc')
+            ->get()
+            ->map(function ($reglement) {
+                $data = $reglement->toArray();
+                if (isset($data['infos_reglement']) && is_string($data['infos_reglement'])) {
+                    $data['infos_reglement'] = json_decode($data['infos_reglement'], true);
+                }
+                return $data;
+            });
+
+        return response()->json($reglements);
+}
+
+
 }

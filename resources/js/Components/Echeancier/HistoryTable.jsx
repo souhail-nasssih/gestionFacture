@@ -1,4 +1,21 @@
+import { useState } from 'react';
+import ConfirmDialog from '../Common/ConfirmDialog';
+
 export default function HistoryTable({ history, startEdit, form, historyFacture, openHistory }) {
+    const [deleteConfirm, setDeleteConfirm] = useState({ isOpen: false, reglement: null });
+
+    const handleDelete = () => {
+        if (!deleteConfirm.reglement) return;
+
+        form.delete(route('reglements.destroy', deleteConfirm.reglement.id), {
+            preserveScroll: true,
+            onSuccess: () => {
+                openHistory(historyFacture);
+            },
+        });
+        setDeleteConfirm({ isOpen: false, reglement: null });
+    };
+
     return (
         <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm">
@@ -13,7 +30,20 @@ export default function HistoryTable({ history, startEdit, form, historyFacture,
                     </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                    {history.length === 0 && (
+                    {form.processing && (
+                        <tr>
+                            <td colSpan={6} className="px-4 py-8 text-center">
+                                <div className="flex items-center justify-center">
+                                    <svg className="animate-spin h-5 w-5 text-primary-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    <span className="ml-2">Chargement...</span>
+                                </div>
+                            </td>
+                        </tr>
+                    )}
+                    {!form.processing && history.length === 0 && (
                         <tr>
                             <td colSpan={6} className="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
                                 Aucun règlement enregistré.
@@ -61,16 +91,7 @@ export default function HistoryTable({ history, startEdit, form, historyFacture,
                                     <button
                                         title="Supprimer le règlement"
                                         className="inline-flex items-center justify-center w-7 h-7 text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors"
-                                        onClick={() => {
-                                            if (!confirm('Supprimer ce règlement ?')) return;
-                                            form.delete(route('reglements.destroy', r.id), {
-                                                preserveScroll: true,
-                                                onSuccess: () => {
-                                                    openHistory(historyFacture);
-                                                    router.reload();
-                                                },
-                                            });
-                                        }}
+                                        onClick={() => setDeleteConfirm({ isOpen: true, reglement: r })}
                                     >
                                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -82,6 +103,14 @@ export default function HistoryTable({ history, startEdit, form, historyFacture,
                     })}
                 </tbody>
             </table>
+
+            {/* Dialogue de confirmation de suppression */}
+            <ConfirmDialog
+                isOpen={deleteConfirm.isOpen}
+                message={`Voulez-vous vraiment supprimer ce règlement ${deleteConfirm.reglement?.numero_reglement ? `n°${deleteConfirm.reglement.numero_reglement}` : ''} ?`}
+                onConfirm={handleDelete}
+                onCancel={() => setDeleteConfirm({ isOpen: false, reglement: null })}
+            />
         </div>
     );
 }

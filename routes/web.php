@@ -3,6 +3,7 @@
 use App\Http\Controllers\BLClientController;
 use App\Http\Controllers\BLFournisseurController;
 use App\Http\Controllers\ClientController;
+use App\Http\Controllers\EcheancierController;
 use App\Http\Controllers\FactureClientController;
 use App\Http\Controllers\FactureFournisseurController;
 use App\Http\Controllers\FournisseurController;
@@ -91,6 +92,11 @@ Route::get('/facture-clients/{factureClient}/print', [FactureClientController::c
     ->name('facture-clients.print')
     ->middleware(['auth']);
 
+// Route pour récupérer les données d'une facture
+Route::get('/echeancier/facture/{id}', [EcheancierController::class, 'getFacture'])
+    ->name('echeancier.getFacture')
+    ->middleware(['auth']);
+
 // Factures Clients Routes
 Route::resource(('facture-clients'), FactureClientController::class)->names([
     'index' => 'facture-clients.index',
@@ -124,6 +130,7 @@ Route::middleware('auth')->group(function () {
 require __DIR__ . '/auth.php';
 
 Route::get('/echeancier', [\App\Http\Controllers\EcheancierController::class, 'index'])->name('echeancier.index')->middleware(['auth', 'verified']);
+Route::get('/echeancier/facture/{id}', [\App\Http\Controllers\EcheancierController::class, 'getFacture'])->name('echeancier.getFacture')->middleware(['auth', 'verified']);
 
 Route::get('/reglements', [\App\Http\Controllers\ReglementController::class, 'index'])->name('reglements.index')->middleware(['auth', 'verified']);
 Route::post('/reglements', [\App\Http\Controllers\ReglementController::class, 'store'])->name('reglements.store')->middleware(['auth', 'verified']);

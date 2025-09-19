@@ -13,8 +13,12 @@ const Input = React.forwardRef(({
     max,
     step,
     placeholder,
+    readOnly = false,
     ...props
 }, ref) => {
+    // Vérifier si le champ est pour la TVA
+    const isTVAField = name === 'tva' || id === 'tva';
+
     return (
         <div className="w-full">
             <input
@@ -29,9 +33,10 @@ const Input = React.forwardRef(({
                 step={step}
                 placeholder={placeholder}
                 ref={ref}
+                readOnly={isTVAField || readOnly}
                 className={`block w-full rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white border-gray-300 dark:border-gray-600 ${
                     error ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''
-                } ${className}`}
+                } ${isTVAField ? 'bg-gray-100 cursor-not-allowed' : ''} ${className}`}
                 {...props}
             />
             {error && (

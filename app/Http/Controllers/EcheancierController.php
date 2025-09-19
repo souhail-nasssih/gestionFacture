@@ -12,6 +12,66 @@ use Carbon\Carbon;
 
 class EcheancierController extends Controller
 {
+    public function getFacture(Request $request, $id)
+    {
+        $type = $request->query('type');
+
+        if ($type === 'client') {
+            $facture = FactureClient::with('client')->find($id);
+            if (!$facture) {
+                return response()->json(['error' => 'Facture client non trouvée'], 404);
+            }
+
+            $facture->montant_regle = $facture->reglements()->sum('montant_paye');
+            $facture->reste_a_payer = max(0, $facture->montant_total - $facture->montant_regle);
+            $facture->type = 'client';
+            $facture->nom_entite = $facture->client->nom ?? '';
+
+            // Calculer la date d'échéance
+            $delai = $facture->client->delai_paiement ?? 0;
+            $dateEcheance = Carbon::parse($facture->date_facture)->addDays((int)$delai)->toDateString();
+            $facture->date_echeance = $dateEcheance;
+            $facture->en_retard = $facture->reste_a_payer > 0 && $dateEcheance < now()->toDateString();
+
+            if ($facture->reste_a_payer <= 0) {
+                $facture->statut = 'Payée';
+            } elseif ($facture->reste_a_payer < $facture->montant_total) {
+                $facture->statut = 'Partiellement payée';
+            } else {
+                $facture->statut = $facture->en_retard ? 'En retard' : 'En attente';
+            }
+
+        } else if ($type === 'fournisseur') {
+            $facture = FactureFournisseur::with('fournisseur')->find($id);
+            if (!$facture) {
+                return response()->json(['error' => 'Facture fournisseur non trouvée'], 404);
+            }
+
+            $facture->montant_regle = $facture->reglements()->sum('montant_paye');
+            $facture->reste_a_payer = max(0, $facture->montant_total - $facture->montant_regle);
+            $facture->type = 'fournisseur';
+            $facture->nom_entite = $facture->fournisseur->nom ?? '';
+
+            // Calculer la date d'échéance
+            $delai = $facture->fournisseur->delai_paiement ?? 0;
+            $dateEcheance = Carbon::parse($facture->date_facture)->addDays((int)$delai)->toDateString();
+            $facture->date_echeance = $dateEcheance;
+            $facture->en_retard = $facture->reste_a_payer > 0 && $dateEcheance < now()->toDateString();
+
+            if ($facture->reste_a_payer <= 0) {
+                $facture->statut = 'Payée';
+            } elseif ($facture->reste_a_payer < $facture->montant_total) {
+                $facture->statut = 'Partiellement payée';
+            } else {
+                $facture->statut = $facture->en_retard ? 'En retard' : 'En attente';
+            }
+        } else {
+            return response()->json(['error' => 'Type de facture invalide'], 400);
+        }
+
+        return response()->json($facture);
+    }
+
     public function index(Request $request)
     {
         $type = $request->get('type', 'tous');

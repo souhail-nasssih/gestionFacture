@@ -175,11 +175,11 @@ const DataTable = ({
                       {column.render ? column.render(item) : (item[column.key] ?? 'N/A')}
                     </td>
                   ))}
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  {/* <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <button className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300">
                       <MoreVertical className="h-5 w-5" />
                     </button>
-                  </td>
+                  </td> */}
                 </tr>
               ))
             )}

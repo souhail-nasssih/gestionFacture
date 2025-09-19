@@ -83,24 +83,24 @@ const BLTable = ({ blFournisseurs, onEdit, onDelete }) => {
                 <div className="flex space-x-2">
                     <button
                         onClick={() => toggleRowExpansion(item.id)}
-                        className="p-1 text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
+                        className="p-1 text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-full"
                         title={expandedRows.has(item.id) ? "Masquer les détails" : "Afficher les détails"}
                     >
-                        <Eye className="h-5 w-5" />
+                        <Eye className="h-4 w-4" />
                     </button>
                     <button
                         onClick={() => onEdit(item)}
-                        className="p-1 text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300"
+                        className="p-1 text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-full"
                         title="Modifier"
                     >
-                        <Edit2 className="h-5 w-5" />
+                        <Edit2 className="h-4 w-4" />
                     </button>
                     <button
                         onClick={() => onDelete(item)}
-                        className="p-1 text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                        className="p-1 text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full"
                         title="Supprimer"
                     >
-                        <Trash2 className="h-5 w-5" />
+                        <Trash2 className="h-4 w-4" />
                     </button>
                 </div>
             ),

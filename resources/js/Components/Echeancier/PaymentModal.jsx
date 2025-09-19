@@ -61,14 +61,17 @@ export default function PaymentModal({
                             type="number"
                             step="0.01"
                             min="0.01"
-                            max={selectedFacture.reste_a_payer}
+                            max={editingId ? selectedFacture.montant_total : selectedFacture.reste_a_payer}
                             className="w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                             value={form.data.montant_paye || ''}
                             onChange={e => form.setData('montant_paye', e.target.value)}
                             required
                         />
                         <p className="text-xs text-gray-500 mt-1">
-                            Reste à payer: {parseFloat(selectedFacture.reste_a_payer).toFixed(2)} DHS
+                            {editingId
+                                ? `Montant total: ${parseFloat(selectedFacture.montant_total).toFixed(2)} DHS`
+                                : `Reste à payer: ${parseFloat(selectedFacture.reste_a_payer).toFixed(2)} DHS`
+                            }
                         </p>
                     </div>
 

@@ -104,24 +104,26 @@ export default function Index({ fournisseurs }) {
             key: "actions",
             title: "Actions",
             render: (item) => (
-                <div className="flex space-x-2">
+                <div className="flex items-center gap-1">
                     <button
                         onClick={() => {
                             setFormValues(item);
                             setShowForm(true);
                         }}
-                        className="p-1 text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
+                        className="p-1 text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-full"
+                        title="Modifier"
                     >
-                        <Edit2 className="h-5 w-5" />
+                        <Edit2 className="h-4 w-4" />
                     </button>
                     <button
                         onClick={() => {
                             setSelectedFournisseur(item);
                             setShowDeleteModal(true);
                         }}
-                        className="p-1 text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                        className="p-1 text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full"
+                        title="Supprimer"
                     >
-                        <Trash2 className="h-5 w-5" />
+                        <Trash2 className="h-4 w-4" />
                     </button>
                 </div>
             ),
@@ -153,15 +155,15 @@ export default function Index({ fournisseurs }) {
                                 className="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150"
                             >
                                 {showForm ? (
-                                    <>
-                                        <X className="h-4 w-4 mr-2" />
-                                        Annuler
-                                    </>
+                                    <div className="flex items-center gap-2">
+                                        <X className="h-4 w-4" />
+                                        <span>Annuler</span>
+                                    </div>
                                 ) : (
-                                    <>
-                                        <PlusCircle className="h-4 w-4 mr-2" />
-                                        Ajouter un Fournisseur
-                                    </>
+                                    <div className="flex items-center gap-2">
+                                        <PlusCircle className="h-4 w-4" />
+                                        <span>Ajouter un Fournisseur</span>
+                                    </div>
                                 )}
                             </button>
                         </div>

@@ -37,11 +37,15 @@ export default function HistoryModal({
                                 </div>
                                 <div className="text-center">
                                     <div className="text-sm text-gray-500 dark:text-gray-400">Total réglé</div>
-                                    <div className="text-xl font-bold text-green-600 dark:text-green-400">{parseFloat(history.reduce((s, r) => s + parseFloat(r.montant_paye || 0), 0)).toFixed(2)} DHS</div>
+                                    <div className="text-xl font-bold text-green-600 dark:text-green-400">
+                                        {parseFloat(Array.isArray(history) ? history.reduce((s, r) => s + parseFloat(r.montant_paye || 0), 0) : 0).toFixed(2)} DHS
+                                    </div>
                                 </div>
                                 <div className="text-center">
                                     <div className="text-sm text-gray-500 dark:text-gray-400">Reste à payer</div>
-                                    <div className="text-xl font-bold text-red-600 dark:text-red-400">{parseFloat(historyFacture.reste_a_payer).toFixed(2)} DHS</div>
+                                    <div className="text-xl font-bold text-red-600 dark:text-red-400">
+                                        {parseFloat(historyFacture?.reste_a_payer || 0).toFixed(2)} DHS
+                                    </div>
                                 </div>
                             </div>
 

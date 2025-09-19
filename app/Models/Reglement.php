@@ -13,6 +13,8 @@ class Reglement extends Model
         'date_reglement',
         'type',
         'infos_reglement',
+        'numero_reglement',
+        'date_reglement_at',
     ];
 
     protected $casts = [

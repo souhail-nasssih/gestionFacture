@@ -79,39 +79,94 @@ export default function Echeancier({
         }
     }, [selectedFacture]);
 
-    function openHistory(facture) {
+    // Fonction pour rafraîchir les données d'une facture
+    async function refreshFactureData(factureId, type) {
+        try {
+            const response = await fetch(route("echeancier.getFacture", { id: factureId, type: type }));
+            const updatedFacture = await response.json();
+
+            setAllFactures(prevFactures =>
+                prevFactures.map(f =>
+                    f.id === factureId ? { ...f, ...updatedFacture } : f
+                )
+            );
+
+            if (historyFacture?.id === factureId) {
+                setHistoryFacture(prev => ({ ...prev, ...updatedFacture }));
+            }
+
+            return updatedFacture;
+        } catch (error) {
+            console.error("Erreur lors du rafraîchissement de la facture:", error);
+            return null;
+        }
+    }
+
+    async function openHistory(facture) {
+        if (!facture) return;
+
         setHistoryFacture(facture);
         setLoadingHistory(true);
-        fetch(route("reglements.byFacture", { type: facture.type, id: facture.id }))
-            .then((r) => r.json())
-            .then((data) => {
-                setHistory(
-                    (data || []).sort((a, b) =>
-                        (a.date_reglement || "") > (b.date_reglement || "")
-                            ? 1
-                            : -1
-                    )
-                );
-                setLoadingHistory(false);
+        setHistory([]); // Réinitialiser l'historique
+
+        try {
+            // Lancer les deux requêtes en parallèle
+            const [reglements, updatedFacture] = await Promise.all([
+                fetch(route("reglements.byFacture", { type: facture.type, id: facture.id }))
+                    .then(async r => {
+                        if (!r.ok) throw new Error('Erreur lors de la récupération des règlements');
+                        const data = await r.json();
+                        return Array.isArray(data) ? data : [];
+                    }),
+                refreshFactureData(facture.id, facture.type)
+            ]);
+
+            console.log('Règlements reçus:', reglements); // Pour le débogage
+
+            // Trier les règlements par date
+            const sortedReglements = reglements.sort((a, b) => {
+                const dateA = a.date_reglement || a.created_at;
+                const dateB = b.date_reglement || b.created_at;
+                return new Date(dateB) - new Date(dateA);
             });
+
+            // Mettre à jour l'historique des règlements
+            setHistory(sortedReglements);
+        } catch (error) {
+            console.error("Erreur lors du chargement de l'historique:", error);
+            setHistory([]); // Réinitialiser en cas d'erreur
+        } finally {
+            setLoadingHistory(false);
+        }
     }
 
     function startEdit(r) {
         setEditingId(r.id);
         setSelectedFacture(historyFacture);
 
+        // Format the date
+        const dateObj = r.date_reglement_at ? new Date(r.date_reglement_at) : new Date();
+        const formattedDate = dateObj.toISOString().split('T')[0];
+        const formattedTime = dateObj.toTimeString().slice(0, 5);
+        const formattedDateTime = `${formattedDate}T${formattedTime}:00`;
+
+        // Parse infos_reglement
         const infos =
             typeof r.infos_reglement === "string"
                 ? JSON.parse(r.infos_reglement)
                 : r.infos_reglement || {};
 
+        // Log the reglement data for debugging
+        console.log("Editing reglement:", r);
+
         form.setData({
-            facture_id: r.facture_id,
-            type_reglement: r.type_reglement,
+            facture_id: historyFacture.id,
+            type: historyFacture.type,
+            type_reglement: r.type_reglement || "espèces",
             montant_paye: r.montant_paye,
-            date_reglement: r.date_reglement,
-            date_reglement_at: r.date_reglement_at,
-            numero_reglement: r.numero_reglement || "",
+            date_reglement: formattedDate,
+            date_reglement_at: formattedDateTime,
+            numero_reglement: r.numero_reglement || "", // Ensure this value is set
             numero_cheque: infos.numero_cheque || "",
             banque_nom: infos.banque_nom || "",
             iban_rib: infos.iban_rib || "",
@@ -134,19 +189,22 @@ export default function Echeancier({
 
         // Prepare the complete data object with all required fields
         const formData = {
-            facture_id: selectedFacture.id,
-            type: selectedFacture.type,
-            montant_paye: form.data.montant_paye,
+            facture_id: form.data.facture_id,
+            type: form.data.type,
+            montant_paye: parseFloat(form.data.montant_paye).toFixed(2),
             type_reglement: form.data.type_reglement,
             date_reglement: form.data.date_reglement,
             date_reglement_at: form.data.date_reglement_at,
-            numero_reglement: form.data.numero_reglement,
+            numero_reglement: form.data.numero_reglement || null, // Ensure null if empty
             numero_cheque: form.data.numero_cheque,
             banque_nom: form.data.banque_nom,
             iban_rib: form.data.iban_rib,
             reference_paiement: form.data.reference_paiement,
             infos_reglement: infos,
         };
+
+        // Log the submission data for debugging
+        console.log("Submitting reglement:", formData);
 
         // Set all the form data at once
         form.setData(formData);
