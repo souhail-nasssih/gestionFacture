@@ -63,6 +63,7 @@ class FactureFournisseurController extends Controller
             'fournisseur_id' => 'required|exists:fournisseurs,id',
             'numero_facture' => 'required|string|unique:facture_fournisseurs,numero_facture',
             'date_facture' => 'required|date',
+            'date_echeance' => 'nullable|date',
             'montant_total' => 'required|numeric',
             'blFournisseurs' => 'required|array|min:1',
             'blFournisseurs.*' => 'exists:b_l_fournisseurs,id',

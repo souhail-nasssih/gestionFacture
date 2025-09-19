@@ -34,15 +34,22 @@ class FactureClientController extends Controller
             'client_id' => 'required|exists:clients,id',
             'numero_facture' => 'required|string|unique:facture_clients,numero_facture',
             'date_facture' => 'required|date',
+            'date_echeance' => 'nullable|date',
             'montant_total' => 'required|numeric',
             'blClients' => 'required|array|min:1',
             'blClients.*' => 'exists:bl_clients,id',
         ]);
 
+        // Calculate due date based on client's payment terms
+        $client = Client::findOrFail($validated['client_id']);
+        $delai = (int)($client->delai_paiement ?? 0);
+        $dateEcheance = \Carbon\Carbon::parse($validated['date_facture'])->addDays($delai)->toDateString();
+
         $facture = FactureClient::create([
             'client_id' => $validated['client_id'],
             'numero_facture' => $validated['numero_facture'],
             'date_facture' => $validated['date_facture'],
+            'date_echeance' => $dateEcheance,
             'montant_total' => $validated['montant_total'],
         ]);
 
@@ -71,6 +78,9 @@ class FactureClientController extends Controller
             'client_id' => $validated['client_id'],
             'numero_facture' => $validated['numero_facture'],
             'date_facture' => $validated['date_facture'],
+            'date_echeance' => \Carbon\Carbon::parse($validated['date_facture'])
+                ->addDays((int)(Client::find($validated['client_id'])->delai_paiement ?? 0))
+                ->toDateString(),
             'montant_total' => $validated['montant_total'],
         ]);
 

@@ -38,11 +38,13 @@ export default function FactureRow({
     return (
         <>
             <tr className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="font-mono text-gray-500 dark:text-gray-400">
-                        #{item.id}
+                {/* <td className="px-6 py-4 whitespace-nowrap">
+                    <span className="text-gray-600 dark:text-gray-300">
+                        <span className="font-mono text-gray-500 dark:text-gray-400">
+                            #{item.id}
+                        </span>
                     </span>
-                </td>
+                </td> */}
                 <td className="px-6 py-4 whitespace-nowrap">
                     <span className="font-medium text-gray-900 dark:text-white">
                         {item.numero_facture}
@@ -57,7 +59,19 @@ export default function FactureRow({
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                     <span className="text-gray-600 dark:text-gray-300">
-                        {item.date_echeance ? new Date(item.date_echeance).toLocaleDateString("fr-FR") : '-'}
+                        {(() => {
+                            let dateEcheance;
+                            if (item.date_echeance && item.date_echeance !== '0000-00-00' && item.date_echeance !== 'null' && item.date_echeance !== null) {
+                                dateEcheance = new Date(item.date_echeance);
+                            } else if (item.date_facture) {
+                                const dateFacture = new Date(item.date_facture);
+                                dateEcheance = new Date(dateFacture);
+                                if (item.fournisseur?.delai_paiement) {
+                                    dateEcheance.setDate(dateFacture.getDate() + parseInt(item.fournisseur.delai_paiement));
+                                }
+                            }
+                            return dateEcheance ? dateEcheance.toLocaleDateString("fr-FR") : '-';
+                        })()}
                     </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">

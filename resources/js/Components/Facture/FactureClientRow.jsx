@@ -40,13 +40,27 @@ export default function FactureClientRow({
         <>
             <tr className="hover:bg-gray-50 dark:hover:bg-gray-700">
                 <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="font-mono text-gray-500 dark:text-gray-400">#{item.id}</span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
                     <span className="font-medium text-gray-900 dark:text-white">{item.numero_facture}</span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                     <span className="text-gray-600 dark:text-gray-300">{new Date(item.date_facture).toLocaleDateString("fr-FR")}</span>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                    <span className="text-gray-600 dark:text-gray-300">
+                        {(() => {
+                            let dateEcheance;
+                            if (item.date_echeance && item.date_echeance !== '0000-00-00' && item.date_echeance !== 'null' && item.date_echeance !== null) {
+                                dateEcheance = new Date(item.date_echeance);
+                            } else if (item.date_facture) {
+                                const dateFacture = new Date(item.date_facture);
+                                dateEcheance = new Date(dateFacture);
+                                if (item.client?.delai_paiement) {
+                                    dateEcheance.setDate(dateFacture.getDate() + parseInt(item.client.delai_paiement));
+                                }
+                            }
+                            return dateEcheance ? dateEcheance.toLocaleDateString("fr-FR") : '-';
+                        })()}
+                    </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                     <span className="text-gray-600 dark:text-gray-300">{item.client?.nom || "N/A"}</span>

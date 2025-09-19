@@ -10,6 +10,7 @@ class FactureClient extends Model
         'client_id',
         'numero_facture',
         'date_facture',
+        'date_echeance',
         'montant_total',
         'statut_paiement',
     ];
