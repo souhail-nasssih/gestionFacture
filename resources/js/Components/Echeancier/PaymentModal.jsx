@@ -56,7 +56,7 @@ export default function PaymentModal({
                     />
 
                     <div>
-                        <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Montant à payer</label>
+                        <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Montant de paiement</label>
                         <input
                             type="number"
                             step="0.01"

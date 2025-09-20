@@ -71,7 +71,7 @@ export default function FactureClientTable({ facturesClients, onEdit, onDelete }
                                 Nb. BLs
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                Montant Total
+                                 Total TTC
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                 Actions

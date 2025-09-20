@@ -1,7 +1,7 @@
 export default function FiltersSection({ selectedType, setSelectedType, searchTerm, setSearchTerm }) {
     return (
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Gestion des échéances</h2>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Gestion de Paiement</h2>
 
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="flex flex-col sm:flex-row sm:items-center gap-4">
