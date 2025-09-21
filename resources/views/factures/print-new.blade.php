@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Facture Fournisseur</title>
   <style>
     @page { size: A4; margin: 15mm; }
@@ -17,74 +17,79 @@
       .no-print { display: none; }
       * {
         -webkit-print-color-adjust: exact !important;
-        color-adjust: exact !important;
         print-color-adjust: exact !important;
       }
     }
+
+    /* Header */
     .header {
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
-      margin-bottom: 20px;
+      margin-bottom: 6px;
     }
-    .logo-section {
-      display: flex;
-      align-items: center;
-    }
-    .logo {
-      width: 180px;
-      height: 50px;
-      background: #2B4C7E;
-      border-radius: 50%;
-      margin-right: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-weight: bold;
-      font-size: 7px;
-      text-align: center;
-      line-height: 1;
-    }
-    .company-name {
-      font-size: 11px;
-      font-weight: bold;
-      color: #2d3748;
-      line-height: 1.2;
+    .logo img {
+      width: 400px;
+      height: 100px;
+      object-fit: fill;
     }
     .invoice-details {
-      text-align: right;
+      text-align: left;
       font-size: 11px;
+      line-height: 1.25;
+      margin-right: 130px;
+      margin-top: 40px;
+
     }
-    .invoice-details div {
-      margin-bottom: 3px;
+    .invoice-details .fa{
+    color: #b32626;
+      text-decoration: underline;
+      text-decoration-color: #bd2e03;
     }
-    .client-info {
-      margin-bottom: 20px;
-      font-size: 11px;
-    }
-    .client-info div {
-      margin-bottom: 2px;
-    }
-    .dates-section {
+
+
+    /* Row under header:
+       left = dates-section, right = destinataire (Déstinataire:)
+       both must be on the same horizontal level */
+    .top-row {
       display: flex;
       justify-content: space-between;
-      margin-bottom: 15px;
+      align-items: flex-start;
+      gap: 18px;
+      margin-bottom: 8px;
+    }
+    .dates-col {
+      flex: 1 1 60%;
+      font-size: 10.5px;
+      line-height: 1.5;
+    }
+    .destinataire-col {
+      width: 320px; /* makes sure it's at the right side and same vertical baseline */
+      font-size: 11px;
+      line-height: 1.4;
+      text-align: left;
+      margin-left: 180px
+    }
+    .destinataire-col strong.company { display:inline-block; margin-left:4px; color: #b32626;text-decoration-color: #bd2e03;}
+
+    .legal-note {
       font-size: 10px;
+      margin: 6px 0 10px 0;
+      font-style: italic;
+      text-align: right;
     }
-    .dates-section div {
-      text-align: center;
-    }
+
+    /* Table */
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-bottom: 15px;
+      margin: 10px 0 15px 0;
       font-size: 9px;
     }
     th {
-      background: #2B4C7E !important;
-      color: white !important;
-      padding: 6px 4px;
+      background: #2B4C7E;
+      color: white;
+      padding: 5px 4px;
       text-align: center;
       font-weight: bold;
       border: 1px solid #000;
@@ -92,30 +97,33 @@
     }
     td {
       border: 1px solid #000;
-      padding: 6px 4px;
+      padding: 5px 4px;
       text-align: center;
+      vertical-align: middle;
     }
     .description-col {
       text-align: left !important;
       padding-left: 6px;
     }
+
+    /* Totals */
     .totals-section {
       display: flex;
       justify-content: flex-end;
-      margin-bottom: 20px;
+      margin: 18px 0 10px 0;
     }
     .totals-table {
-      width: 300px;
+      width: 380px;
       border-collapse: collapse;
-      font-size: 11px;
+      font-size: 10px;
     }
     .totals-table td {
-      padding: 8px 12px;
+      padding: 7px 10px;
       border: 1px solid #000;
     }
     .totals-table .label-col {
-      background: #2B4C7E !important;
-      color: white !important;
+      background: #2B4C7E;
+      color: white;
       font-weight: bold;
       text-align: center;
     }
@@ -124,58 +132,61 @@
       font-weight: bold;
     }
     .total-row {
-      background: #2B4C7E !important;
-      color: white !important;
+      background: #2B4C7E;
+      color: white;
       font-weight: bold !important;
     }
+
     .amount-words {
-      margin: 20px 0;
+      margin: 15px 0;
       font-size: 11px;
       border: 1px solid #000;
-      padding: 10px;
+      padding: 8px;
     }
     .footer {
-      margin-top: 30px;
+      margin-top: 20px;
       font-size: 9px;
       text-align: center;
       line-height: 1.4;
-    }
-    .empty-row {
-      height: 25px;
-    }
-    @media print {
-      .no-print { display: none; }
     }
   </style>
 </head>
 <body>
   <!-- HEADER -->
   <div class="header">
-    <div class="logo-section">
-      <div class="logo" style="background:none;">
-        <img src="{{ asset('logo.jpg') }}" alt="FINDUCARR Logo" style="width:180px; height:180px; object-fit:contain; border-radius:30px;">
-      </div>
-
+    <div class="logo">
+      <img src="{{ asset('logo.jpg') }}" alt="Logo">
     </div>
+
     <div class="invoice-details">
-    <div><strong>Facture:</strong> {{ $facture->numero_facture ?? '' }}</div>
-    <div><strong>Etablie le:</strong> {{ $facture->date_facture ?? '' }}</div>
-    <div><strong>Echéance le:</strong> {{ $facture->date_echeance ?? '' }}</div>
+      <div class="fa"><strong >Facture N°:</strong> {{ $facture->numero_facture ?? 'FC00001-25' }}</div>
+      <div><strong>Etablie le:</strong> {{ $facture->date_facture ?? '2025-09-09' }}</div>
+      <div><strong>Échéance le:</strong> {{ $facture->date_echeance ?? '' }}</div>
     </div>
   </div>
 
-  <!-- CLIENT INFO -->
-  <div class="client-info">
-  <div><strong>Destinataire:</strong></div>
-  <div>Société: <strong>{{ $facture->fournisseur->nom ?? '' }}</strong></div>
-  <!-- Add more fournisseur info if available -->
+  <!-- TOP ROW: left = dates, right = Déstinataire (exact placement requested) -->
+  <div class="top-row">
+    <!-- LEFT: Dates block -->
+    <div class="dates-col">
+      <div><strong>Date du Facture:</strong> {{ $facture->date_facture ?? '2025-09-09' }}</div>
+      <div><strong>Échéance du Facture:</strong> {{ $facture->date_echeance ?? '' }}</div>
+      <div><strong>Modalités de Paiement:</strong> Chèque ou Espèce</div>
+    </div>
+
+    <!-- RIGHT: Déstinataire block (MUST contain the requested fields) -->
+    <div class="destinataire-col">
+      <div><strong>Déstinataire:</strong></div>
+      <div>Société: <strong class="company">{{ $facture->destinataire->societe ?? $facture->fournisseur->nom ?? 'SIGNA PLUS' }}</strong></div>
+      <div>Adresse: {{ $facture->destinataire->adresse ?? $facture->fournisseur->adresse ?? '' }}</div>
+      <div>ICE: {{ $facture->destinataire->ice ?? $facture->fournisseur->ice ?? '' }}</div>
+      <div>E-mail: {{ $facture->destinataire->email ?? $facture->fournisseur->email ?? '' }}</div>
+    </div>
   </div>
 
-  <!-- DATES -->
-  <div class="dates-section">
-  <div><strong>***Date Editée {{ $facture->date_facture ?? '' }} Jusqu'au {{ $facture->date_echeance ?? '' }}</strong></div>
-  <div style="margin: 0 20px;"><strong>Date de Facture: {{ $facture->date_facture ?? '' }}</strong></div>
-  <div><strong>Modalité de Paiement: Chèque ou Espèce</strong></div>
+  <!-- LEGAL NOTE (below the two columns) -->
+  <div class="legal-note">
+    **Date effet     {{ $facture->date_facture ?? '' }}     payable au plus tard le     {{ $facture->date_echeance ?? '' }}     sous peine de pénalité selon la loi 69-22**
   </div>
 
   <!-- PRODUCTS TABLE -->
@@ -183,9 +194,9 @@
     <thead>
       <tr>
         <th style="width: 8%;">Réf</th>
-        <th style="width: 6%;">BL</th>
-        <th style="width: 4%;">N°</th>
-        <th style="width: 32%;">Description</th>
+        <th style="width: 6%;">BC</th>
+        <th style="width: 6%;">N° BL</th>
+        <th style="width: 30%;">Description</th>
         <th style="width: 6%;">Qté</th>
         <th style="width: 12%;">Prix unitaire</th>
         <th style="width: 8%;">Remise</th>
@@ -194,26 +205,28 @@
       </tr>
     </thead>
     <tbody>
-  @php $rowCount = 0; @endphp
-  @foreach($facture->bonsLivraison ?? [] as $bl)
-    @foreach($bl->details ?? [] as $detail)
-      <tr>
-        <td>{{ $bl->numero_bl ?? '' }}</td>
-        <td>{{ $bl->id ?? '' }}</td>
-        <td>{{ $detail->id ?? '' }}</td>
-        <td class="description-col">{{ $detail->produit->nom ?? '' }}</td>
-        <td>{{ $detail->quantite ?? '' }}</td>
-        <td>{{ number_format($detail->prix_unitaire, 2, ',', ' ') ?? '' }} DH</td>
-        <td>0,00%</td>
-        <td>{{ number_format(($detail->prix_unitaire * $detail->quantite), 2, ',', ' ') ?? '' }} DH</td>
-        <td>{{ number_format(($detail->prix_unitaire * $detail->quantite * 1.2), 2, ',', ' ') ?? '' }} DH</td>
-      </tr>
-      @php $rowCount++; @endphp
-    @endforeach
-  @endforeach
-  @for($i = $rowCount; $i < 8; $i++)
-      <tr class="empty-row"><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-  @endfor
+      @php $rowCount = 0; @endphp
+      @foreach($facture->bonsLivraison ?? [] as $bl)
+        @foreach($bl->details ?? [] as $detail)
+          <tr>
+            <td>0</td>
+            <td>0</td>
+            <td>{{ $bl->numero_bl ?? '' }}</td>
+            <td class="description-col">{{ $detail->produit->nom ?? '' }}</td>
+            <td>{{ $detail->quantite ?? '' }}</td>
+            <td>{{ number_format($detail->prix_unitaire, 2, ',', ' ') ?? '' }} DH</td>
+            <td>0,00%</td>
+            <td>{{ number_format(($detail->prix_unitaire * $detail->quantite), 2, ',', ' ') ?? '' }} DH</td>
+            <td>{{ number_format(($detail->prix_unitaire * $detail->quantite * 1.2), 2, ',', ' ') ?? '' }} DH</td>
+          </tr>
+          @php $rowCount++; @endphp
+        @endforeach
+      @endforeach
+
+      {{-- Fill up to a fixed number of rows so printed layout remains consistent (adjust 14 as needed)
+      @for($i = $rowCount; $i < 14; $i++)
+        <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+      @endfor --}}
     </tbody>
   </table>
 
@@ -227,10 +240,10 @@
         <td class="label-col">TOTAL TTC</td>
       </tr>
       <tr>
-  <td class="amount-col">{{ number_format($facture->montant_total ?? 0, 2, ',', ' ') }} DH</td>
-  <td class="amount-col">20%</td>
-  <td class="amount-col">{{ number_format(($facture->montant_total ?? 0) * 0.2, 2, ',', ' ') }} DH</td>
-  <td class="amount-col total-row">{{ number_format(($facture->montant_total ?? 0) * 1.2, 2, ',', ' ') }} DH</td>
+        <td class="amount-col">{{ number_format($facture->montant_total ?? 0, 2, ',', ' ') }} DH</td>
+        <td class="amount-col">20,00%</td>
+        <td class="amount-col">{{ number_format(($facture->montant_total ?? 0) * 0.2, 2, ',', ' ') }} DH</td>
+        <td class="amount-col total-row">{{ number_format(($facture->montant_total ?? 0) * 1.2, 2, ',', ' ') }} DH</td>
       </tr>
     </table>
   </div>
@@ -238,12 +251,12 @@
   <!-- AMOUNT IN WORDS -->
   <div class="amount-words">
     <strong>Arrêtée la présente à la somme de:</strong>
-  <strong>{{ $facture->montant_en_lettres ?? '' }}</strong>
+    <strong>{{ $facture->montant_en_lettres ?? '' }}</strong>
   </div>
 
   <!-- FOOTER -->
   <div class="footer">
-    SARL au capital : 100000,00 - Siège social : 77 Rue Mohamed Smiha 10 Et Appt N°57 Casablanca RC : 34329 - PATENTE : - IF : -
+    SARL au capital: 100000,00 - Siège social: 77 Rue Mohamed Smiha 10 Etg Appt N°57 Casablanca RC: 689565 - PATENTE: 32108409 - IF: 68363934 - ICE: 003789368000045 - Email: finducarr@gmail.com - Tél: 0708-330546
   </div>
 
   <!-- PRINT BUTTON -->
