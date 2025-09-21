@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Bon de Livraison - {{ $blClient->numero_bl }}</title>
     <style>
         @page {
@@ -12,237 +13,232 @@
 
         body {
             font-family: Arial, sans-serif;
-            font-size: 12px;
-            line-height: 1.4;
+            font-size: 11px;
             color: #000;
             margin: 0;
-            padding: 0;
+            padding: 10px;
         }
 
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 20px;
-            border-bottom: 2px solid #333;
-            padding-bottom: 15px;
-        }
-
-        .company-info {
-            flex: 1;
-        }
-
-        .company-logo {
-            max-height: 60px;
-            margin-bottom: 10px;
-        }
-
-        .company-name {
-            font-size: 18px;
-            font-weight: bold;
-            color: #333;
-            margin-bottom: 5px;
-        }
-
-        .company-description {
-            font-size: 11px;
-            color: #666;
-        }
-
-        .document-info {
-            text-align: right;
-            flex: 1;
-        }
-
-        .document-title {
-            font-size: 20px;
-            font-weight: bold;
-            text-decoration: underline;
-            margin-bottom: 10px;
-        }
-
-        .document-number {
-            font-size: 14px;
-            font-weight: bold;
-        }
-
-        .content {
-            margin-bottom: 20px;
-        }
-
-        .document-details {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 20px;
-        }
-
-        .left-details {
-            flex: 1;
-        }
-
-        .right-details {
-            flex: 1;
-            text-align: right;
-        }
-
-        .detail-row {
+        /* TOP area uses a table to ensure perfect left/right alignment in all renderers */
+        .top-table {
+            width: 100%;
+            border-collapse: collapse;
             margin-bottom: 8px;
         }
 
-        .detail-label {
-            font-weight: bold;
-            display: inline-block;
-            width: 120px;
+        .top-table td {
+            vertical-align: middle;
+            padding: 6px;
         }
 
-        .client-info {
-            margin-top: 15px;
+        .top-left {
+            width: 50%;
         }
 
-        .client-name {
-            font-weight: bold;
-            font-size: 14px;
-            margin-bottom: 5px;
-        }
-
-        .products-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 20px 0;
-            border: 1px solid #ddd;
-        }
-
-        .products-table th {
-            background-color: #333;
-            color: white;
-            padding: 10px 8px;
-            text-align: left;
-            font-weight: bold;
-            font-size: 11px;
-        }
-
-        .products-table td {
-            padding: 8px;
-            border: 1px solid #ddd;
-            font-size: 11px;
-        }
-
-        .products-table .text-right {
+        .top-right {
+            width: 50%;
             text-align: right;
         }
 
-        .products-table .text-center {
+        .logo {
+            display: inline-block;
+        }
+
+        .logo img {
+            width: 250px;
+            height: 100px;
+            display: block;
+        }
+
+        .doc-title {
+            font-size: 18px;
+            font-weight: bold;
+            text-decoration: underline;
+            margin-bottom: 6px;
+            margin-right: 100px;
+        }
+
+        .doc-number {
+            font-size: 16px;
+            font-weight: bold;
+            margin-right: 100px;
+        }
+
+        .info-block {
+            font-size: 11px;
+            line-height: 1.4;
+        }
+
+        .info-block div {
+            margin-bottom: 4px;
+        }
+
+        .destinataire {
+            text-align: left;
+            margin-left: 100px;
+        }
+
+        /* right cell content aligned left for multi-line data */
+        .destinataire .label {
+            display: inline-block;
+            width: 50px;
+            font-weight: bold;
+        }
+
+        /* adjust width if needed */
+
+        /* Products table */
+        table.products {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+            font-size: 10px;
+        }
+
+        table.products th,
+        table.products td {
+            border: 1px solid #000;
+            padding: 6px 5px;
+        }
+
+        table.products th {
+            background: #2B4C7E;
+            color: #fff;
+            font-weight: bold;
             text-align: center;
         }
 
-        .total-section {
-            margin-top: 20px;
+        .text-left {
+            text-align: left;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .text-right {
             text-align: right;
         }
 
-        .total-amount {
-            font-size: 14px;
+        /* Empty filler rows */
+        .empty-row td {
+            height: 20px;
+        }
+
+        /* Total and footer */
+        .total {
+            text-align: right;
             font-weight: bold;
+            margin-top: 10px;
+            font-size: 13px;
         }
 
         .footer {
-            margin-top: 30px;
-            padding-top: 15px;
-            border-top: 1px solid #ddd;
-            font-size: 10px;
-            color: #666;
+            margin-top: 24px;
+            font-size: 9px;
+            text-align: center;
+            color: #333;
+            line-height: 1.4;
         }
 
-        .footer-info {
-            margin-bottom: 5px;
-        }
+        @media print {
+            body {
+                font-size: 11px;
+            }
 
-        .grid-lines {
-            background-image:
-                linear-gradient(to right, #f0f0f0 1px, transparent 1px),
-                linear-gradient(to bottom, #f0f0f0 1px, transparent 1px);
-            background-size: 20px 20px;
-            background-position: 0 0, 0 0;
+            .logo img {
+                max-width: 140px;
+            }
         }
     </style>
 </head>
+
 <body>
-    <div class="header">
-        <div class="company-info">
-            <img src="{{ public_path('logo.jpg') }}" alt="Logo" class="company-logo">
-            {{-- <div class="company-name">FINDUCARR</div> --}}
-            <div class="company-description">FOURNITURE INDUSTRIELLE ET CARROSSERIES</div>
-        </div>
-        <div class="document-info">
-            <div class="document-title">BON DE LIVRAISON</div>
-            <div class="document-number">N° {{ $blClient->numero_bl }}</div>
-        </div>
-    </div>
 
-    <div class="content">
-        <div class="document-details">
-            <div class="left-details">
-                <div class="detail-row">
-                    <span class="detail-label">Date du Bon de Livraison:</span>
-                    {{ $blClient->date_bl->format('d/m/Y') }}
+    <!-- TOP SECTION: use table to force two columns and two rows -->
+    <table class="top-table">
+        <tr>
+            <!-- TOP LEFT: logo (same level as top-right title) -->
+            <td class="top-left">
+                <div class="logo">
+                    <img src="{{ public_path('logo.jpg') }}" alt="Logo">
                 </div>
-                <div class="detail-row">
-                    <span class="detail-label">Référence du Bon de Livraison:</span>
-                    {{ $blClient->numero_bl }}
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Référence du Offre de Prix:</span>
-                    {{ $blClient->notes ?? '' }}
-                </div>
-            </div>
-            <div class="left-details">
-                <div class="client-info">
-                    <div style="font-weight: bold; margin-bottom: 10px;">Destinataire:</div>
-                    <div class="client-name">{{ $blClient->client->nom }}</div>
-                    <div>{{ $blClient->client->adresse }}</div>
-                    <div>Tel: {{ $blClient->client->telephone ?? '' }}</div>
-                    <div>Email: {{ $blClient->client->email ?? '' }}</div>
-                </div>
-            </div>
-        </div>
+            </td>
 
-        <table class="products-table">
-            <thead>
-                <tr>
-                    <th style="width: 10%;">Réf</th>
-                    <th style="width: 50%;">Désignation</th>
-                    <th style="width: 15%;" class="text-center">Quantités</th>
-                    <th style="width: 12%;" class="text-right">Prix Un HT</th>
-                    <th style="width: 13%;" class="text-right">Total HT</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($blClient->details as $detail)
+            <!-- TOP RIGHT: title + number (same level as logo) -->
+            <td class="top-right">
+                <div class="doc-title">BON DE LIVRAISON</div>
+                <div class="doc-number">N° {{ $blClient->numero_bl }}</div>
+            </td>
+        </tr>
+
+        <tr>
+            <!-- BOTTOM LEFT: Date / Référence Offre (under the logo) -->
+            <td class="top-left">
+                <div class="info-block">
+                    <div><strong>Date du Bon de Livraison:</strong> {{ $blClient->date_bl->format('d/m/Y') }}</div>
+                    <div><strong>Référence du Bon de Livraison:</strong> {{ $blClient->numero_bl }}</div>
+                    <div><strong>Référence de l’Offre de Prix:</strong> {{ $blClient->notes ?? '' }}</div>
+                </div>
+            </td>
+
+            <!-- BOTTOM RIGHT: Déstinataire block (under the title/number) -->
+            <td class="top-right">
+                <div class="destinataire info-block" style="text-align:left;">
+                    <div style="font-weight:bold; margin-bottom:6px;">Déstinataire:</div>
+                    <div><span class="label">Société</span> <strong>{{ $blClient->client->nom }}</strong></div>
+
+                    {{-- Preserve address line breaks if present --}}
+                    <div><span class="label">Adresse</span>
+                        {!! nl2br(e($blClient->client->adresse ?? '')) !!}
+                    </div>
+
+                    <div><span class="label">Tel</span> {{ $blClient->client->telephone ?? '' }}</div>
+                    <div><span class="label">ICE</span> {{ $blClient->client->ice ?? '' }}</div>
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    <!-- PRODUCTS TABLE -->
+    <table class="products">
+        <thead>
+            <tr>
+                <th style="width:12%;">Réf</th>
+                <th style="width:50%;">Désignation</th>
+                <th style="width:12%;">Quantités</th>
+                <th style="width:13%;">Prix Un HT</th>
+                <th style="width:13%;">Total HT</th>
+            </tr>
+        </thead>
+        <tbody>
+            @php $rows = 0; @endphp
+            @foreach ($blClient->details as $detail)
                 <tr>
                     <td class="text-center">{{ $detail->produit->reference ?? '' }}</td>
-                    <td>{{ $detail->produit->nom }}</td>
+                    <td class="text-left">{{ $detail->produit->nom }}</td>
                     <td class="text-center">{{ number_format($detail->quantite, 2, ',', ' ') }}</td>
-                    <td class="text-right">{{ number_format($detail->prix_unitaire, 2, ',', ' ') }} DH</td>
-                    <td class="text-right">{{ number_format($detail->montant, 2, ',', ' ') }} DH</td>
+                    <td class="text-right">{{ number_format($detail->prix_unitaire ?? 0, 2, ',', ' ') }} DH</td>
+                    <td class="text-right">
+                        {{ number_format($detail->montant ?? $detail->quantite * ($detail->prix_unitaire ?? 0), 2, ',', ' ') }}
+                        DH</td>
                 </tr>
-                @endforeach
-            </tbody>
-        </table>
+                @php $rows++; @endphp
+            @endforeach
 
-        <div class="total-section">
-            <div class="total-amount">
-                Total HT: {{ number_format($blClient->total, 2, ',', ' ') }} DH
-            </div>
-        </div>
-    </div>
 
+        </tbody>
+    </table>
+
+    <!-- TOTAL -->
+    <div class="total">Total HT: {{ number_format($blClient->total ?? 0, 2, ',', ' ') }} DH</div>
+
+    <!-- FOOTER -->
     <div class="footer">
-        <div class="footer-info">
-            SARL au capital: 100000,00 - Siège social: 77 Rue Mohamed Smiha 10 Etg Appt N°57 Casablanca RC: 34329
-        </div>
-        <div class="footer-info">
-            PATENTE: - IF: 68363934 - ICE: 003789368000045 - Email: finducarr@gmail.com Tél: 0708-330546
-        </div>
+        SARL au capital: 100000,00 - Siège social: 77 Rue Mohamed Smiha 10 Etg Appt N°57 Casablanca RC: 34329 - PATENTE:
+        - IF: 68363934 - ICE: 003789368000045 - Email: finducarr@gmail.com - Tél: 0708-330546
     </div>
+
 </body>
+
 </html>

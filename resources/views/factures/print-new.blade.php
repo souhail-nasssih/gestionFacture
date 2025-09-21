@@ -194,13 +194,12 @@
   <table>
     <thead>
       <tr>
-        <th style="width: 8%;">Réf</th>
-        <th style="width: 6%;">BC</th>
+        <th style="width: 6%;">Réf BC</th>
         <th style="width: 6%;">N° BL</th>
         <th style="width: 30%;">Description</th>
         <th style="width: 6%;">Qté</th>
         <th style="width: 12%;">Prix unitaire</th>
-        <th style="width: 8%;">Remise</th>
+        {{-- <th style="width: 8%;">Remise</th> --}}
         <th style="width: 12%;">Total HT</th>
         <th style="width: 12%;">Total TTC</th>
       </tr>
@@ -211,12 +210,11 @@
         @foreach($bl->details ?? [] as $detail)
           <tr>
             <td>0</td>
-            <td>0</td>
             <td>{{ $bl->numero_bl ?? '' }}</td>
             <td class="description-col">{{ $detail->produit->nom ?? '' }}</td>
             <td>{{ $detail->quantite ?? '' }}</td>
             <td>{{ number_format($detail->prix_unitaire, 2, ',', ' ') ?? '' }} DH</td>
-            <td>0,00%</td>
+            {{-- <td>0,00%</td> --}}
             <td>{{ number_format(($detail->prix_unitaire * $detail->quantite), 2, ',', ' ') ?? '' }} DH</td>
             <td>{{ number_format(($detail->prix_unitaire * $detail->quantite * 1.2), 2, ',', ' ') ?? '' }} DH</td>
           </tr>
