@@ -142,6 +142,7 @@
       font-size: 11px;
       border: 1px solid #000;
       padding: 8px;
+      text-align: center;
     }
     .footer {
       margin-top: 20px;
@@ -251,7 +252,7 @@
   <!-- AMOUNT IN WORDS -->
   <div class="amount-words">
     <strong>Arrêtée la présente à la somme de:</strong>
-    <strong>{{ $facture->montant_en_lettres ?? '' }}</strong>
+    <strong>{{ ucfirst(\App\Helpers\NumberToWords::french($facture->montant_total ?? '' ))}}</strong>
   </div>
 
   <!-- FOOTER -->
