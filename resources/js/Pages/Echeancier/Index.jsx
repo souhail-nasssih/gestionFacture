@@ -14,6 +14,9 @@ export default function Echeancier({
 }) {
     const [allFactures, setAllFactures] = useState(initialFactures);
     const [selectedType, setSelectedType] = useState(filters?.type || "tous");
+    const [selectedStatus, setSelectedStatus] = useState(
+        filters?.statut || "tous"
+    );
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedFacture, setSelectedFacture] = useState(null);
     const [historyFacture, setHistoryFacture] = useState(null);
@@ -21,13 +24,29 @@ export default function Echeancier({
     const [loadingHistory, setLoadingHistory] = useState(false);
     const [editingId, setEditingId] = useState(null);
 
-    // Filtrer les factures en fonction du type sélectionné et du terme de recherche
+    // Define available status options
+    const statusOptions = [
+        { value: "tous", label: "Tous les statuts" },
+        { value: "payée", label: "Payée" },
+        { value: "en attente", label: "En attente" },
+        { value: "partiellement payée", label: "Partiellement payée" },
+        { value: "en retard", label: "En retard" },
+    ];
+
+    // Filtrer les factures en fonction du type sélectionné, statut et du terme de recherche
     const filteredFactures = useMemo(() => {
         let filtered = allFactures;
 
         // Filtrer par type
         if (selectedType !== "tous") {
             filtered = filtered.filter((f) => f.type === selectedType);
+        }
+
+        // Filtrer par statut (case-insensitive, trimmed)
+        if (selectedStatus !== "tous") {
+            const normalize = (s) => (s || "").toString().trim().toLowerCase();
+            const selectedNorm = normalize(selectedStatus);
+            filtered = filtered.filter((f) => normalize(f.statut) === selectedNorm);
         }
 
         // Filtrer par terme de recherche
@@ -41,18 +60,19 @@ export default function Echeancier({
         }
 
         return filtered;
-    }, [allFactures, selectedType, searchTerm]);
+    }, [allFactures, selectedType, selectedStatus, searchTerm]);
 
-    // Mettre à jour l'URL quand le type change
+    // Mettre à jour l'URL quand le type ou le statut change
     useEffect(() => {
         const params = {};
         if (selectedType !== "tous") params.type = selectedType;
+        if (selectedStatus !== "tous") params.statut = selectedStatus;
 
         router.get(route("echeancier.index"), params, {
             preserveState: true,
             replace: true,
         });
-    }, [selectedType]);
+    }, [selectedType, selectedStatus]);
 
     const form = useForm({
         facture_id: "",
@@ -78,26 +98,30 @@ export default function Echeancier({
             });
         }
     }, [selectedFacture]);
-
     // Fonction pour rafraîchir les données d'une facture
     async function refreshFactureData(factureId, type) {
         try {
-            const response = await fetch(route("echeancier.getFacture", { id: factureId, type: type }));
+            const response = await fetch(
+                route("echeancier.getFacture", { id: factureId, type: type })
+            );
             const updatedFacture = await response.json();
 
-            setAllFactures(prevFactures =>
-                prevFactures.map(f =>
+            setAllFactures((prevFactures) =>
+                prevFactures.map((f) =>
                     f.id === factureId ? { ...f, ...updatedFacture } : f
                 )
             );
 
             if (historyFacture?.id === factureId) {
-                setHistoryFacture(prev => ({ ...prev, ...updatedFacture }));
+                setHistoryFacture((prev) => ({ ...prev, ...updatedFacture }));
             }
 
             return updatedFacture;
         } catch (error) {
-            console.error("Erreur lors du rafraîchissement de la facture:", error);
+            console.error(
+                "Erreur lors du rafraîchissement de la facture:",
+                error
+            );
             return null;
         }
     }
@@ -112,16 +136,23 @@ export default function Echeancier({
         try {
             // Lancer les deux requêtes en parallèle
             const [reglements, updatedFacture] = await Promise.all([
-                fetch(route("reglements.byFacture", { type: facture.type, id: facture.id }))
-                    .then(async r => {
-                        if (!r.ok) throw new Error('Erreur lors de la récupération des règlements');
-                        const data = await r.json();
-                        return Array.isArray(data) ? data : [];
-                    }),
-                refreshFactureData(facture.id, facture.type)
+                fetch(
+                    route("reglements.byFacture", {
+                        type: facture.type,
+                        id: facture.id,
+                    })
+                ).then(async (r) => {
+                    if (!r.ok)
+                        throw new Error(
+                            "Erreur lors de la récupération des règlements"
+                        );
+                    const data = await r.json();
+                    return Array.isArray(data) ? data : [];
+                }),
+                refreshFactureData(facture.id, facture.type),
             ]);
 
-            console.log('Règlements reçus:', reglements); // Pour le débogage
+            console.log("Règlements reçus:", reglements); // Pour le débogage
 
             // Trier les règlements par date
             const sortedReglements = reglements.sort((a, b) => {
@@ -145,8 +176,10 @@ export default function Echeancier({
         setSelectedFacture(historyFacture);
 
         // Format the date
-        const dateObj = r.date_reglement_at ? new Date(r.date_reglement_at) : new Date();
-        const formattedDate = dateObj.toISOString().split('T')[0];
+        const dateObj = r.date_reglement_at
+            ? new Date(r.date_reglement_at)
+            : new Date();
+        const formattedDate = dateObj.toISOString().split("T")[0];
         const formattedTime = dateObj.toTimeString().slice(0, 5);
         const formattedDateTime = `${formattedDate}T${formattedTime}:00`;
 
@@ -225,8 +258,11 @@ export default function Echeancier({
                 onSuccess: () => {
                     setSelectedFacture(null);
                     if (historyFacture) openHistory(historyFacture);
-                    router.get(route("echeancier.index"), {}, { replace: true });
-
+                    router.get(
+                        route("echeancier.index"),
+                        {},
+                        { replace: true }
+                    );
                 },
                 onError: (errors) => {
                     console.log("Form errors:", errors);
@@ -240,8 +276,11 @@ export default function Echeancier({
                 <FiltersSection
                     selectedType={selectedType}
                     setSelectedType={setSelectedType}
+                    selectedStatus={selectedStatus}
+                    setSelectedStatus={setSelectedStatus}
                     searchTerm={searchTerm}
                     setSearchTerm={setSearchTerm}
+                    statusOptions={statusOptions}
                 />
 
                 <FacturesTable

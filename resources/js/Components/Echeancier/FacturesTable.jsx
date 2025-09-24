@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 
 export default function FacturesTable({
   filteredFactures,
@@ -268,12 +268,14 @@ export default function FacturesTable({
                 </td>
               </tr>
             ) : (
-              sortedFactures.map((f, index) => (
-                <>
-                  <tr
-                    key={`facture-${f.id}-${index}`}
-                    className="hover:bg-gray-50 dark:hover:bg-gray-700"
-                  >
+              sortedFactures.map((f, index) => {
+                // use a composite key (id + index) to guarantee uniqueness even if f.id repeats
+                const rowKey = `${f.id ?? 'noid'}-${index}`;
+                return (
+                  <React.Fragment key={`facture-${rowKey}`}>
+                    <tr
+                      className="hover:bg-gray-50 dark:hover:bg-gray-700"
+                    >
                     <td className="px-4 py-4 text-sm font-medium text-gray-900 dark:text-white">
                       <div className="flex items-center">
                         <button
@@ -400,7 +402,7 @@ export default function FacturesTable({
                     </td>
                   </tr>
                   {expandedRows.has(f.id) && (
-                    <tr className="bg-gray-50 dark:bg-gray-900">
+                    <tr key={`expanded-${rowKey}`} className="bg-gray-50 dark:bg-gray-900">
                       <td colSpan={10} className="px-4 py-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
                           <div>
@@ -435,8 +437,9 @@ export default function FacturesTable({
                       </td>
                     </tr>
                   )}
-                </>
-              ))
+                  </React.Fragment>
+                )
+              })
             )}
           </tbody>
         </table>
