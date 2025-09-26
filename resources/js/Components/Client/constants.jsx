@@ -1,5 +1,6 @@
-import React from 'react';
-import { Edit2, Trash2 } from 'lucide-react'; // Add this import
+import React from "react";
+import { Edit2, Trash2, FileText } from "lucide-react"; // Ajout de FileText
+import { Link } from "@inertiajs/react";
 
 export const clientFields = [
     {
@@ -89,8 +90,18 @@ export const clientColumns = [
     {
         key: "actions",
         title: "Actions",
-        render: (item, { onEdit, onDelete }) => (
+        render: (
+            item,
+            { onEdit, onDelete, onViewDetails } // Ajout de onViewDetails
+        ) => (
             <div className="flex items-center gap-1">
+                <Link
+                    href={route("detail-clients.detail")} // passe l'ID si besoin
+                    className="p-1 text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-full"
+                    title="Voir les détails"
+                >
+                    <FileText className="h-4 w-4" />
+                </Link>
                 <button
                     onClick={() => onEdit(item)}
                     className="p-1 text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-full"

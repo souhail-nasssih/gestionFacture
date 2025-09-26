@@ -156,3 +156,10 @@ Route::get('/produits/{id}/qmup', [ProduitController::class, 'qmup'])
 Route::post('/produits/initialize-prix-achat', [ProduitController::class, 'initializePrixAchat'])
     ->name('produits.initialize-prix-achat')
     ->middleware(['auth']);
+
+Route::get('/detail-clients', [ClientController::class, 'detail'])
+    ->name('detail-clients.detail')
+    ->middleware(['auth']);
+
+
+    

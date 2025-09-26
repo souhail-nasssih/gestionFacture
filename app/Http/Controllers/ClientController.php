@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Client;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class ClientController extends Controller
 {
@@ -17,6 +18,10 @@ class ClientController extends Controller
         return inertia('Client/index', [
             'clients' => $clients,
         ]);
+    }
+    public function detail()
+    {
+        return inertia('Client/Detail');
     }
 
     /**
