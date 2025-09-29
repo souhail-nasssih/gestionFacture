@@ -10,6 +10,7 @@ export default function IndexClients({
     facturesClients,
     clients,
     blClients,
+    nextNumeroFacture,
     success,
     errors: pageErrors,
 }) {
@@ -62,6 +63,7 @@ export default function IndexClients({
                             clients={clients}
                             blClients={blClients}
                             initialData={editingFacture}
+                            nextNumeroFacture={nextNumeroFacture}
                             onClose={() => {
                                 setShowForm(false);
                                 setIsEditing(false);

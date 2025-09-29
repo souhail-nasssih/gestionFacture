@@ -64,8 +64,8 @@ class FactureFournisseur extends Model
                 $factureFournisseur->numero_facture = static::generateNumeroFacture();
             } else {
                 // Validate manually entered numero_facture format
-                if (!preg_match('/^FC\d{2}\d{3}-\d{2}$/', $factureFournisseur->numero_facture)) {
-                    throw new \InvalidArgumentException('Facture number must follow format FC09001-25 (FC + month + counter + year)');
+                if (!preg_match('/^FF\d{2}\d{3}-\d{2}$/', $factureFournisseur->numero_facture)) {
+                    throw new \InvalidArgumentException('Facture number must follow format FF09001-25 (FF + month + counter + year)');
                 }
 
                 // Check for uniqueness
@@ -76,11 +76,11 @@ class FactureFournisseur extends Model
         });
 
         static::updating(function ($factureFournisseur) {
-            // Validate numero_facture format if it's being updated
-            if (!empty($factureFournisseur->numero_facture)) {
-                if (!preg_match('/^FC\d{2}\d{3}-\d{2}$/', $factureFournisseur->numero_facture)) {
-                    throw new \InvalidArgumentException('Facture number must follow format FC09001-25 (FC + month + counter + year)');
-                }
+                // Validate numero_facture format if it's being updated
+                if (!empty($factureFournisseur->numero_facture)) {
+                    if (!preg_match('/^FF\d{2}\d{3}-\d{2}$/', $factureFournisseur->numero_facture)) {
+                        throw new \InvalidArgumentException('Facture number must follow format FF09001-25 (FF + month + counter + year)');
+                    }
 
                 // Check for uniqueness (excluding current record)
                 if (static::where('numero_facture', $factureFournisseur->numero_facture)->where('id', '!=', $factureFournisseur->id)->exists()) {
@@ -91,9 +91,9 @@ class FactureFournisseur extends Model
     }
 
     /**
-     * Generate the next numero_facture following the format FC09001-25
-     * Format: FC + MM + CCC + -YY
-     * Where: FC = fixed prefix, MM = month (01-12), CCC = counter (001+), YY = year (last 2 digits)
+     * Generate the next numero_facture following the format FF09001-25
+     * Format: FF + MM + CCC + -YY
+     * Where: FF = fixed prefix, MM = month (01-12), CCC = counter (001+), YY = year (last 2 digits)
      */
     public static function generateNumeroFacture()
     {
@@ -102,7 +102,7 @@ class FactureFournisseur extends Model
         $currentYear = $now->format('y'); // 25, 26, etc.
 
         // Find the highest counter for the current month/year
-        $pattern = "FC{$currentMonth}%{$currentYear}";
+        $pattern = "FF{$currentMonth}%{$currentYear}";
         $lastFacture = static::where('numero_facture', 'like', $pattern)
             ->orderBy('numero_facture', 'desc')
             ->first();
@@ -112,8 +112,8 @@ class FactureFournisseur extends Model
             $nextCounter = 1;
         } else {
             // Extract counter from the last facture number
-            // Format: FC09015-25 -> extract 015
-            if (preg_match('/^FC\d{2}(\d+)-(\d{2})$/', $lastFacture->numero_facture, $matches)) {
+            // Format: FF09015-25 -> extract 015
+            if (preg_match('/^FF\d{2}(\d+)-(\d{2})$/', $lastFacture->numero_facture, $matches)) {
                 $lastCounter = intval($matches[1]);
                 $nextCounter = $lastCounter + 1;
             } else {
@@ -125,6 +125,6 @@ class FactureFournisseur extends Model
         // Format the counter with leading zeros (minimum 3 digits)
         $formattedCounter = str_pad($nextCounter, 3, '0', STR_PAD_LEFT);
 
-        return "FC{$currentMonth}{$formattedCounter}-{$currentYear}";
+        return "FF{$currentMonth}{$formattedCounter}-{$currentYear}";
     }
 }
