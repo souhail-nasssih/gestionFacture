@@ -44,7 +44,7 @@ class ReglementController extends Controller
         return Inertia::render('Echeancier/Index', [
             'type' => $type,
             'factures' => $factures,
-            'modesPaiement' => ['espèces', 'chèque', 'virement'],
+            'modesPaiement' => ['espèces', 'chèque', 'virement', 'LCN'],
         ]);
     }
 
@@ -65,7 +65,7 @@ class ReglementController extends Controller
             'facture_id' => 'required|integer',
             'type' => 'required|in:client,fournisseur',
             'montant_paye' => 'required|numeric|min:0.01',
-            'type_reglement' => 'required|in:espèces,chèque,virement',
+            'type_reglement' => 'required|in:espèces,chèque,virement,LCN',
             'date_reglement' => 'required|date',
             'date_reglement_at' => 'nullable|date',
             'banque_nom' => 'nullable|string',
@@ -77,7 +77,7 @@ class ReglementController extends Controller
 
         // Mode-specific requirements
         $mode = $validated['type_reglement'];
-        if ($mode === 'chèque') {
+        if ($mode === 'chèque' || $mode === 'LCN') {
             $request->validate([
                 'numero_cheque' => 'required|string',
                 'banque_nom' => 'required|string',
@@ -108,7 +108,7 @@ class ReglementController extends Controller
         $infos = [];
         if ($mode === 'espèces') {
             $infos = [];
-        } elseif ($mode === 'chèque') {
+        } elseif ($mode === 'chèque' || $mode === 'LCN') {
             $infos = Arr::only($validated, ['numero_cheque','banque_nom']);
         } elseif ($mode === 'virement') {
             $infos = Arr::only($validated, ['banque_nom','iban_rib','reference_paiement']);
@@ -160,7 +160,7 @@ class ReglementController extends Controller
     {
         $validated = $request->validate([
             'montant_paye' => 'required|numeric|min:0.01',
-            'type_reglement' => 'required|in:espèces,chèque,virement',
+            'type_reglement' => 'required|in:espèces,chèque,virement,LCN',
             'date_reglement' => 'required|date',
             'date_reglement_at' => 'nullable|date',
             'banque_nom' => 'nullable|string',
@@ -170,7 +170,7 @@ class ReglementController extends Controller
         ]);
 
         $mode = $validated['type_reglement'];
-        if ($mode === 'chèque') {
+        if ($mode === 'chèque' || $mode === 'LCN') {
             $request->validate([
                 'numero_cheque' => 'required|string',
                 'banque_nom' => 'required|string',
@@ -200,7 +200,7 @@ class ReglementController extends Controller
 
         // Reconstituer infos_reglement
         $infos = [];
-        if ($mode === 'chèque') {
+        if ($mode === 'chèque' || $mode === 'LCN') {
             $infos = \Illuminate\Support\Arr::only($validated, ['numero_cheque','banque_nom']);
         } elseif ($mode === 'virement') {
             $infos = \Illuminate\Support\Arr::only($validated, ['banque_nom','iban_rib','reference_paiement']);

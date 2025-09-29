@@ -87,16 +87,18 @@ export default function PaymentModal({
                         </select>
                     </div>
 
-                    {form.data.type_reglement === 'chèque' && (
+                    {(form.data.type_reglement === 'chèque' || form.data.type_reglement === 'LCN') && (
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">N° Chèque *</label>
+                                <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
+                                    {form.data.type_reglement === 'LCN' ? 'N° LCN *' : 'N° Chèque *'}
+                                </label>
                                 <input
                                     type="text"
                                     className="w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                                     value={form.data.numero_cheque || ''}
                                     onChange={e => form.setData('numero_cheque', e.target.value)}
-                                    required={form.data.type_reglement === 'chèque'}
+                                    required={form.data.type_reglement === 'chèque' || form.data.type_reglement === 'LCN'}
                                 />
                             </div>
                             <div>
@@ -106,7 +108,7 @@ export default function PaymentModal({
                                     className="w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                                     value={form.data.banque_nom || ''}
                                     onChange={e => form.setData('banque_nom', e.target.value)}
-                                    required={form.data.type_reglement === 'chèque'}
+                                    required={form.data.type_reglement === 'chèque' || form.data.type_reglement === 'LCN'}
                                 />
                             </div>
                         </div>

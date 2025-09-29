@@ -158,7 +158,7 @@ class EcheancierController extends Controller
             'filters' => [
                 'type' => $type,
             ],
-            'modesPaiement' => ['espèces', 'virement', 'chèque'],
+            'modesPaiement' => ['espèces', 'virement', 'chèque', 'LCN'],
         ]);
     }
 }

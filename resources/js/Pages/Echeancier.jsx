@@ -107,7 +107,7 @@ export default function Echeancier({ factures: initialFactures, filters, modesPa
     function submitReglement() {
         // Préparer les infos de règlement selon le type
         const infos = {};
-        if (form.data.type_reglement === 'chèque') {
+        if (form.data.type_reglement === 'chèque' || form.data.type_reglement === 'LCN') {
             infos.numero_cheque = form.data.numero_cheque;
             infos.banque_nom = form.data.banque_nom;
         } else if (form.data.type_reglement === 'virement') {
@@ -391,9 +391,11 @@ export default function Echeancier({ factures: initialFactures, filters, modesPa
                                                                 <td className="px-4 py-3 max-w-xs truncate">
                                                                     {r.type_reglement === 'chèque'
                                                                         ? `Chèque ${infos.numero_cheque || ''} - ${infos.banque_nom || ''}`.trim()
-                                                                        : r.type_reglement === 'virement'
-                                                                            ? `${infos.banque_nom || ''} ${infos.iban_rib || ''} ${infos.reference_paiement || ''}`.trim()
-                                                                            : '-'}
+                                                                        : r.type_reglement === 'LCN'
+                                                                            ? `LCN ${infos.numero_cheque || ''} - ${infos.banque_nom || ''}`.trim()
+                                                                            : r.type_reglement === 'virement'
+                                                                                ? `${infos.banque_nom || ''} ${infos.iban_rib || ''} ${infos.reference_paiement || ''}`.trim()
+                                                                                : '-'}
                                                                 </td>
                                                                 <td className="px-4 py-3 text-center space-x-1">
                                                                     <button
@@ -483,10 +485,12 @@ export default function Echeancier({ factures: initialFactures, filters, modesPa
                                     </select>
                                 </div>
 
-                                {form.data.type_reglement === 'chèque' && (
+                                {(form.data.type_reglement === 'chèque' || form.data.type_reglement === 'LCN') && (
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <div>
-                                            <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">N° Chèque</label>
+                                            <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
+                                                {form.data.type_reglement === 'LCN' ? 'N° LCN' : 'N° Chèque'}
+                                            </label>
                                             <input
                                                 type="text"
                                                 className="w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
