@@ -24,6 +24,9 @@ class FactureFournisseurController extends Controller
 
         $blFournisseurs = BLFournisseur::with(['details.produit', 'fournisseur'])->get();
 
+        // Generate the next numero_facture for pre-filling the form
+        $nextNumeroFacture = FactureFournisseur::generateNumeroFacture();
+
         // Debug lisible (relations incluses)
         // dd($facturesFournisseurs->toArray());
 
@@ -31,6 +34,7 @@ class FactureFournisseurController extends Controller
             'facturesFournisseurs' => $facturesFournisseurs,
             'fournisseurs' => $fournisseurs,
             'blFournisseurs' => $blFournisseurs,
+            'nextNumeroFacture' => $nextNumeroFacture,
         ]);
     }
 

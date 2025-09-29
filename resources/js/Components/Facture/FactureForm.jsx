@@ -10,6 +10,7 @@ export default function FactureForm({
     onClose,
     onSuccess,
     initialData = null,
+    nextNumeroFacture = null,
 }) {
     const [selectedFournisseur, setSelectedFournisseur] = useState(
         initialData?.fournisseur_id || null
@@ -22,7 +23,7 @@ export default function FactureForm({
     const TVA_RATE = 20; // Fixed TVA rate of 20%
 
     const { data, setData, post, put, processing, errors, reset } = useForm({
-        numero_facture: initialData?.numero_facture || "",
+        numero_facture: initialData?.numero_facture || nextNumeroFacture || "",
         date_facture: initialData?.date_facture || new Date().toISOString().split("T")[0],
         fournisseur_id: initialData?.fournisseur_id || "",
         blFournisseurs: initialData?.bonsLivraison?.map(bl => bl.id) || [],
@@ -78,8 +79,11 @@ export default function FactureForm({
                 );
                 setFilteredBlFournisseurs(filtered);
             }
+        } else if (!isEditing && nextNumeroFacture) {
+            // When creating a new facture, ensure the numero_facture is pre-filled
+            setData('numero_facture', nextNumeroFacture);
         }
-    }, [isEditing, initialData, blFournisseurs]);
+    }, [isEditing, initialData, blFournisseurs, nextNumeroFacture]);
 
     const handleFournisseurChange = (e) => {
         const fournisseurId = e.target.value;
@@ -215,11 +219,11 @@ export default function FactureForm({
                         type="text"
                         value={data.numero_facture}
                         onChange={(e) => setData("numero_facture", e.target.value)}
-                        placeholder="Laisser vide pour génération automatique (ex: FC09001-25)"
+                        placeholder="Numéro généré automatiquement"
                         className="block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white"
                     />
                     <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                        Format: FC + mois + compteur + année (ex: FC09001-25). Laisser vide pour génération automatique.
+                        Format: FC + mois + compteur + année (ex: FC09001-25). Pré-rempli automatiquement, modifiable si nécessaire.
                     </p>
                     {errors.numero_facture && (
                         <p className="mt-1 text-sm text-red-600 dark:text-red-400">

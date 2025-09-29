@@ -11,6 +11,7 @@ export default function Index({
     facturesFournisseurs,
     fournisseurs,
     blFournisseurs,
+    nextNumeroFacture,
     success,
     errors: pageErrors,
 }) {
@@ -63,6 +64,7 @@ export default function Index({
                             fournisseurs={fournisseurs}
                             blFournisseurs={blFournisseurs}
                             initialData={editingFacture}
+                            nextNumeroFacture={nextNumeroFacture}
                             onClose={() => {
                                 setShowForm(false);
                                 setIsEditing(false);
