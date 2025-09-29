@@ -77,7 +77,7 @@ class FactureClient extends Model
 
         static::updating(function ($factureClient) {
             // Validate numero_facture format if it's being updated
-            if (!empty($factureClient->numero_facture)) {
+            if (!empty($factureClient->numero_facture) && $factureClient->isDirty('numero_facture')) {
                 if (!preg_match('/^FC\d{2}\d{3}-\d{2}$/', $factureClient->numero_facture)) {
                     throw new \InvalidArgumentException('Facture number must follow format FC09001-25 (FC + month + counter + year)');
                 }

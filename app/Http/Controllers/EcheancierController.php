@@ -33,7 +33,10 @@ class EcheancierController extends Controller
             $facture->date_echeance = $dateEcheance;
             $facture->en_retard = $facture->reste_a_payer > 0 && $dateEcheance < now()->toDateString();
 
-            if ($facture->reste_a_payer <= 0) {
+            // Respect the forced paid status from database
+            if ($facture->statut_paiement === 'payee') {
+                $facture->statut = 'Payée';
+            } elseif ($facture->reste_a_payer <= 0) {
                 $facture->statut = 'Payée';
             } elseif ($facture->reste_a_payer < $facture->montant_total) {
                 $facture->statut = 'Partiellement payée';
@@ -58,7 +61,10 @@ class EcheancierController extends Controller
             $facture->date_echeance = $dateEcheance;
             $facture->en_retard = $facture->reste_a_payer > 0 && $dateEcheance < now()->toDateString();
 
-            if ($facture->reste_a_payer <= 0) {
+            // Respect the forced paid status from database
+            if ($facture->statut_paiement === 'payee') {
+                $facture->statut = 'Payée';
+            } elseif ($facture->reste_a_payer <= 0) {
                 $facture->statut = 'Payée';
             } elseif ($facture->reste_a_payer < $facture->montant_total) {
                 $facture->statut = 'Partiellement payée';
@@ -91,7 +97,10 @@ class EcheancierController extends Controller
                 // Déterminer le statut
                 $f->en_retard = $f->reste_a_payer > 0 && $dateEcheance < now()->toDateString();
 
-                if ($f->reste_a_payer <= 0) {
+                // Respect the forced paid status from database
+                if ($f->statut_paiement === 'payee') {
+                    $f->statut = 'Payée';
+                } elseif ($f->reste_a_payer <= 0) {
                     $f->statut = 'Payée';
                 } elseif ($f->reste_a_payer < $f->montant_total) {
                     $f->statut = 'Partiellement payée';
@@ -124,7 +133,10 @@ class EcheancierController extends Controller
                 // Déterminer le statut
                 $f->en_retard = $f->reste_a_payer > 0 && $dateEcheance < now()->toDateString();
 
-                if ($f->reste_a_payer <= 0) {
+                // Respect the forced paid status from database
+                if ($f->statut_paiement === 'payee') {
+                    $f->statut = 'Payée';
+                } elseif ($f->reste_a_payer <= 0) {
                     $f->statut = 'Payée';
                 } elseif ($f->reste_a_payer < $f->montant_total) {
                     $f->statut = 'Partiellement payée';

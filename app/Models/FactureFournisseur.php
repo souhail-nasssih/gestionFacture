@@ -77,7 +77,7 @@ class FactureFournisseur extends Model
 
         static::updating(function ($factureFournisseur) {
                 // Validate numero_facture format if it's being updated
-                if (!empty($factureFournisseur->numero_facture)) {
+                if (!empty($factureFournisseur->numero_facture) && $factureFournisseur->isDirty('numero_facture')) {
                     if (!preg_match('/^FF\d{2}\d{3}-\d{2}$/', $factureFournisseur->numero_facture)) {
                         throw new \InvalidArgumentException('Facture number must follow format FF09001-25 (FF + month + counter + year)');
                     }

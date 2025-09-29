@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 export default function PaymentModal({
     selectedFacture,
@@ -9,6 +9,52 @@ export default function PaymentModal({
     modesPaiement,
     submitReglement
 }) {
+    const [showConfirmationModal, setShowConfirmationModal] = useState(false);
+
+    // Use form data directly instead of local state
+    const forcePaidStatus = form.data.force_paid_status || false;
+
+    // Handle checkbox change with confirmation
+    const handleForcePaidChange = (checked) => {
+        if (checked) {
+            setShowConfirmationModal(true);
+        } else {
+            form.setData('force_paid_status', false);
+        }
+    };
+
+    // Handle confirmation modal
+    const handleConfirmForcePaid = () => {
+        form.setData('force_paid_status', true);
+        setShowConfirmationModal(false);
+    };
+
+    const handleCancelForcePaid = () => {
+        form.setData('force_paid_status', false);
+        setShowConfirmationModal(false);
+    };
+
+    // Calculate remaining balance
+    const calculateRemainingBalance = () => {
+        const enteredAmount = parseFloat(form.data.montant_paye || 0);
+        const totalAmount = editingId ? parseFloat(selectedFacture.montant_total) : parseFloat(selectedFacture.reste_a_payer);
+        return totalAmount - enteredAmount;
+    };
+
+    // Get dynamic checkbox text based on amount
+    const getCheckboxText = () => {
+        const enteredAmount = parseFloat(form.data.montant_paye || 0);
+        const totalAmount = editingId ? parseFloat(selectedFacture.montant_total) : parseFloat(selectedFacture.reste_a_payer);
+
+        if (enteredAmount < totalAmount) {
+            return "Marquer le règlement comme Payé même si le montant est inférieur au Montant à payer";
+        } else if (enteredAmount > totalAmount) {
+            return "Marquer le règlement comme Payé même si le montant est supérieur au Montant à payer";
+        } else {
+            return "Marquer le règlement comme Payé même si le montant est inférieur au Montant à payer";
+        }
+    };
+
     // Reset form data when the modal opens or payment type changes
     useEffect(() => {
         if (form.data.type_reglement === 'espèces') {
@@ -67,12 +113,19 @@ export default function PaymentModal({
                             onChange={e => form.setData('montant_paye', e.target.value)}
                             required
                         />
-                        <p className="text-xs text-gray-500 mt-1">
-                            {editingId
-                                ? `Montant total: ${parseFloat(selectedFacture.montant_total).toFixed(2)} DHS`
-                                : `Reste à payer: ${parseFloat(selectedFacture.reste_a_payer).toFixed(2)} DHS`
-                            }
-                        </p>
+                        <div className="mt-1 space-y-1">
+                            <p className="text-xs text-gray-500">
+                                {editingId
+                                    ? `Montant total: ${parseFloat(selectedFacture.montant_total).toFixed(2)} DHS`
+                                    : `Reste à payer: ${parseFloat(selectedFacture.reste_a_payer).toFixed(2)} DHS`
+                                }
+                            </p>
+                            {form.data.montant_paye && calculateRemainingBalance() > 0 && (
+                                <p className="text-xs text-orange-600 dark:text-orange-400 font-medium">
+                                    Reste à payer: {calculateRemainingBalance().toFixed(2)} MAD
+                                </p>
+                            )}
+                        </div>
                     </div>
 
                     <div>
@@ -185,6 +238,21 @@ export default function PaymentModal({
                         />
                     </div>
 
+                    {/* Payment Status Override Checkbox */}
+                    <div className="border-t border-gray-200 dark:border-gray-600 pt-4">
+                        <label className="flex items-start space-x-3 cursor-pointer">
+                            <input
+                                type="checkbox"
+                                checked={forcePaidStatus}
+                                onChange={(e) => handleForcePaidChange(e.target.checked)}
+                                className="mt-1 h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 dark:border-gray-600 rounded"
+                            />
+                            <span className="text-sm text-gray-700 dark:text-gray-300">
+                                {getCheckboxText()}
+                            </span>
+                        </label>
+                    </div>
+
                     <div className="flex justify-end gap-2 pt-4">
                         <button
                             type="button"
@@ -207,6 +275,49 @@ export default function PaymentModal({
                     </div>
                 </form>
             </div>
+
+            {/* Confirmation Modal */}
+            {showConfirmationModal && (
+                <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[60] p-4">
+                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg w-full max-w-md">
+                        <div className="p-6">
+                            <div className="flex items-center mb-4">
+                                <div className="flex-shrink-0">
+                                    <svg className="h-6 w-6 text-yellow-600 dark:text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                                    </svg>
+                                </div>
+                                <div className="ml-3">
+                                    <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+                                        Confirmation requise
+                                    </h3>
+                                </div>
+                            </div>
+                            <div className="mb-6">
+                                <p className="text-sm text-gray-600 dark:text-gray-300">
+                                    Vous êtes sur le point de marquer ce règlement comme 'Payée'. Êtes-vous sûr de vouloir continuer ?
+                                </p>
+                            </div>
+                            <div className="flex justify-end gap-3">
+                                <button
+                                    type="button"
+                                    onClick={handleCancelForcePaid}
+                                    className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-600 rounded-md shadow-sm hover:bg-gray-200 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                                >
+                                    Annuler
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={handleConfirmForcePaid}
+                                    className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                                >
+                                    Confirmer
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

@@ -56,6 +56,7 @@ export default function Echeancier({ factures: initialFactures, filters, modesPa
         iban_rib: '',
         reference_paiement: '',
         infos_reglement: {},
+        force_paid_status: false,
     });
 
     useEffect(() => {
@@ -116,6 +117,7 @@ export default function Echeancier({ factures: initialFactures, filters, modesPa
             infos.reference_paiement = form.data.reference_paiement;
         }
 
+        // Preserve force_paid_status when setting infos_reglement
         form.setData('infos_reglement', infos);
 
         if (editingId) {

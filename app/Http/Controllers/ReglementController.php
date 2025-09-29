@@ -16,34 +16,96 @@ class ReglementController extends Controller
      */
     public function index(Request $request)
     {
-        $type = $request->get('type', 'client');
+        $type = $request->get('type', 'tous');
 
-        if ($type === 'fournisseur') {
-            $factures = FactureFournisseur::with(['fournisseur'])
-                ->get()
-                ->map(function ($f) {
-                    $f->montant_regle = $f->reglements()->sum('montant_paye');
-                    $f->reste_a_payer = max(0, $f->montant_total - $f->montant_regle);
-                    return $f;
-                })
-                ->filter(fn($f) => $f->reste_a_payer > 0)
-                ->values();
-        } else {
-            $type = 'client';
-            $factures = FactureClient::with(['client'])
-                ->get()
-                ->map(function ($f) {
-                    $f->montant_regle = $f->reglements()->sum('montant_paye');
-                    $f->reste_a_payer = max(0, $f->montant_total - $f->montant_regle);
-                    return $f;
-                })
-                ->filter(fn($f) => $f->reste_a_payer > 0)
-                ->values();
+        // Récupérer toutes les factures (clients et fournisseurs)
+        $facturesClients = FactureClient::with('client')
+            ->get()
+            ->map(function ($f) {
+                $f->montant_regle = $f->reglements()->sum('montant_paye');
+                $f->reste_a_payer = max(0, $f->montant_total - $f->montant_regle);
+
+                // Calculer la date d'échéance
+                $delai = $f->client->delai_paiement ?? 0;
+                $dateEcheance = \Carbon\Carbon::parse($f->date_facture)->addDays((int)$delai)->toDateString();
+                $f->date_echeance = $dateEcheance;
+
+                // Déterminer le statut
+                $f->en_retard = $f->reste_a_payer > 0 && $dateEcheance < now()->toDateString();
+
+                // Respect the forced paid status from database
+                if ($f->statut_paiement === 'payee') {
+                    $f->statut = 'Payée';
+                } elseif ($f->reste_a_payer <= 0) {
+                    $f->statut = 'Payée';
+                } elseif ($f->reste_a_payer < $f->montant_total) {
+                    $f->statut = 'Partiellement payée';
+                } else {
+                    $f->statut = $f->en_retard ? 'En retard' : 'En attente';
+                }
+
+                $f->type = 'client';
+                $f->nom_entite = $f->client->nom ?? '';
+                $f->dernier_reglement = $f->reglements()->latest('date_reglement')->first();
+
+                return $f;
+            });
+
+        $facturesFournisseurs = FactureFournisseur::with('fournisseur')
+            ->get()
+            ->map(function ($f) {
+                $f->montant_regle = $f->reglements()->sum('montant_paye');
+                $f->reste_a_payer = max(0, $f->montant_total - $f->montant_regle);
+
+                // Calculer la date d'échéance
+                if (isset($f->date_echeance) && $f->date_echeance) {
+                    $dateEcheance = $f->date_echeance;
+                } else {
+                    $delai = (int)($f->fournisseur->delai_paiement ?? 0);
+                    $dateEcheance = \Carbon\Carbon::parse($f->date_facture)->addDays($delai)->toDateString();
+                    $f->date_echeance = $dateEcheance;
+                }
+
+                // Déterminer le statut
+                $f->en_retard = $f->reste_a_payer > 0 && $dateEcheance < now()->toDateString();
+
+                // Respect the forced paid status from database
+                if ($f->statut_paiement === 'payee') {
+                    $f->statut = 'Payée';
+                } elseif ($f->reste_a_payer <= 0) {
+                    $f->statut = 'Payée';
+                } elseif ($f->reste_a_payer < $f->montant_total) {
+                    $f->statut = 'Partiellement payée';
+                } else {
+                    $f->statut = $f->en_retard ? 'En retard' : 'En attente';
+                }
+
+                $f->type = 'fournisseur';
+                $f->nom_entite = $f->fournisseur->nom ?? '';
+                $f->dernier_reglement = $f->reglements()->latest('date_reglement')->first();
+
+                return $f;
+            });
+
+        // Fusionner les deux collections
+        $factures = $facturesClients->concat($facturesFournisseurs);
+
+        // Appliquer le filtre par type
+        if ($type === 'client') {
+            $factures = $factures->where('type', 'client');
+        } elseif ($type === 'fournisseur') {
+            $factures = $factures->where('type', 'fournisseur');
         }
+
+        // Trier par date d'échéance
+        $factures = $factures->sortBy('date_echeance')->values();
 
         return Inertia::render('Echeancier/Index', [
             'type' => $type,
             'factures' => $factures,
+            'filters' => [
+                'type' => $type,
+            ],
             'modesPaiement' => ['espèces', 'chèque', 'virement', 'LCN'],
         ]);
     }
@@ -73,6 +135,7 @@ class ReglementController extends Controller
             'iban_rib' => 'nullable|string',
             'numero_cheque' => 'nullable|string',
             'numero_reglement' => 'nullable|string|max:50',
+            'force_paid_status' => 'nullable|boolean',
         ]);
 
         // Mode-specific requirements
@@ -124,8 +187,8 @@ class ReglementController extends Controller
         $nouveauRegle = $montantRegle + $validated['montant_paye'];
         $resteApres = max(0, $facture->montant_total - $nouveauRegle);
 
-        if ($resteApres <= 0) {
-            // payée
+        if (($validated['force_paid_status'] ?? false) || $resteApres <= 0) {
+            // payée (either forced or fully paid)
             $facture->statut_paiement = 'payee';
         } else {
             // en attente
@@ -167,6 +230,7 @@ class ReglementController extends Controller
             'reference_paiement' => 'nullable|string',
             'iban_rib' => 'nullable|string',
             'numero_cheque' => 'nullable|string',
+            'force_paid_status' => 'nullable|boolean',
         ]);
 
         $mode = $validated['type_reglement'];
@@ -218,7 +282,14 @@ class ReglementController extends Controller
         // Mettre à jour le statut de la facture
         $montantRegle = $facture->reglements()->sum('montant_paye');
         $resteApres = max(0, $facture->montant_total - $montantRegle);
-        $facture->statut_paiement = $resteApres <= 0 ? 'payee' : 'en_attente';
+
+        if (($validated['force_paid_status'] ?? false) || $resteApres <= 0) {
+            // payée (either forced or fully paid)
+            $facture->statut_paiement = 'payee';
+        } else {
+            // en attente
+            $facture->statut_paiement = 'en_attente';
+        }
         $facture->save();
 
         return back()->with('success', 'Règlement mis à jour.');
