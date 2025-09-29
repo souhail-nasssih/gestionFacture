@@ -119,9 +119,9 @@ export default function BLClientForm({
     const basicFields = [
         {
             name: "numero_bl",
-            label: "Numéro BL",
+            label: "Numéro BL (laisser vide pour auto-génération)",
             type: "text",
-            required: true,
+            required: false,
         },
         {
             name: "date_bl",

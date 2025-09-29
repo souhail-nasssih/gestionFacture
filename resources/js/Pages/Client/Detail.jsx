@@ -131,7 +131,7 @@ export default function Detail({ auth }) {
                         ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'
                         : 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300'
                 }`}>
-                    {item.statut === 'payee' ? 'Payée' : 
+                    {item.statut === 'payee' ? 'Payée' :
                      item.statut === 'impayee' ? 'Impayée' : 'Partiellement payée'}
                 </span>
             ),
@@ -165,7 +165,7 @@ export default function Detail({ auth }) {
             title: "Reste à Payer",
             render: (item) => (
                 <span className={`font-medium ${
-                    item.reste_a_payer === 0 
+                    item.reste_a_payer === 0
                         ? 'text-green-600 dark:text-green-400'
                         : 'text-orange-600 dark:text-orange-400'
                 }`}>
@@ -233,7 +233,7 @@ export default function Detail({ auth }) {
             title: "Statut",
             render: (item) => (
                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                    item.statut === 'validé' 
+                    item.statut === 'validé'
                         ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300'
                         : item.statut === 'en_attente'
                         ? 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300'
@@ -421,7 +421,7 @@ export default function Detail({ auth }) {
                                         </button>
                                     </div>
                                 </div>
-                                
+
                                 {/* Tableau Situation */}
                                 <div className="overflow-x-auto">
                                     <table className="w-full">
@@ -533,7 +533,7 @@ export default function Detail({ auth }) {
                                         </button>
                                     </div>
                                 </div>
-                                
+
                                 {/* Tableau Règlements */}
                                 <div className="overflow-x-auto">
                                     <table className="w-full">

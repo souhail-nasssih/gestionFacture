@@ -50,18 +50,35 @@ class BLClient extends Model
         parent::boot();
 
         static::creating(function ($blClient) {
+            // Auto-generate BL number if not provided
             if (empty($blClient->numero_bl)) {
                 $blClient->numero_bl = static::generateNumeroBL();
+            } else {
+                // Validate manually entered BL number format
+                if (!preg_match('/^BL\d{5,}$/', $blClient->numero_bl)) {
+                    throw new \InvalidArgumentException('BL number must start with "BL" followed by at least 5 digits');
+                }
+
+                // Check for uniqueness
+                if (static::where('numero_bl', $blClient->numero_bl)->exists()) {
+                    throw new \InvalidArgumentException('This BL number already exists');
+                }
             }
         });
     }
 
     protected static function generateNumeroBL()
     {
-        $year = now()->year;
-        $lastBL = static::whereYear('created_at', $year)->latest()->first();
-        $sequence = $lastBL ? (int) substr($lastBL->numero_bl, -4) + 1 : 1;
+        $lastBL = static::latest('numero_bl')->first();
+        if (!$lastBL) {
+            return 'BL00001';
+        }
 
-        return 'BL-C-' . $year . '-' . str_pad($sequence, 4, '0', STR_PAD_LEFT);
+        // Extract the numeric part after 'BL'
+        $numericPart = substr($lastBL->numero_bl, 2);
+        $nextNumber = intval($numericPart) + 1;
+
+        // Ensure at least 5 digits, but allow more if needed
+        return 'BL' . str_pad($nextNumber, 5, '0', STR_PAD_LEFT);
     }
 }

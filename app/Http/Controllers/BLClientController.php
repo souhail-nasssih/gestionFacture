@@ -37,7 +37,7 @@ class BLClientController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'numero_bl' => 'required|string|unique:bl_clients,numero_bl',
+            'numero_bl' => 'nullable|string|unique:bl_clients,numero_bl',
             'date_bl' => 'required|date',
             'client_id' => 'required|exists:clients,id',
             'details' => 'required|array|min:1',
@@ -112,7 +112,7 @@ class BLClientController extends Controller
    public function update(Request $request, BLClient $bl_client)
 {
     $validator = Validator::make($request->all(), [
-        'numero_bl' => 'required|string|unique:bl_clients,numero_bl,' . $bl_client->id,
+        'numero_bl' => 'nullable|string|unique:bl_clients,numero_bl,' . $bl_client->id,
         'date_bl' => 'required|date',
         'client_id' => 'required|exists:clients,id',
         'details' => 'required|array|min:1',
