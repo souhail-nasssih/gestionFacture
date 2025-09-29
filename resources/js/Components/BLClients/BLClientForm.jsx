@@ -20,9 +20,24 @@ export default function BLClientForm({
 
     useEffect(() => {
         if (isEditing && editingBl) {
+            // Format date properly for HTML date input (YYYY-MM-DD)
+            let formattedDate = new Date().toISOString().split("T")[0]; // Default to today
+            if (editingBl.date_bl) {
+                // Handle different date formats that might come from the backend
+                if (typeof editingBl.date_bl === 'string') {
+                    // If it's already a string, try to extract YYYY-MM-DD format
+                    formattedDate = editingBl.date_bl.includes('T')
+                        ? editingBl.date_bl.split('T')[0]
+                        : editingBl.date_bl;
+                } else if (editingBl.date_bl instanceof Date) {
+                    // If it's a Date object
+                    formattedDate = editingBl.date_bl.toISOString().split('T')[0];
+                }
+            }
+
             setData({
                 numero_bl: editingBl.numero_bl,
-                date_bl: editingBl.date_bl,
+                date_bl: formattedDate,
                 client_id: editingBl.client_id,
                 details: editingBl.details.map(detail => ({
                     produit_id: detail.produit_id,
