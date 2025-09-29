@@ -56,7 +56,7 @@ class BLClient extends Model
             } else {
                 // Validate manually entered BL number format
                 if (!preg_match('/^BL\d{5,}$/', $blClient->numero_bl)) {
-                    throw new \InvalidArgumentException('BL number must start with "BL" followed by at least 5 digits');
+                    throw new \InvalidArgumentException('BL number must start with "BL" followed by at least 5 digits (e.g., BL00001)');
                 }
 
                 // Check for uniqueness
@@ -65,18 +65,43 @@ class BLClient extends Model
                 }
             }
         });
+
+        static::updating(function ($blClient) {
+            // Validate BL number format if it's being updated
+            if (!empty($blClient->numero_bl)) {
+                if (!preg_match('/^BL\d{5,}$/', $blClient->numero_bl)) {
+                    throw new \InvalidArgumentException('BL number must start with "BL" followed by at least 5 digits (e.g., BL00001)');
+                }
+
+                // Check for uniqueness (excluding current record)
+                if (static::where('numero_bl', $blClient->numero_bl)->where('id', '!=', $blClient->id)->exists()) {
+                    throw new \InvalidArgumentException('This BL number already exists');
+                }
+            }
+        });
     }
 
     protected static function generateNumeroBL()
     {
-        $lastBL = static::latest('numero_bl')->first();
-        if (!$lastBL) {
+        // Get all BL numbers and find the highest numeric value
+        $allBLs = static::where('numero_bl', 'like', 'BL%')->pluck('numero_bl');
+
+        if ($allBLs->isEmpty()) {
             return 'BL00001';
         }
 
-        // Extract the numeric part after 'BL'
-        $numericPart = substr($lastBL->numero_bl, 2);
-        $nextNumber = intval($numericPart) + 1;
+        $maxNumber = 0;
+        foreach ($allBLs as $blNumber) {
+            // Extract numeric part after 'BL' and validate format
+            if (preg_match('/^BL(\d+)$/', $blNumber, $matches)) {
+                $number = intval($matches[1]);
+                if ($number > $maxNumber) {
+                    $maxNumber = $number;
+                }
+            }
+        }
+
+        $nextNumber = $maxNumber + 1;
 
         // Ensure at least 5 digits, but allow more if needed
         return 'BL' . str_pad($nextNumber, 5, '0', STR_PAD_LEFT);
