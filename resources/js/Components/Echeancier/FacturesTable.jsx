@@ -339,7 +339,7 @@ export default function FacturesTable({
                       {getStatusBadge(f)}
                     </td>
                     <td className="px-4 py-4 text-center space-x-1 w-36 min-w-[140px]">
-                      {f.reste_a_payer > 0 && (
+                      {f.reste_a_payer > 0 && f.statut !== 'Payée' && (
                         <button
                           onClick={() => {
                             setSelectedFacture(f);
