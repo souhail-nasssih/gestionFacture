@@ -209,15 +209,18 @@ export default function FactureForm({
 
                 <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Numéro Facture <span className="text-red-500">*</span>
+                        Numéro Facture
                     </label>
                     <input
                         type="text"
                         value={data.numero_facture}
                         onChange={(e) => setData("numero_facture", e.target.value)}
+                        placeholder="Laisser vide pour génération automatique (ex: FC09001-25)"
                         className="block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white"
-                        required
                     />
+                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                        Format: FC + mois + compteur + année (ex: FC09001-25). Laisser vide pour génération automatique.
+                    </p>
                     {errors.numero_facture && (
                         <p className="mt-1 text-sm text-red-600 dark:text-red-400">
                             {errors.numero_facture}

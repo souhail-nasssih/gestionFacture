@@ -61,7 +61,7 @@ class FactureFournisseurController extends Controller
         // Validation des données
         $validated = $request->validate([
             'fournisseur_id' => 'required|exists:fournisseurs,id',
-            'numero_facture' => 'required|string|unique:facture_fournisseurs,numero_facture',
+            'numero_facture' => 'nullable|string', // Made optional - will be auto-generated if not provided
             'date_facture' => 'required|date',
             'date_echeance' => 'nullable|date',
             'montant_total' => 'required|numeric',
@@ -74,14 +74,20 @@ class FactureFournisseurController extends Controller
         $delai = (int)($fournisseur->delai_paiement ?? 0);
         $dateEcheance = \Carbon\Carbon::parse($validated['date_facture'])->addDays($delai)->toDateString();
 
-        $facture = FactureFournisseur::create([
+        $factureData = [
             'fournisseur_id' => $validated['fournisseur_id'],
-            'numero_facture' => $validated['numero_facture'],
             'date_facture' => $validated['date_facture'],
             'date_echeance' => $dateEcheance,
             'montant_total' => $validated['montant_total'],
             // statut_paiement par défaut : 'en_attente'
-        ]);
+        ];
+
+        // Only include numero_facture if provided (otherwise it will be auto-generated)
+        if (!empty($validated['numero_facture'])) {
+            $factureData['numero_facture'] = $validated['numero_facture'];
+        }
+
+        $facture = FactureFournisseur::create($factureData);
 
         // Association des BL sélectionnés à la facture (update en masse)
         \DB::table('b_l_fournisseurs')
@@ -118,7 +124,7 @@ class FactureFournisseurController extends Controller
     {
         $validated = $request->validate([
             'fournisseur_id' => 'required|exists:fournisseurs,id',
-            'numero_facture' => 'required|string|unique:facture_fournisseurs,numero_facture,' . $factureFournisseur->id,
+            'numero_facture' => 'nullable|string', // Made optional - validation handled in model
             'date_facture' => 'required|date',
             'montant_total' => 'required|numeric',
             'blFournisseurs' => 'required|array|min:1',
@@ -132,13 +138,19 @@ class FactureFournisseurController extends Controller
         $delai = (int)($fournisseur->delai_paiement ?? 0);
         $dateEcheance = \Carbon\Carbon::parse($validated['date_facture'])->addDays($delai)->toDateString();
 
-        $factureFournisseur->update([
+        $updateData = [
             'fournisseur_id' => $validated['fournisseur_id'],
-            'numero_facture' => $validated['numero_facture'],
             'date_facture' => $validated['date_facture'],
             'date_echeance' => $dateEcheance,
             'montant_total' => $validated['montant_total'],
-        ]);
+        ];
+
+        // Only update numero_facture if provided
+        if (!empty($validated['numero_facture'])) {
+            $updateData['numero_facture'] = $validated['numero_facture'];
+        }
+
+        $factureFournisseur->update($updateData);
 
         // Handle BLs to remove (disassociate only the ones marked for removal)
         if (!empty($validated['bls_to_remove'])) {
