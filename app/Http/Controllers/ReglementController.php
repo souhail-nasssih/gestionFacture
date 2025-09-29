@@ -130,6 +130,7 @@ class ReglementController extends Controller
             'type_reglement' => 'required|in:espèces,chèque,virement,LCN',
             'date_reglement' => 'required|date',
             'date_reglement_at' => 'nullable|date',
+            'date_paiement' => 'nullable|date',
             'banque_nom' => 'nullable|string',
             'reference_paiement' => 'nullable|string',
             'iban_rib' => 'nullable|string',
@@ -179,7 +180,7 @@ class ReglementController extends Controller
         }
 
         $payload = Arr::only($validated, [
-            'facture_id','type','montant_paye','type_reglement','date_reglement','date_reglement_at','numero_reglement','description'
+            'facture_id','type','montant_paye','type_reglement','date_reglement','date_reglement_at','date_paiement','numero_reglement','description'
         ]);
         $payload['infos_reglement'] = $infos;
         $reglement = Reglement::create($payload);
@@ -227,6 +228,7 @@ class ReglementController extends Controller
             'type_reglement' => 'required|in:espèces,chèque,virement,LCN',
             'date_reglement' => 'required|date',
             'date_reglement_at' => 'nullable|date',
+            'date_paiement' => 'nullable|date',
             'banque_nom' => 'nullable|string',
             'reference_paiement' => 'nullable|string',
             'iban_rib' => 'nullable|string',
@@ -278,6 +280,7 @@ class ReglementController extends Controller
             'type_reglement' => $validated['type_reglement'],
             'date_reglement' => $validated['date_reglement'],
             'date_reglement_at' => $validated['date_reglement_at'] ?? $reglement->date_reglement_at,
+            'date_paiement' => $validated['date_paiement'] ?? null,
             'numero_reglement' => $validated['numero_reglement'] ?? null,
             'description' => $validated['description'] ?? null,
             'infos_reglement' => $infos,

@@ -15,6 +15,7 @@ class Reglement extends Model
         'infos_reglement',
         'numero_reglement',
         'date_reglement_at',
+        'date_paiement',
         'description',
     ];
 

@@ -204,26 +204,21 @@ export default function PaymentModal({
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Date de paiement *</label>
+                            <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Créé le</label>
                             <input
                                 type="date"
-                                className="w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                className="w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 bg-gray-100 dark:bg-gray-600"
                                 value={form.data.date_reglement || new Date().toISOString().slice(0, 10)}
-                                onChange={e => form.setData('date_reglement', e.target.value)}
-                                required
+                                readOnly
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Heure</label>
+                            <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Date de paiement</label>
                             <input
-                                type="time"
+                                type="date"
                                 className="w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                                value={(form.data.date_reglement_at && form.data.date_reglement_at.split('T')[1]?.substring(0,5)) || ''}
-                                onChange={e => {
-                                    const time = e.target.value || '00:00';
-                                    const date = form.data.date_reglement || new Date().toISOString().slice(0,10);
-                                    form.setData('date_reglement_at', `${date}T${time}:00`);
-                                }}
+                                value={form.data.date_paiement || ''}
+                                onChange={e => form.setData('date_paiement', e.target.value)}
                             />
                         </div>
                     </div>
