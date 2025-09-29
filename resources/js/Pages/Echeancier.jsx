@@ -56,6 +56,7 @@ export default function Echeancier({ factures: initialFactures, filters, modesPa
         iban_rib: '',
         reference_paiement: '',
         infos_reglement: {},
+        description: '',
         force_paid_status: false,
     });
 
@@ -102,6 +103,7 @@ export default function Echeancier({ factures: initialFactures, filters, modesPa
             iban_rib: infos.iban_rib || '',
             reference_paiement: infos.reference_paiement || '',
             infos_reglement: infos,
+            description: r.description || '',
         });
     }
 
@@ -283,7 +285,8 @@ export default function Echeancier({ factures: initialFactures, filters, modesPa
                                                                 banque_nom: '',
                                                                 iban_rib: '',
                                                                 reference_paiement: '',
-                                                                infos_reglement: {}
+                                                                infos_reglement: {},
+                                                                description: ''
                                                             });
                                                         }}
                                                         title="Régler la facture"
@@ -390,14 +393,60 @@ export default function Echeancier({ factures: initialFactures, filters, modesPa
                                                                 </td>
                                                                 <td className="px-4 py-3 text-right font-medium">{parseFloat(r.montant_paye).toFixed(2)} DHS</td>
                                                                 <td className="px-4 py-3">{r.numero_reglement || '-'}</td>
-                                                                <td className="px-4 py-3 max-w-xs truncate">
-                                                                    {r.type_reglement === 'chèque'
-                                                                        ? `Chèque ${infos.numero_cheque || ''} - ${infos.banque_nom || ''}`.trim()
-                                                                        : r.type_reglement === 'LCN'
-                                                                            ? `LCN ${infos.numero_cheque || ''} - ${infos.banque_nom || ''}`.trim()
-                                                                            : r.type_reglement === 'virement'
-                                                                                ? `${infos.banque_nom || ''} ${infos.iban_rib || ''} ${infos.reference_paiement || ''}`.trim()
-                                                                                : '-'}
+                                                                <td className="px-4 py-3">
+                                                                    {r.type_reglement === 'chèque' || r.type_reglement === 'LCN' ? (
+                                                                        <div className="min-w-[200px]">
+                                                                            <table className="w-full text-xs">
+                                                                                <thead>
+                                                                                    <tr>
+                                                                                        <th className="text-left text-gray-500 dark:text-gray-400 font-medium pr-2">
+                                                                                            {r.type_reglement === 'LCN' ? 'N° LCN' : 'N° Chèque'}
+                                                                                        </th>
+                                                                                        <th className="text-left text-gray-500 dark:text-gray-400 font-medium">
+                                                                                            Banque
+                                                                                        </th>
+                                                                                    </tr>
+                                                                                </thead>
+                                                                                <tbody>
+                                                                                    <tr>
+                                                                                        <td className="pr-2 text-gray-900 dark:text-white">
+                                                                                            {infos.numero_cheque || '-'}
+                                                                                        </td>
+                                                                                        <td className="text-gray-900 dark:text-white">
+                                                                                            {infos.banque_nom || '-'}
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                </tbody>
+                                                                            </table>
+                                                                        </div>
+                                                                    ) : r.type_reglement === 'virement' ? (
+                                                                        <div className="min-w-[250px]">
+                                                                            <table className="w-full text-xs">
+                                                                                <thead>
+                                                                                    <tr>
+                                                                                        <th className="text-left text-gray-500 dark:text-gray-400 font-medium pr-2">Banque</th>
+                                                                                        <th className="text-left text-gray-500 dark:text-gray-400 font-medium pr-2">IBAN/RIB</th>
+                                                                                        <th className="text-left text-gray-500 dark:text-gray-400 font-medium">Référence</th>
+                                                                                    </tr>
+                                                                                </thead>
+                                                                                <tbody>
+                                                                                    <tr>
+                                                                                        <td className="pr-2 text-gray-900 dark:text-white">
+                                                                                            {infos.banque_nom || '-'}
+                                                                                        </td>
+                                                                                        <td className="pr-2 text-gray-900 dark:text-white">
+                                                                                            {infos.iban_rib || '-'}
+                                                                                        </td>
+                                                                                        <td className="text-gray-900 dark:text-white">
+                                                                                            {infos.reference_paiement || '-'}
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                </tbody>
+                                                                            </table>
+                                                                        </div>
+                                                                    ) : (
+                                                                        <span className="text-gray-500 dark:text-gray-400">-</span>
+                                                                    )}
                                                                 </td>
                                                                 <td className="px-4 py-3 text-center space-x-1">
                                                                     <button

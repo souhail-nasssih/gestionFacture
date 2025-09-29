@@ -238,6 +238,17 @@ export default function PaymentModal({
                         />
                     </div>
 
+                    <div>
+                        <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Description (optionnel)</label>
+                        <textarea
+                            rows={3}
+                            className="w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                            value={form.data.description || ''}
+                            onChange={e => form.setData('description', e.target.value)}
+                            placeholder="Ajouter une description ou des notes pour ce règlement..."
+                        />
+                    </div>
+
                     {/* Payment Status Override Checkbox */}
                     <div className="border-t border-gray-200 dark:border-gray-600 pt-4">
                         <label className="flex items-start space-x-3 cursor-pointer">

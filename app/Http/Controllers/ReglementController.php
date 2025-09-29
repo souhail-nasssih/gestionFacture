@@ -135,6 +135,7 @@ class ReglementController extends Controller
             'iban_rib' => 'nullable|string',
             'numero_cheque' => 'nullable|string',
             'numero_reglement' => 'nullable|string|max:50',
+            'description' => 'nullable|string|max:500',
             'force_paid_status' => 'nullable|boolean',
         ]);
 
@@ -178,7 +179,7 @@ class ReglementController extends Controller
         }
 
         $payload = Arr::only($validated, [
-            'facture_id','type','montant_paye','type_reglement','date_reglement','date_reglement_at','numero_reglement'
+            'facture_id','type','montant_paye','type_reglement','date_reglement','date_reglement_at','numero_reglement','description'
         ]);
         $payload['infos_reglement'] = $infos;
         $reglement = Reglement::create($payload);
@@ -230,6 +231,8 @@ class ReglementController extends Controller
             'reference_paiement' => 'nullable|string',
             'iban_rib' => 'nullable|string',
             'numero_cheque' => 'nullable|string',
+            'numero_reglement' => 'nullable|string|max:50',
+            'description' => 'nullable|string|max:500',
             'force_paid_status' => 'nullable|boolean',
         ]);
 
@@ -276,6 +279,7 @@ class ReglementController extends Controller
             'date_reglement' => $validated['date_reglement'],
             'date_reglement_at' => $validated['date_reglement_at'] ?? $reglement->date_reglement_at,
             'numero_reglement' => $validated['numero_reglement'] ?? null,
+            'description' => $validated['description'] ?? null,
             'infos_reglement' => $infos,
         ]);
 
