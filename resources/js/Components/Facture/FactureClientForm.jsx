@@ -1,6 +1,7 @@
 import { useForm } from "@inertiajs/react";
 import { useState, useEffect, useCallback } from "react";
-import { Trash2 } from "lucide-react";
+import { Trash2, ChevronUp, ChevronDown } from "lucide-react";
+import SearchableSelect from "../ui/SearchableSelect";
 
 export default function FactureClientForm({
     isEditing,
@@ -19,6 +20,8 @@ export default function FactureClientForm({
     const [selectedBLs, setSelectedBLs] = useState(
         initialData?.bonsLivraison?.map(bl => bl.id) || []
     );
+    const [sortField, setSortField] = useState('numero_bl');
+    const [sortDirection, setSortDirection] = useState('asc');
 
     const TVA_RATE = 20; // Fixed TVA rate of 20%
 
@@ -82,27 +85,6 @@ export default function FactureClientForm({
             setData('numero_facture', nextNumeroFacture);
         }
     }, [isEditing, initialData, blClients, nextNumeroFacture]);
-
-    const handleClientChange = (e) => {
-        const clientId = e.target.value;
-        setSelectedClient(clientId);
-        setData("client_id", clientId);
-
-        if (clientId) {
-            const filtered = blClients.filter(
-                (bl) => String(bl.client_id) === String(clientId) &&
-                (bl.facture_client_id === null ||
-                 (isEditing && bl.facture_client_id === editingFactureId))
-            );
-            setFilteredBlClients(filtered);
-        } else {
-            setFilteredBlClients([]);
-        }
-
-        setSelectedBLs([]);
-        setData("blClients", []);
-        setData("bls_to_remove", []);
-    };
 
     const toggleBLSelection = (blId) => {
         setSelectedBLs((prev) => {
@@ -185,6 +167,43 @@ export default function FactureClientForm({
 
     const { montantHt, tvaAmount, montantTtc } = calculateTotals();
 
+    // Sorting function
+    const handleSort = (field) => {
+        if (sortField === field) {
+            setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+        } else {
+            setSortField(field);
+            setSortDirection('asc');
+        }
+    };
+
+    // Get sorted BLs
+    const getSortedBls = () => {
+        const availableBls = filteredBlClients.filter(bl => bl.facture_client_id === null);
+
+        return [...availableBls].sort((a, b) => {
+            let aValue, bValue;
+
+            if (sortField === 'numero_bl') {
+                aValue = a.numero_bl || '';
+                bValue = b.numero_bl || '';
+            } else if (sortField === 'date_bl') {
+                aValue = new Date(a.date_bl);
+                bValue = new Date(b.date_bl);
+            } else {
+                return 0;
+            }
+
+            if (sortDirection === 'asc') {
+                return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
+            } else {
+                return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
+            }
+        });
+    };
+
+    const sortedBls = getSortedBls();
+
     return (
         <div className="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6 transition-all duration-300 mb-6">
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -239,24 +258,42 @@ export default function FactureClientForm({
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                         Client <span className="text-red-500">*</span>
                     </label>
-                    <select
+                    <SearchableSelect
+                        options={clients.map(client => ({
+                            value: client.id,
+                            label: client.nom,
+                            nom: client.nom,
+                            email: client.email,
+                            telephone: client.telephone
+                        }))}
                         value={data.client_id}
-                        onChange={handleClientChange}
-                        className="block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white"
-                        required
-                    >
-                        <option value="">Sélectionner un client</option>
-                        {clients.map((c) => (
-                            <option key={c.id} value={c.id}>
-                                {c.nom}
-                            </option>
-                        ))}
-                    </select>
-                    {errors.client_id && (
-                        <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                            {errors.client_id}
-                        </p>
-                    )}
+                        onChange={(value) => {
+                            const clientId = value;
+                            setSelectedClient(clientId);
+                            setData("client_id", clientId);
+
+                            if (clientId) {
+                                const filtered = blClients.filter(
+                                    (bl) => String(bl.client_id) === String(clientId) &&
+                                    (bl.facture_client_id === null ||
+                                     (isEditing && bl.facture_client_id === editingFactureId))
+                                );
+                                setFilteredBlClients(filtered);
+                            } else {
+                                setFilteredBlClients([]);
+                            }
+
+                            setSelectedBLs([]);
+                            setData("blClients", []);
+                            setData("bls_to_remove", []);
+                        }}
+                        placeholder="Sélectionner un client"
+                        searchPlaceholder="Rechercher un client..."
+                        searchKeys={["nom", "email", "telephone"]}
+                        error={errors.client_id}
+                        required={true}
+                        className="block w-full"
+                    />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -386,11 +423,31 @@ export default function FactureClientForm({
                                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                                     Sélection
                                                 </th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                                    Numéro BL
+                                                <th
+                                                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600"
+                                                    onClick={() => handleSort('numero_bl')}
+                                                >
+                                                    <div className="flex items-center space-x-1">
+                                                        <span>Numéro BL</span>
+                                                        {sortField === 'numero_bl' && (
+                                                            sortDirection === 'asc' ?
+                                                                <ChevronUp className="h-4 w-4" /> :
+                                                                <ChevronDown className="h-4 w-4" />
+                                                        )}
+                                                    </div>
                                                 </th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                                    Date BL
+                                                <th
+                                                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600"
+                                                    onClick={() => handleSort('date_bl')}
+                                                >
+                                                    <div className="flex items-center space-x-1">
+                                                        <span>Date BL</span>
+                                                        {sortField === 'date_bl' && (
+                                                            sortDirection === 'asc' ?
+                                                                <ChevronUp className="h-4 w-4" /> :
+                                                                <ChevronDown className="h-4 w-4" />
+                                                        )}
+                                                    </div>
                                                 </th>
                                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                                     Statut
@@ -401,9 +458,7 @@ export default function FactureClientForm({
                                             </tr>
                                         </thead>
                                         <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                                            {filteredBlClients
-                                                .filter(bl => bl.facture_client_id === null)
-                                                .map((bl) => (
+                                            {sortedBls.map((bl) => (
                                                     <tr key={bl.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                                                         <td className="px-6 py-4 whitespace-nowrap">
                                                             <input

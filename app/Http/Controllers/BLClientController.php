@@ -38,6 +38,8 @@ class BLClientController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'numero_bl' => 'nullable|string|unique:bl_clients,numero_bl',
+            'numero_bc' => 'nullable|string',
+            'description' => 'nullable|string',
             'date_bl' => 'required|date',
             'client_id' => 'required|exists:clients,id',
             'details' => 'required|array|min:1',
@@ -55,7 +57,7 @@ class BLClientController extends Controller
         try {
             DB::beginTransaction();
 
-            $data = $request->only(['numero_bl', 'date_bl', 'client_id', 'notes']);
+            $data = $request->only(['numero_bl', 'numero_bc', 'description', 'date_bl', 'client_id', 'notes']);
             if (empty($data['numero_bl'])) {
                 unset($data['numero_bl']);
             }
@@ -113,6 +115,8 @@ class BLClientController extends Controller
 {
     $validator = Validator::make($request->all(), [
         'numero_bl' => 'nullable|string|unique:bl_clients,numero_bl,' . $bl_client->id,
+        'numero_bc' => 'nullable|string',
+        'description' => 'nullable|string',
         'date_bl' => 'required|date',
         'client_id' => 'required|exists:clients,id',
         'details' => 'required|array|min:1',
@@ -131,7 +135,7 @@ class BLClientController extends Controller
         DB::beginTransaction();
 
         $bl_client->update($request->only([
-            'numero_bl', 'date_bl', 'client_id', 'notes'
+            'numero_bl', 'numero_bc', 'description', 'date_bl', 'client_id', 'notes'
         ]));
 
         $oldDetails = $bl_client->details->keyBy('produit_id');

@@ -63,18 +63,31 @@ const BLTable = ({ blFournisseurs, onEdit, onDelete }) => {
         {
             key: "total_amount",
             title: "Montant Total",
-            render: (item) => (
-                <span className="font-medium">
-                    {item.details
-                        ?.reduce(
-                            (sum, detail) =>
-                                sum + detail.quantite * detail.prix_unitaire,
-                            0
-                        )
-                        .toFixed(2)}{" "}
-                    DH
-                </span>
-            ),
+            render: (item) => {
+                const TVA_RATE = 20; // Fixed TVA rate of 20%
+                const montantHt = item.details
+                    ?.reduce(
+                        (sum, detail) =>
+                            sum + detail.quantite * detail.prix_unitaire,
+                        0
+                    ) || 0;
+                const tvaAmount = montantHt * (TVA_RATE / 100);
+                const montantTtc = montantHt + tvaAmount;
+
+                return (
+                    <div className="text-right">
+                        <div className="text-sm text-gray-600 dark:text-gray-400">
+                            HT: {montantHt.toFixed(2)} DH
+                        </div>
+                        <div className="text-sm text-gray-600 dark:text-gray-400">
+                            TVA: {tvaAmount.toFixed(2)} DH
+                        </div>
+                        <div className="font-medium text-indigo-600 dark:text-indigo-400">
+                            TTC: {montantTtc.toFixed(2)} DH
+                        </div>
+                    </div>
+                );
+            },
         },
         {
             key: "actions",
@@ -157,16 +170,50 @@ const BLTable = ({ blFournisseurs, onEdit, onDelete }) => {
                                     <tfoot className="bg-gray-100 dark:bg-gray-600">
                                         <tr>
                                             <td colSpan="3" className="px-4 py-2 text-right font-bold text-sm text-gray-900 dark:text-gray-100">
-                                                Total:
+                                                Total HT:
                                             </td>
                                             <td className="px-4 py-2 whitespace-nowrap font-bold text-sm text-gray-900 dark:text-gray-100">
-                                                {item.details
-                                                    .reduce(
-                                                        (sum, detail) =>
-                                                            sum + detail.quantite * detail.prix_unitaire,
+                                                {(() => {
+                                                    const TVA_RATE = 20;
+                                                    const montantHt = item.details.reduce(
+                                                        (sum, detail) => sum + detail.quantite * detail.prix_unitaire,
                                                         0
-                                                    )
-                                                    .toFixed(2)} DH
+                                                    );
+                                                    return montantHt.toFixed(2);
+                                                })()} DH
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td colSpan="3" className="px-4 py-2 text-right font-bold text-sm text-gray-900 dark:text-gray-100">
+                                                TVA (20%):
+                                            </td>
+                                            <td className="px-4 py-2 whitespace-nowrap font-bold text-sm text-gray-900 dark:text-gray-100">
+                                                {(() => {
+                                                    const TVA_RATE = 20;
+                                                    const montantHt = item.details.reduce(
+                                                        (sum, detail) => sum + detail.quantite * detail.prix_unitaire,
+                                                        0
+                                                    );
+                                                    const tvaAmount = montantHt * (TVA_RATE / 100);
+                                                    return tvaAmount.toFixed(2);
+                                                })()} DH
+                                            </td>
+                                        </tr>
+                                        <tr className="border-t-2 border-gray-300 dark:border-gray-500">
+                                            <td colSpan="3" className="px-4 py-2 text-right font-bold text-sm text-gray-900 dark:text-gray-100">
+                                                Total TTC:
+                                            </td>
+                                            <td className="px-4 py-2 whitespace-nowrap font-bold text-sm text-indigo-600 dark:text-indigo-400">
+                                                {(() => {
+                                                    const TVA_RATE = 20;
+                                                    const montantHt = item.details.reduce(
+                                                        (sum, detail) => sum + detail.quantite * detail.prix_unitaire,
+                                                        0
+                                                    );
+                                                    const tvaAmount = montantHt * (TVA_RATE / 100);
+                                                    const montantTtc = montantHt + tvaAmount;
+                                                    return montantTtc.toFixed(2);
+                                                })()} DH
                                             </td>
                                         </tr>
                                     </tfoot>

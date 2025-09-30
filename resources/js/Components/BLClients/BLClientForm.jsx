@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { useForm } from "@inertiajs/react";
 import Input from "./Input";
 import Select from "./Select";
+import Textarea from "./Textarea";
 
 export default function BLClientForm({
     clients,
@@ -11,8 +12,12 @@ export default function BLClientForm({
     editingBl,
     onSuccess,
 }) {
+    const TVA_RATE = 20; // Fixed TVA rate of 20%
+
     const { data, setData, post, put, processing, errors, reset } = useForm({
         numero_bl: "",
+        numero_bc: "",
+        description: "",
         date_bl: new Date().toISOString().split("T")[0],
         client_id: "",
         details: [],
@@ -37,6 +42,8 @@ export default function BLClientForm({
 
             setData({
                 numero_bl: editingBl.numero_bl,
+                numero_bc: editingBl.numero_bc || "",
+                description: editingBl.description || "",
                 date_bl: formattedDate,
                 client_id: editingBl.client_id,
                 details: editingBl.details.map(detail => ({
@@ -131,11 +138,41 @@ export default function BLClientForm({
         setData('details', newDetails);
     };
 
+    // Calculate totals with TVA
+    const calculateTotals = () => {
+        const montantHt = data.details.reduce(
+            (sum, detail) => sum + parseFloat(detail.montantBL || 0),
+            0
+        );
+        const tvaAmount = montantHt * (TVA_RATE / 100);
+        const montantTtc = montantHt + tvaAmount;
+
+        return {
+            montantHt: montantHt.toFixed(2),
+            tvaAmount: tvaAmount.toFixed(2),
+            montantTtc: montantTtc.toFixed(2)
+        };
+    };
+
+    const { montantHt, tvaAmount, montantTtc } = calculateTotals();
+
     const basicFields = [
         {
             name: "numero_bl",
             label: "Numéro BL (laisser vide pour auto-génération)",
             type: "text",
+            required: false,
+        },
+        {
+            name: "numero_bc",
+            label: "Numéro Bon de Commande",
+            type: "text",
+            required: false,
+        },
+        {
+            name: "description",
+            label: "Description",
+            type: "textarea",
             required: false,
         },
         {
@@ -189,6 +226,16 @@ export default function BLClientForm({
                                     options={field.options}
                                     error={errors[field.name]}
                                     required={field.required}
+                                />
+                            ) : field.type === "textarea" ? (
+                                <Textarea
+                                    id={field.name}
+                                    name={field.name}
+                                    value={data[field.name]}
+                                    onChange={(e) => setData(field.name, e.target.value)}
+                                    error={errors[field.name]}
+                                    required={field.required}
+                                    rows={4}
                                 />
                             ) : (
                                 <Input
@@ -340,16 +387,28 @@ export default function BLClientForm({
                                 <tfoot>
                                     <tr className="bg-gray-50 dark:bg-gray-700">
                                         <td colSpan="3" className="px-6 py-4 text-right font-bold">
-                                            Total:
+                                            Total HT:
                                         </td>
                                         <td className="px-6 py-4 font-bold">
-                                            {data.details
-                                                .reduce(
-                                                    (sum, detail) =>
-                                                        sum + parseFloat(detail.montantBL || 0),
-                                                    0
-                                                )
-                                                .toFixed(2)} DH
+                                            {montantHt} DH
+                                        </td>
+                                        <td></td>
+                                    </tr>
+                                    <tr className="bg-gray-50 dark:bg-gray-700">
+                                        <td colSpan="3" className="px-6 py-4 text-right font-bold">
+                                            TVA ({TVA_RATE}%):
+                                        </td>
+                                        <td className="px-6 py-4 font-bold">
+                                            {tvaAmount} DH
+                                        </td>
+                                        <td></td>
+                                    </tr>
+                                    <tr className="bg-gray-50 dark:bg-gray-700 border-t-2 border-gray-300 dark:border-gray-600">
+                                        <td colSpan="3" className="px-6 py-4 text-right font-bold text-lg">
+                                            Total TTC:
+                                        </td>
+                                        <td className="px-6 py-4 font-bold text-lg text-indigo-600 dark:text-indigo-400">
+                                            {montantTtc} DH
                                         </td>
                                         <td></td>
                                     </tr>

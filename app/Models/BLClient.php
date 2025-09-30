@@ -15,6 +15,8 @@ class BLClient extends Model
 
     protected $fillable = [
         'numero_bl',
+        'numero_bc',
+        'description',
         'date_bl',
         'client_id',
         'notes',

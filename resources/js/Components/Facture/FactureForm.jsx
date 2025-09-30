@@ -1,6 +1,7 @@
 import { useForm } from "@inertiajs/react";
 import { useState, useEffect, useCallback } from "react";
-import { Trash2 } from "lucide-react";
+import { Trash2, ChevronUp, ChevronDown } from "lucide-react";
+import SearchableSelect from "../ui/SearchableSelect";
 
 export default function FactureForm({
     isEditing,
@@ -18,6 +19,8 @@ export default function FactureForm({
     const [selectedBLs, setSelectedBLs] = useState(
         initialData?.bonsLivraison?.map(bl => bl.id) || []
     );
+    const [sortField, setSortField] = useState('numero_bl');
+    const [sortDirection, setSortDirection] = useState('asc');
 
     const TVA_RATE = 20; // Fixed TVA rate of 20%
 
@@ -80,27 +83,6 @@ export default function FactureForm({
             }
         }
     }, [isEditing, initialData, blFournisseurs]);
-
-    const handleFournisseurChange = (e) => {
-        const fournisseurId = e.target.value;
-        setSelectedFournisseur(fournisseurId);
-        setData("fournisseur_id", fournisseurId);
-
-        if (fournisseurId) {
-            const filtered = blFournisseurs.filter(
-                (bl) => String(bl.fournisseur_id) === String(fournisseurId) &&
-                (bl.facture_fournisseur_id === null ||
-                 (isEditing && bl.facture_fournisseur_id === editingFactureId))
-            );
-            setFilteredBlFournisseurs(filtered);
-        } else {
-            setFilteredBlFournisseurs([]);
-        }
-
-        setSelectedBLs([]);
-        setData("blFournisseurs", []);
-        setData("bls_to_remove", []);
-    };
 
     const toggleBLSelection = (blId) => {
         setSelectedBLs((prev) => {
@@ -196,6 +178,43 @@ export default function FactureForm({
 
     const { montantHt, tvaAmount, montantTtc } = calculateTotals();
 
+    // Sorting function
+    const handleSort = (field) => {
+        if (sortField === field) {
+            setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+        } else {
+            setSortField(field);
+            setSortDirection('asc');
+        }
+    };
+
+    // Get sorted BLs
+    const getSortedBls = () => {
+        const availableBls = filteredBlFournisseurs.filter(bl => bl.facture_fournisseur_id === null);
+
+        return [...availableBls].sort((a, b) => {
+            let aValue, bValue;
+
+            if (sortField === 'numero_bl') {
+                aValue = a.numero_bl || '';
+                bValue = b.numero_bl || '';
+            } else if (sortField === 'date_bl') {
+                aValue = new Date(a.date_bl);
+                bValue = new Date(b.date_bl);
+            } else {
+                return 0;
+            }
+
+            if (sortDirection === 'asc') {
+                return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
+            } else {
+                return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
+            }
+        });
+    };
+
+    const sortedBls = getSortedBls();
+
     return (
         <div className="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6 transition-all duration-300 mb-6">
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -250,24 +269,42 @@ export default function FactureForm({
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                         Fournisseur <span className="text-red-500">*</span>
                     </label>
-                    <select
+                    <SearchableSelect
+                        options={fournisseurs.map(fournisseur => ({
+                            value: fournisseur.id,
+                            label: fournisseur.nom,
+                            nom: fournisseur.nom,
+                            email: fournisseur.email,
+                            telephone: fournisseur.telephone
+                        }))}
                         value={data.fournisseur_id}
-                        onChange={handleFournisseurChange}
-                        className="block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white"
-                        required
-                    >
-                        <option value="">Sélectionner un fournisseur</option>
-                        {fournisseurs.map((f) => (
-                            <option key={f.id} value={f.id}>
-                                {f.nom}
-                            </option>
-                        ))}
-                    </select>
-                    {errors.fournisseur_id && (
-                        <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                            {errors.fournisseur_id}
-                        </p>
-                    )}
+                        onChange={(value) => {
+                            const fournisseurId = value;
+                            setSelectedFournisseur(fournisseurId);
+                            setData("fournisseur_id", fournisseurId);
+
+                            if (fournisseurId) {
+                                const filtered = blFournisseurs.filter(
+                                    (bl) => String(bl.fournisseur_id) === String(fournisseurId) &&
+                                    (bl.facture_fournisseur_id === null ||
+                                     (isEditing && bl.facture_fournisseur_id === editingFactureId))
+                                );
+                                setFilteredBlFournisseurs(filtered);
+                            } else {
+                                setFilteredBlFournisseurs([]);
+                            }
+
+                            setSelectedBLs([]);
+                            setData("blFournisseurs", []);
+                            setData("bls_to_remove", []);
+                        }}
+                        placeholder="Sélectionner un fournisseur"
+                        searchPlaceholder="Rechercher un fournisseur..."
+                        searchKeys={["nom", "email", "telephone"]}
+                        error={errors.fournisseur_id}
+                        required={true}
+                        className="block w-full"
+                    />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -403,11 +440,31 @@ export default function FactureForm({
                                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                                     Sélection
                                                 </th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                                    Numéro BL
+                                                <th
+                                                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600"
+                                                    onClick={() => handleSort('numero_bl')}
+                                                >
+                                                    <div className="flex items-center space-x-1">
+                                                        <span>Numéro BL</span>
+                                                        {sortField === 'numero_bl' && (
+                                                            sortDirection === 'asc' ?
+                                                                <ChevronUp className="h-4 w-4" /> :
+                                                                <ChevronDown className="h-4 w-4" />
+                                                        )}
+                                                    </div>
                                                 </th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                                    Date BL
+                                                <th
+                                                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600"
+                                                    onClick={() => handleSort('date_bl')}
+                                                >
+                                                    <div className="flex items-center space-x-1">
+                                                        <span>Date BL</span>
+                                                        {sortField === 'date_bl' && (
+                                                            sortDirection === 'asc' ?
+                                                                <ChevronUp className="h-4 w-4" /> :
+                                                                <ChevronDown className="h-4 w-4" />
+                                                        )}
+                                                    </div>
                                                 </th>
                                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                                     Statut
@@ -418,9 +475,7 @@ export default function FactureForm({
                                             </tr>
                                         </thead>
                                         <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                                            {filteredBlFournisseurs
-                                                .filter(bl => bl.facture_fournisseur_id === null)
-                                                .map((bl) => (
+                                            {sortedBls.map((bl) => (
                                                     <tr key={bl.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                                                         <td className="px-6 py-4 whitespace-nowrap">
                                                             <input
