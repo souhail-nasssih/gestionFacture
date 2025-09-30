@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Détail Client - PDF Professionnel</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 20mm;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 12px;
+            line-height: 1.4;
+            color: #2c3e50;
+            background: white;
+        }
+
+        .pdf-container {
+            max-width: 100%;
+            margin: 0 auto;
+            background: white;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 25px 0;
+            border-bottom: 3px solid #3498db;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 8px 8px 0 0;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .header .client-name {
+            font-size: 20px;
+            color: #34495e;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .header .subtitle {
+            font-size: 14px;
+            color: #6c757d;
+            font-weight: 500;
+        }
+
+        .client-info {
+            background: #ffffff;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .client-info h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 18px;
+            font-weight: 700;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .client-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .detail-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 0;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: #495057;
+            min-width: 140px;
+            margin-right: 10px;
+        }
+
+        .detail-value {
+            color: #2c3e50;
+            font-weight: 500;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 25px;
+            text-align: center;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 8px;
+            font-family: "Courier New", monospace;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin: 30px 0 20px 0;
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        th {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 15px 12px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: none;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #e9ecef;
+            font-size: 11px;
+            vertical-align: middle;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+
+        tr:hover {
+            background-color: #e3f2fd;
+        }
+
+        .amount {
+            text-align: right;
+            font-weight: 600;
+            font-family: "Courier New", monospace;
+            color: #2c3e50;
+        }
+
+        .status-paid {
+            color: #28a745;
+            font-weight: 700;
+            text-align: center;
+            background: #d4edda;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-unpaid {
+            color: #dc3545;
+            font-weight: 700;
+            text-align: center;
+            background: #f8d7da;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-partial {
+            color: #fd7e14;
+            font-weight: 700;
+            text-align: center;
+            background: #fff3cd;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .footer {
+            margin-top: 40px;
+            text-align: center;
+            font-size: 10px;
+            color: #6c757d;
+            border-top: 2px solid #e9ecef;
+            padding-top: 20px;
+        }
+
+        .no-data {
+            text-align: center;
+            color: #6c757d;
+            font-style: italic;
+            padding: 30px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 2px dashed #dee2e6;
+        }
+
+        .page-break {
+            page-break-before: always;
+        }
+
+        @media print {
+            body {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            .page-break {
+                page-break-before: always;
+            }
+
+            .pdf-container {
+                box-shadow: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="pdf-container">
+        <div class="header">
+            <h1>Détail Client</h1>
+            <div class="client-name">GARAGE CENTRAL</div>
+            <p class="subtitle">Généré le 30/09/2025 à 16:41</p>
+        </div>
+
+        <div class="client-info">
+            <h2>📋 Informations du Client</h2>
+            <div class="client-details">
+                <div class="detail-item">
+                    <div class="detail-label">Nom :</div>
+                    <div class="detail-value">GARAGE CENTRAL</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Téléphone :</div>
+                    <div class="detail-value">0522000101</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Email :</div>
+                    <div class="detail-value">contact@garage-central.ma</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Adresse :</div>
+                    <div class="detail-value">67, Rue Ibn Sina, Casablanca</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Délai de paiement :</div>
+                    <div class="detail-value">30 jours</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value">10.80 €</div>
+                <div class="stat-label">Montant Total Factures</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">10.80 €</div>
+                <div class="stat-label">Montant Total Payé</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">0.00 €</div>
+                <div class="stat-label">Reste à Payer</div>
+            </div>
+        </div>
+
+        <div class="section-title">📄 Situation des Factures (1)</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>N° Facture</th>
+                    <th>Date Facture</th>
+                    <th>Date Échéance</th>
+                    <th>Statut</th>
+                    <th>Montant Total</th>
+                    <th>Montant Payé</th>
+                    <th>Reste à Payer</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>FC09002-25</strong></td>
+                    <td>20/09/2025</td>
+                    <td>20/10/2025</td>
+                    <td><span class="status-paid">Payée</span></td>
+                    <td class="amount">10.80 €</td>
+                    <td class="amount">10.80 €</td>
+                    <td class="amount">0.00 €</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="section-title">💰 Historique des Règlements (1)</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>N° Règlement</th>
+                    <th>Date Règlement</th>
+                    <th>Type Règlement</th>
+                    <th>Montant Payé</th>
+                    <th>Description</th>
+                    <th>Facture Associée</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>0987tr</strong></td>
+                    <td>30/09/2025</td>
+                    <td>Chèque</td>
+                    <td class="amount">10.80 €</td>
+                    <td>N/A</td>
+                    <td>FC09002-25</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="footer">
+            <p><strong>Document généré automatiquement par le système de gestion de factures</strong></p>
+            <p>Page générée le 30/09/2025 à 16:41</p>
+        </div>
+    </div>
+</body>
+</html>

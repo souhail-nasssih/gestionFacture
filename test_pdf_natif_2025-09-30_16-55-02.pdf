@@ -1,0 +1,129 @@
+%PDF-1.4
+1 0 obj
+<<
+/Type /Catalog
+/Pages 2 0 R
+>>
+endobj
+
+2 0 obj
+<<
+/Type /Pages
+/Kids [3 0 R]
+/Count 1
+>>
+endobj
+
+3 0 obj
+<<
+/Type /Page
+/Parent 2 0 R
+/MediaBox [0 0 612 792]
+/Contents 4 0 R
+/Resources <<
+/Font <<
+/F1 5 0 R
+>>
+>>
+>>
+endobj
+
+4 0 obj
+<<
+/Length 1350
+>>
+stream
+BT
+0 0 0 rg
+/F1 20 Tf
+50 750 Td
+(DETAIL CLIENT) Tj
+0 -30 Td
+/F1 16 Tf
+(GARAGE CENTRAL) Tj
+0 -25 Td
+/F1 10 Tf
+(Genere le 30/09/2025 pm 16:55) Tj
+0 -20 Td
+0.5 0.5 0.5 rg
+50 0 m 550 0 l S
+0 -30 Td
+0 0 0 rg
+/F1 14 Tf
+(INFORMATIONS DU CLIENT) Tj
+0 -20 Td
+/F1 11 Tf
+(Nom: GARAGE CENTRAL) Tj
+0 -15 Td
+(Telephone: 0522000101) Tj
+0 -15 Td
+(Email: contact@garage-central.ma) Tj
+0 -15 Td
+(Adresse: 67, Rue Ibn Sina, Casablanca) Tj
+0 -15 Td
+(Delai de paiement: 30 jours) Tj
+0 -30 Td
+/F1 14 Tf
+(STATISTIQUES FINANCIERES) Tj
+0 -20 Td
+/F1 11 Tf
+(Montant total factures: 10.80 EUR) Tj
+0 -15 Td
+(Montant total paye: 10.80 EUR) Tj
+0 -15 Td
+(Reste a payer: 0.00 EUR) Tj
+0 -15 Td
+(Nombre de factures: 1) Tj
+0 -15 Td
+(Nombre de reglements: 1) Tj
+0 -30 Td
+/F1 14 Tf
+(FACTURES) Tj
+0 -20 Td
+/F1 10 Tf
+(N° Facture | Date Facture | Date Echeance | Statut | Montant Total | Montant Paye | Reste a Payer) Tj
+0 -15 Td
+(FC09002-25 | 20/09/2025 | 20/10/2025 | Payee | 10.80 EUR | 10.80 EUR | 0.00 EUR) Tj
+0 -30 Td
+/F1 14 Tf
+(REGLEMENTS) Tj
+0 -20 Td
+/F1 10 Tf
+(N° Reglement | Date Reglement | Type Reglement | Montant Paye | Description | Facture Associee) Tj
+0 -15 Td
+(0987tr | 30/09/2025 | chèque | 10.80 EUR | N/A | FC09002-25) Tj
+0 -30 Td
+0.5 0.5 0.5 rg
+50 0 m 550 0 l S
+0 -15 Td
+/F1 8 Tf
+50 0 Td
+(Document genere automatiquement par le systeme de gestion de factures) Tj
+ET
+endstream
+endobj
+
+5 0 obj
+<<
+/Type /Font
+/Subtype /Type1
+/BaseFont /Helvetica
+>>
+endobj
+
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000274 00000 n 
+0000000380 00000 n 
+trailer
+<<
+/Size 6
+/Root 1 0 R
+>>
+startxref
+500
+%%EOF

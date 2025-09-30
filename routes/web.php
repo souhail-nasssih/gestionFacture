@@ -166,8 +166,20 @@ Route::get('/clients/{id}/export-pdf', [ClientController::class, 'exportPdf'])
     ->name('clients.export-pdf')
     ->middleware(['auth']);
 
+Route::get('/clients/{id}/export-pdf-native', [ClientController::class, 'exportPdfNative'])
+    ->name('clients.export-pdf-native')
+    ->middleware(['auth']);
+
 Route::get('/clients/{id}/export-excel', [ClientController::class, 'exportExcel'])
     ->name('clients.export-excel')
+    ->middleware(['auth']);
+
+Route::get('/clients/{id}/print-pdf', [ClientController::class, 'exportPdfPrint'])
+    ->name('clients.print-pdf')
+    ->middleware(['auth']);
+
+Route::get('/clients/{id}/export-csv', [ClientController::class, 'exportCsv'])
+    ->name('clients.export-csv')
     ->middleware(['auth']);
 
 

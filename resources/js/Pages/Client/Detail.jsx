@@ -199,17 +199,364 @@ export default function Detail({ auth, client, stats, factures, reglements }) {
         }
     ];
 
-    // Fonctions d'export
+    // Fonctions d'export professionnelles
     const handleExportPDF = () => {
-        router.get(route('clients.export-pdf', client.id));
+        // Utiliser la route de téléchargement PDF HTML professionnel
+        window.open(route('clients.export-pdf', client.id), '_blank');
+    };
+
+    const handleExportPDFNative = () => {
+        // Utiliser la route de téléchargement PDF natif
+        window.open(route('clients.export-pdf-native', client.id), '_blank');
     };
 
     const handleExportExcel = () => {
-        router.get(route('clients.export-excel', client.id));
+        // Utiliser la route de téléchargement Excel professionnel
+        window.open(route('clients.export-excel', client.id), '_blank');
+    };
+
+    const handleExportCSV = () => {
+        // Utiliser la route de téléchargement CSV
+        window.open(route('clients.export-csv', client.id), '_blank');
+    };
+
+    const handlePrintPDF = () => {
+        // Utiliser la route d'impression PDF professionnelle
+        window.open(route('clients.print-pdf', client.id), '_blank');
     };
 
     const handlePrint = () => {
-        window.print();
+        // Créer une nouvelle fenêtre pour l'impression
+        const printWindow = window.open('', '_blank');
+        const printContent = generatePrintContent();
+
+        printWindow.document.write(printContent);
+        printWindow.document.close();
+
+        // Attendre que le contenu soit chargé puis imprimer
+        printWindow.onload = () => {
+            printWindow.print();
+            printWindow.close();
+        };
+    };
+
+    const generatePrintContent = () => {
+        return `
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Détail Client - ${client.nom}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 12px;
+            line-height: 1.4;
+            color: #333;
+            background: white;
+        }
+
+        .print-container {
+            max-width: 210mm;
+            margin: 0 auto;
+            padding: 20mm;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 3px solid #2c3e50;
+            padding-bottom: 20px;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .header .subtitle {
+            font-size: 14px;
+            color: #7f8c8d;
+        }
+
+        .client-info {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 20px;
+            margin-bottom: 25px;
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+        }
+
+        .client-info h2 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+
+        .client-details {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .client-details p {
+            margin-bottom: 8px;
+        }
+
+        .client-details strong {
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+            border-top: 4px solid #3498db;
+        }
+
+        .stat-card:nth-child(2) {
+            border-top-color: #27ae60;
+        }
+
+        .stat-card:nth-child(3) {
+            border-top-color: #e74c3c;
+        }
+
+        .stat-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: #7f8c8d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin: 25px 0 15px 0;
+            color: #2c3e50;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 8px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        th {
+            background: linear-gradient(135deg, #34495e 0%, #2c3e50 100%);
+            color: white;
+            padding: 12px 8px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #ecf0f1;
+            font-size: 11px;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+
+        tr:hover {
+            background-color: #e8f4f8;
+        }
+
+        .amount {
+            text-align: right;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+        }
+
+        .status-paid {
+            color: #27ae60;
+            font-weight: bold;
+        }
+
+        .status-unpaid {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+
+        .status-partial {
+            color: #f39c12;
+            font-weight: bold;
+        }
+
+        .footer {
+            margin-top: 40px;
+            text-align: center;
+            font-size: 10px;
+            color: #7f8c8d;
+            border-top: 1px solid #ecf0f1;
+            padding-top: 15px;
+        }
+
+        .no-data {
+            text-align: center;
+            color: #7f8c8d;
+            font-style: italic;
+            padding: 20px;
+        }
+
+        @media print {
+            body {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            .print-container {
+                padding: 15mm;
+            }
+
+            .stat-card {
+                break-inside: avoid;
+            }
+
+            table {
+                break-inside: auto;
+            }
+
+            tr {
+                break-inside: avoid;
+                break-after: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="print-container">
+        <div class="header">
+            <h1>Détail Client - ${client.nom}</h1>
+            <p class="subtitle">Généré le ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR')}</p>
+        </div>
+
+        <div class="client-info">
+            <h2>Informations du Client</h2>
+            <div class="client-details">
+                <p><strong>Nom :</strong> ${client.nom}</p>
+                <p><strong>Téléphone :</strong> ${client.telephone}</p>
+                <p><strong>Email :</strong> ${client.email || 'Non renseigné'}</p>
+                <p><strong>Adresse :</strong> ${client.adresse || 'Non renseignée'}</p>
+                <p><strong>Délai de paiement :</strong> ${client.delai_paiement || 0} jours</p>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value">${new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(stats.montant_total_factures)}</div>
+                <div class="stat-label">Montant Total Factures</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">${new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(stats.montant_total_paye)}</div>
+                <div class="stat-label">Montant Total Payé</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">${new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(stats.reste_a_payer)}</div>
+                <div class="stat-label">Reste à Payer</div>
+            </div>
+        </div>
+
+        <div class="section-title">Situation des Factures (${stats.nombre_factures})</div>
+        ${factures.length > 0 ? `
+        <table>
+            <thead>
+                <tr>
+                    <th>N° Facture</th>
+                    <th>Date Facture</th>
+                    <th>Date Échéance</th>
+                    <th>Statut</th>
+                    <th>Montant Total</th>
+                    <th>Montant Payé</th>
+                    <th>Reste à Payer</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${factures.map(facture => `
+                <tr>
+                    <td>${facture.numero_facture}</td>
+                    <td>${new Date(facture.date_facture).toLocaleDateString('fr-FR')}</td>
+                    <td>${new Date(facture.date_echeance).toLocaleDateString('fr-FR')}</td>
+                    <td class="status-${facture.statut_paiement}">${facture.statut_paiement === 'payee' ? 'Payée' : facture.statut_paiement === 'impayee' ? 'Impayée' : 'Partiellement payée'}</td>
+                    <td class="amount">${new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(facture.montant_total)}</td>
+                    <td class="amount">${new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(facture.montant_regle)}</td>
+                    <td class="amount">${new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(facture.reste_a_payer)}</td>
+                </tr>
+                `).join('')}
+            </tbody>
+        </table>
+        ` : '<div class="no-data">Aucune facture trouvée pour ce client.</div>'}
+
+        <div class="section-title">Historique des Règlements (${stats.nombre_reglements})</div>
+        ${reglements.length > 0 ? `
+        <table>
+            <thead>
+                <tr>
+                    <th>N° Règlement</th>
+                    <th>Date Règlement</th>
+                    <th>Type Règlement</th>
+                    <th>Montant Payé</th>
+                    <th>Description</th>
+                    <th>Facture Associée</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${reglements.map(reglement => `
+                <tr>
+                    <td>${reglement.numero_reglement || 'N/A'}</td>
+                    <td>${new Date(reglement.date_reglement).toLocaleDateString('fr-FR')}</td>
+                    <td>${reglement.type_reglement}</td>
+                    <td class="amount">${new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(reglement.montant_paye)}</td>
+                    <td>${reglement.description || 'N/A'}</td>
+                    <td>${reglement.facture ? reglement.facture.numero_facture : 'N/A'}</td>
+                </tr>
+                `).join('')}
+            </tbody>
+        </table>
+        ` : '<div class="no-data">Aucun règlement trouvé pour ce client.</div>'}
+
+        <div class="footer">
+            <p>Document généré automatiquement par le système de gestion de factures</p>
+            <p>Page imprimée le ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR')}</p>
+        </div>
+    </div>
+</body>
+</html>
+        `;
     };
 
     // Composant de pagination
@@ -463,25 +810,43 @@ export default function Detail({ auth, client, stats, factures, reglements }) {
                                         </div>
                                         <div className="flex gap-2">
                                             <button
-                                                onClick={handlePrint}
+                                                onClick={handlePrintPDF}
                                                 className="flex items-center gap-2 px-3 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm"
                                             >
                                                 <Printer className="h-4 w-4" />
                                                 Imprimer
                                             </button>
-                                            <button
-                                                onClick={handleExportPDF}
-                                                className="flex items-center gap-2 px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm"
-                                            >
-                                                <Printer className="h-4 w-4" />
-                                                PDF
-                                            </button>
+                                            <div className="flex gap-2">
+                                                <button
+                                                    onClick={handleExportPDF}
+                                                    className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+                                                    title="PDF HTML professionnel (design moderne)"
+                                                >
+                                                    <FileText className="h-4 w-4" />
+                                                    PDF HTML
+                                                </button>
+                                                <button
+                                                    onClick={handleExportPDFNative}
+                                                    className="flex items-center gap-2 px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm"
+                                                    title="PDF natif (vrai PDF)"
+                                                >
+                                                    <FileText className="h-4 w-4" />
+                                                    PDF Natif
+                                                </button>
+                                            </div>
                                             <button
                                                 onClick={handleExportExcel}
                                                 className="flex items-center gap-2 px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
                                             >
                                                 <FileSpreadsheet className="h-4 w-4" />
                                                 Excel
+                                            </button>
+                                            <button
+                                                onClick={handleExportCSV}
+                                                className="flex items-center gap-2 px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm"
+                                            >
+                                                <FileText className="h-4 w-4" />
+                                                CSV
                                             </button>
                                         </div>
                                     </div>
@@ -547,25 +912,43 @@ export default function Detail({ auth, client, stats, factures, reglements }) {
                                         </div>
                                         <div className="flex gap-2">
                                             <button
-                                                onClick={handlePrint}
+                                                onClick={handlePrintPDF}
                                                 className="flex items-center gap-2 px-3 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm"
                                             >
                                                 <Printer className="h-4 w-4" />
                                                 Imprimer
                                             </button>
-                                            <button
-                                                onClick={handleExportPDF}
-                                                className="flex items-center gap-2 px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm"
-                                            >
-                                                <Printer className="h-4 w-4" />
-                                                PDF
-                                            </button>
+                                            <div className="flex gap-2">
+                                                <button
+                                                    onClick={handleExportPDF}
+                                                    className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+                                                    title="PDF HTML professionnel (design moderne)"
+                                                >
+                                                    <FileText className="h-4 w-4" />
+                                                    PDF HTML
+                                                </button>
+                                                <button
+                                                    onClick={handleExportPDFNative}
+                                                    className="flex items-center gap-2 px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm"
+                                                    title="PDF natif (vrai PDF)"
+                                                >
+                                                    <FileText className="h-4 w-4" />
+                                                    PDF Natif
+                                                </button>
+                                            </div>
                                             <button
                                                 onClick={handleExportExcel}
                                                 className="flex items-center gap-2 px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
                                             >
                                                 <FileSpreadsheet className="h-4 w-4" />
                                                 Excel
+                                            </button>
+                                            <button
+                                                onClick={handleExportCSV}
+                                                className="flex items-center gap-2 px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm"
+                                            >
+                                                <FileText className="h-4 w-4" />
+                                                CSV
                                             </button>
                                         </div>
                                     </div>

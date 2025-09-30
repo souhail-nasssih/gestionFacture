@@ -3,11 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Client;
+use App\Services\ClientExportService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
-use Barryvdh\DomPDF\Facade\Pdf;
-use Maatwebsite\Excel\Facades\Excel;
-use App\Exports\ClientDetailExport;
+use Illuminate\Http\Response;
 
 class ClientController extends Controller
 {
@@ -126,7 +125,7 @@ class ClientController extends Controller
     }
 
     /**
-     * Exporter le détail client en PDF
+     * Exporter le détail client en PDF professionnel (HTML)
      */
     public function exportPdf($id)
     {
@@ -139,20 +138,30 @@ class ClientController extends Controller
             }
         ])->findOrFail($id);
 
-        $stats = [
-            'montant_total_factures' => $client->montant_total_factures,
-            'montant_total_paye' => $client->montant_total_paye,
-            'reste_a_payer' => $client->reste_a_payer,
-            'nombre_factures' => $client->factures->count(),
-            'nombre_reglements' => $client->reglements->count(),
-        ];
-
-        $pdf = Pdf::loadView('pdf.client-detail', compact('client', 'stats'));
-        return $pdf->download("detail-client-{$client->nom}-" . now()->format('Y-m-d') . '.pdf');
+        $exportService = new ClientExportService();
+        return $exportService->exportToPdf($client);
     }
 
     /**
-     * Exporter le détail client en Excel
+     * Exporter le détail client en PDF natif (vrai PDF)
+     */
+    public function exportPdfNative($id)
+    {
+        $client = Client::with([
+            'factures' => function($query) {
+                $query->with('reglements')->orderBy('date_facture', 'desc');
+            },
+            'reglements' => function($query) {
+                $query->with('facture')->orderBy('date_reglement', 'desc');
+            }
+        ])->findOrFail($id);
+
+        $exportService = new ClientExportService();
+        return $exportService->exportToPdfNative($client);
+    }
+
+    /**
+     * Exporter le détail client en Excel professionnel
      */
     public function exportExcel($id)
     {
@@ -165,6 +174,44 @@ class ClientController extends Controller
             }
         ])->findOrFail($id);
 
-        return Excel::download(new ClientDetailExport($client), "detail-client-{$client->nom}-" . now()->format('Y-m-d') . '.xlsx');
+        $exportService = new ClientExportService();
+        return $exportService->exportToExcel($client);
     }
+
+    /**
+     * Exporter le détail client en PDF pour impression
+     */
+    public function exportPdfPrint($id)
+    {
+        $client = Client::with([
+            'factures' => function($query) {
+                $query->with('reglements')->orderBy('date_facture', 'desc');
+            },
+            'reglements' => function($query) {
+                $query->with('facture')->orderBy('date_reglement', 'desc');
+            }
+        ])->findOrFail($id);
+
+        $exportService = new ClientExportService();
+        return $exportService->exportToPdfPrint($client);
+    }
+
+    /**
+     * Exporter le détail client en CSV
+     */
+    public function exportCsv($id)
+    {
+        $client = Client::with([
+            'factures' => function($query) {
+                $query->with('reglements')->orderBy('date_facture', 'desc');
+            },
+            'reglements' => function($query) {
+                $query->with('facture')->orderBy('date_reglement', 'desc');
+            }
+        ])->findOrFail($id);
+
+        $exportService = new ClientExportService();
+        return $exportService->exportToCsv($client);
+    }
+
 }
