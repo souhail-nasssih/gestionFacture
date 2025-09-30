@@ -157,9 +157,17 @@ Route::post('/produits/initialize-prix-achat', [ProduitController::class, 'initi
     ->name('produits.initialize-prix-achat')
     ->middleware(['auth']);
 
-Route::get('/detail-clients', [ClientController::class, 'detail'])
-    ->name('detail-clients.detail')
+// Routes pour le détail client
+Route::get('/clients/{id}/detail', [ClientController::class, 'detail'])
+    ->name('clients.detail')
+    ->middleware(['auth']);
+
+Route::get('/clients/{id}/export-pdf', [ClientController::class, 'exportPdf'])
+    ->name('clients.export-pdf')
+    ->middleware(['auth']);
+
+Route::get('/clients/{id}/export-excel', [ClientController::class, 'exportExcel'])
+    ->name('clients.export-excel')
     ->middleware(['auth']);
 
 
-    

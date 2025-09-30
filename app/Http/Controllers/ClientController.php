@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Client;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\ClientDetailExport;
 
 class ClientController extends Controller
 {
@@ -19,9 +22,35 @@ class ClientController extends Controller
             'clients' => $clients,
         ]);
     }
-    public function detail()
+    /**
+     * Afficher le détail d'un client avec toutes ses informations
+     */
+    public function detail($id)
     {
-        return inertia('Client/Detail');
+        $client = Client::with([
+            'factures' => function($query) {
+                $query->with('reglements')->orderBy('date_facture', 'desc');
+            },
+            'reglements' => function($query) {
+                $query->with('facture')->orderBy('date_reglement', 'desc');
+            }
+        ])->findOrFail($id);
+
+        // Calculer les statistiques
+        $stats = [
+            'montant_total_factures' => $client->montant_total_factures,
+            'montant_total_paye' => $client->montant_total_paye,
+            'reste_a_payer' => $client->reste_a_payer,
+            'nombre_factures' => $client->factures->count(),
+            'nombre_reglements' => $client->reglements->count(),
+        ];
+
+        return inertia('Client/Detail', [
+            'client' => $client,
+            'stats' => $stats,
+            'factures' => $client->factures,
+            'reglements' => $client->reglements,
+        ]);
     }
 
     /**
@@ -94,5 +123,48 @@ class ClientController extends Controller
 
         // Redirect to index instead of back
         return redirect()->route('clients.index')->with('success', 'Client supprimé avec succès.');
+    }
+
+    /**
+     * Exporter le détail client en PDF
+     */
+    public function exportPdf($id)
+    {
+        $client = Client::with([
+            'factures' => function($query) {
+                $query->with('reglements')->orderBy('date_facture', 'desc');
+            },
+            'reglements' => function($query) {
+                $query->with('facture')->orderBy('date_reglement', 'desc');
+            }
+        ])->findOrFail($id);
+
+        $stats = [
+            'montant_total_factures' => $client->montant_total_factures,
+            'montant_total_paye' => $client->montant_total_paye,
+            'reste_a_payer' => $client->reste_a_payer,
+            'nombre_factures' => $client->factures->count(),
+            'nombre_reglements' => $client->reglements->count(),
+        ];
+
+        $pdf = Pdf::loadView('pdf.client-detail', compact('client', 'stats'));
+        return $pdf->download("detail-client-{$client->nom}-" . now()->format('Y-m-d') . '.pdf');
+    }
+
+    /**
+     * Exporter le détail client en Excel
+     */
+    public function exportExcel($id)
+    {
+        $client = Client::with([
+            'factures' => function($query) {
+                $query->with('reglements')->orderBy('date_facture', 'desc');
+            },
+            'reglements' => function($query) {
+                $query->with('facture')->orderBy('date_reglement', 'desc');
+            }
+        ])->findOrFail($id);
+
+        return Excel::download(new ClientDetailExport($client), "detail-client-{$client->nom}-" . now()->format('Y-m-d') . '.xlsx');
     }
 }

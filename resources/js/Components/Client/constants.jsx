@@ -96,7 +96,7 @@ export const clientColumns = [
         ) => (
             <div className="flex items-center gap-1">
                 <Link
-                    href={route("detail-clients.detail")} // passe l'ID si besoin
+                    href={route("clients.detail", item.id)}
                     className="p-1 text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-full"
                     title="Voir les détails"
                 >
