@@ -143,7 +143,7 @@ export default function Detail({ auth, client, stats, factures, reglements }) {
         },
         {
             key: "date_reglement",
-            title: "Date Règlement",
+            title: "Créé le",
             render: (item) => (
                 <span className="font-medium text-gray-900 dark:text-white">
                     {new Date(item.date_reglement).toLocaleDateString('fr-FR')}
@@ -707,7 +707,7 @@ export default function Detail({ auth, client, stats, factures, reglements }) {
             <thead>
                 <tr>
                     <th>N° Règlement</th>
-                    <th>Date Règlement</th>
+                    <th>Créé le</th>
                     <th>Type</th>
                     <th>Montant Payé</th>
                     <th>Description</th>
@@ -901,10 +901,10 @@ export default function Detail({ auth, client, stats, factures, reglements }) {
             doc.setFontSize(9);
             doc.setFont('helvetica', 'bold');
             doc.text('N° Règlement', 20, yPosition);
-            doc.text('Date', 50, yPosition);
+            doc.text('Créé le', 60, yPosition);
             doc.text('Type', 80, yPosition);
-            doc.text('Montant', 110, yPosition);
-            doc.text('Description', 140, yPosition);
+            doc.text('Montant', 100, yPosition);
+            doc.text('Description', 130, yPosition);
             doc.text('Facture', 170, yPosition);
             yPosition += 6;
 
@@ -921,10 +921,10 @@ export default function Detail({ auth, client, stats, factures, reglements }) {
                 }
 
                 doc.text(reglement.numero_reglement || '-', 20, yPosition);
-                doc.text(new Date(reglement.date_reglement).toLocaleDateString('fr-FR'), 50, yPosition);
+                doc.text(new Date(reglement.date_reglement).toLocaleDateString('fr-FR'), 60, yPosition);
                 doc.text(reglement.type_reglement, 80, yPosition);
-                doc.text(`${new Intl.NumberFormat('fr-FR').format(reglement.montant_paye)} DHS`, 110, yPosition);
-                doc.text(reglement.description || '-', 140, yPosition);
+                doc.text(`${new Intl.NumberFormat('fr-FR').format(reglement.montant_paye)} DHS`, 100, yPosition);
+                doc.text(reglement.description || '-', 130, yPosition);
                 doc.text(reglement.facture ? reglement.facture.numero_facture : '-', 170, yPosition);
                 yPosition += 6;
             });
@@ -1145,7 +1145,7 @@ export default function Detail({ auth, client, stats, factures, reglements }) {
             ['HISTORIQUE DES RÈGLEMENTS'],
             [''],
             // En-têtes des colonnes du tableau
-            ['N° Règlement', 'Date', 'Type', 'Montant (DHS)', 'Description', 'Facture']
+            ['N° Règlement', 'Créé le', 'Type', 'Montant (DHS)', 'Description', 'Facture']
         ];
 
         // Ajouter les données des règlements
