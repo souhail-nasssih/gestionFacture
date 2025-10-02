@@ -3,10 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Client;
-use App\Services\ClientExportService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
-use Illuminate\Http\Response;
 
 class ClientController extends Controller
 {
@@ -35,6 +33,13 @@ class ClientController extends Controller
             }
         ])->findOrFail($id);
 
+        // Calculer les montants payés et reste à payer pour chaque facture
+        $factures = $client->factures->map(function ($facture) {
+            $facture->montant_regle = $facture->reglements()->sum('montant_paye');
+            $facture->reste_a_payer = max(0, $facture->montant_total - $facture->montant_regle);
+            return $facture;
+        });
+
         // Calculer les statistiques
         $stats = [
             'montant_total_factures' => $client->montant_total_factures,
@@ -47,7 +52,7 @@ class ClientController extends Controller
         return inertia('Client/Detail', [
             'client' => $client,
             'stats' => $stats,
-            'factures' => $client->factures,
+            'factures' => $factures,
             'reglements' => $client->reglements,
         ]);
     }
@@ -124,94 +129,5 @@ class ClientController extends Controller
         return redirect()->route('clients.index')->with('success', 'Client supprimé avec succès.');
     }
 
-    /**
-     * Exporter le détail client en PDF professionnel (HTML)
-     */
-    public function exportPdf($id)
-    {
-        $client = Client::with([
-            'factures' => function($query) {
-                $query->with('reglements')->orderBy('date_facture', 'desc');
-            },
-            'reglements' => function($query) {
-                $query->with('facture')->orderBy('date_reglement', 'desc');
-            }
-        ])->findOrFail($id);
-
-        $exportService = new ClientExportService();
-        return $exportService->exportToPdf($client);
-    }
-
-    /**
-     * Exporter le détail client en PDF natif (vrai PDF)
-     */
-    public function exportPdfNative($id)
-    {
-        $client = Client::with([
-            'factures' => function($query) {
-                $query->with('reglements')->orderBy('date_facture', 'desc');
-            },
-            'reglements' => function($query) {
-                $query->with('facture')->orderBy('date_reglement', 'desc');
-            }
-        ])->findOrFail($id);
-
-        $exportService = new ClientExportService();
-        return $exportService->exportToPdfNative($client);
-    }
-
-    /**
-     * Exporter le détail client en Excel professionnel
-     */
-    public function exportExcel($id)
-    {
-        $client = Client::with([
-            'factures' => function($query) {
-                $query->with('reglements')->orderBy('date_facture', 'desc');
-            },
-            'reglements' => function($query) {
-                $query->with('facture')->orderBy('date_reglement', 'desc');
-            }
-        ])->findOrFail($id);
-
-        $exportService = new ClientExportService();
-        return $exportService->exportToExcel($client);
-    }
-
-    /**
-     * Exporter le détail client en PDF pour impression
-     */
-    public function exportPdfPrint($id)
-    {
-        $client = Client::with([
-            'factures' => function($query) {
-                $query->with('reglements')->orderBy('date_facture', 'desc');
-            },
-            'reglements' => function($query) {
-                $query->with('facture')->orderBy('date_reglement', 'desc');
-            }
-        ])->findOrFail($id);
-
-        $exportService = new ClientExportService();
-        return $exportService->exportToPdfPrint($client);
-    }
-
-    /**
-     * Exporter le détail client en CSV
-     */
-    public function exportCsv($id)
-    {
-        $client = Client::with([
-            'factures' => function($query) {
-                $query->with('reglements')->orderBy('date_facture', 'desc');
-            },
-            'reglements' => function($query) {
-                $query->with('facture')->orderBy('date_reglement', 'desc');
-            }
-        ])->findOrFail($id);
-
-        $exportService = new ClientExportService();
-        return $exportService->exportToCsv($client);
-    }
 
 }

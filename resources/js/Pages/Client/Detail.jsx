@@ -1,20 +1,21 @@
 import React, { useState, useMemo } from "react";
-import { Head, Link, router } from "@inertiajs/react";
+import { Head, Link } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import {
-    FileText,
     Calendar,
-    Download,
-    Printer,
-    FileSpreadsheet,
     Search,
     ArrowLeft,
     User,
     Phone,
     Mail,
     MapPin,
-    Clock
+    Clock,
+    Printer,
+    FileText,
+    FileSpreadsheet
 } from "lucide-react";
+import jsPDF from 'jspdf';
+import * as XLSX from 'xlsx';
 
 export default function Detail({ auth, client, stats, factures, reglements }) {
     const [activeTab, setActiveTab] = useState('situation');
@@ -101,10 +102,7 @@ export default function Detail({ auth, client, stats, factures, reglements }) {
             title: "Montant Total",
             render: (item) => (
                 <span className="font-medium text-gray-900 dark:text-white">
-                    {new Intl.NumberFormat('fr-FR', {
-                        style: 'currency',
-                        currency: 'EUR'
-                    }).format(item.montant_total)}
+                    {new Intl.NumberFormat('fr-FR').format(item.montant_total)} DHS
                 </span>
             ),
         },
@@ -113,10 +111,7 @@ export default function Detail({ auth, client, stats, factures, reglements }) {
             title: "Montant Payé",
             render: (item) => (
                 <span className="font-medium text-green-600 dark:text-green-400">
-                    {new Intl.NumberFormat('fr-FR', {
-                        style: 'currency',
-                        currency: 'EUR'
-                    }).format(item.montant_regle)}
+                    {new Intl.NumberFormat('fr-FR').format(item.montant_regle)} DHS
                 </span>
             ),
         },
@@ -129,10 +124,7 @@ export default function Detail({ auth, client, stats, factures, reglements }) {
                         ? 'text-green-600 dark:text-green-400'
                         : 'text-orange-600 dark:text-orange-400'
                 }`}>
-                    {new Intl.NumberFormat('fr-FR', {
-                        style: 'currency',
-                        currency: 'EUR'
-                    }).format(item.reste_a_payer)}
+                    {new Intl.NumberFormat('fr-FR').format(item.reste_a_payer)} DHS
                 </span>
             ),
         }
@@ -172,10 +164,7 @@ export default function Detail({ auth, client, stats, factures, reglements }) {
             title: "Montant Payé",
             render: (item) => (
                 <span className="font-medium text-gray-900 dark:text-white">
-                    {new Intl.NumberFormat('fr-FR', {
-                        style: 'currency',
-                        currency: 'EUR'
-                    }).format(item.montant_paye)}
+                    {new Intl.NumberFormat('fr-FR').format(item.montant_paye)} DHS
                 </span>
             ),
         },
@@ -199,55 +188,41 @@ export default function Detail({ auth, client, stats, factures, reglements }) {
         }
     ];
 
-    // Fonctions d'export professionnelles
-    const handleExportPDF = () => {
-        // Utiliser la route de téléchargement PDF HTML professionnel
-        window.open(route('clients.export-pdf', client.id), '_blank');
-    };
-
-    const handleExportPDFNative = () => {
-        // Utiliser la route de téléchargement PDF natif
-        window.open(route('clients.export-pdf-native', client.id), '_blank');
-    };
-
-    const handleExportExcel = () => {
-        // Utiliser la route de téléchargement Excel professionnel
-        window.open(route('clients.export-excel', client.id), '_blank');
-    };
-
-    const handleExportCSV = () => {
-        // Utiliser la route de téléchargement CSV
-        window.open(route('clients.export-csv', client.id), '_blank');
-    };
-
-    const handlePrintPDF = () => {
-        // Utiliser la route d'impression PDF professionnelle
-        window.open(route('clients.print-pdf', client.id), '_blank');
-    };
-
-    const handlePrint = () => {
-        // Créer une nouvelle fenêtre pour l'impression
+    // Fonctions d'impression
+    const printFacturesTable = () => {
         const printWindow = window.open('', '_blank');
-        const printContent = generatePrintContent();
+        const printContent = generateFacturesPrintContent();
 
         printWindow.document.write(printContent);
         printWindow.document.close();
 
-        // Attendre que le contenu soit chargé puis imprimer
         printWindow.onload = () => {
             printWindow.print();
             printWindow.close();
         };
     };
 
-    const generatePrintContent = () => {
+    const printReglementsTable = () => {
+        const printWindow = window.open('', '_blank');
+        const printContent = generateReglementsPrintContent();
+
+        printWindow.document.write(printContent);
+        printWindow.document.close();
+
+        printWindow.onload = () => {
+            printWindow.print();
+            printWindow.close();
+        };
+    };
+
+    const generateFacturesPrintContent = () => {
         return `
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Détail Client - ${client.nom}</title>
+    <title>Factures Client - ${client.nom}</title>
     <style>
         * {
             margin: 0;
@@ -261,125 +236,127 @@ export default function Detail({ auth, client, stats, factures, reglements }) {
             line-height: 1.4;
             color: #333;
             background: white;
-        }
-
-        .print-container {
-            max-width: 210mm;
-            margin: 0 auto;
-            padding: 20mm;
+            padding: 20px;
         }
 
         .header {
             text-align: center;
             margin-bottom: 30px;
-            border-bottom: 3px solid #2c3e50;
             padding-bottom: 20px;
+            border-bottom: 2px solid #3498db;
         }
 
         .header h1 {
-            font-size: 24px;
             color: #2c3e50;
+            font-size: 24px;
             margin-bottom: 10px;
         }
 
-        .header .subtitle {
-            font-size: 14px;
+        .header p {
             color: #7f8c8d;
+            font-size: 14px;
         }
 
         .client-info {
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            background: #f8f9fa;
             padding: 20px;
-            margin-bottom: 25px;
             border-radius: 8px;
-            border-left: 4px solid #3498db;
+            margin-bottom: 30px;
         }
 
         .client-info h2 {
             color: #2c3e50;
+            font-size: 18px;
             margin-bottom: 15px;
-            font-size: 16px;
         }
 
-        .client-details {
+        .info-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
         }
 
-        .client-details p {
-            margin-bottom: 8px;
+        .info-item {
+            display: flex;
+            flex-direction: column;
         }
 
-        .client-details strong {
+        .info-label {
+            font-weight: bold;
+            color: #34495e;
+            margin-bottom: 5px;
+        }
+
+        .info-value {
             color: #2c3e50;
-            font-weight: 600;
+        }
+
+        .stats-section {
+            background: #e8f5e8;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+
+        .stats-section h2 {
+            color: #27ae60;
+            font-size: 18px;
+            margin-bottom: 15px;
         }
 
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-            margin-bottom: 30px;
+            gap: 15px;
         }
 
-        .stat-card {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        .stat-item {
             text-align: center;
-            border-top: 4px solid #3498db;
-        }
-
-        .stat-card:nth-child(2) {
-            border-top-color: #27ae60;
-        }
-
-        .stat-card:nth-child(3) {
-            border-top-color: #e74c3c;
-        }
-
-        .stat-value {
-            font-size: 20px;
-            font-weight: bold;
-            color: #2c3e50;
-            margin-bottom: 5px;
+            padding: 15px;
+            background: white;
+            border-radius: 6px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
         .stat-label {
-            font-size: 11px;
+            font-size: 12px;
             color: #7f8c8d;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            margin-bottom: 5px;
         }
 
-        .section-title {
-            font-size: 18px;
+        .stat-value {
+            font-size: 16px;
             font-weight: bold;
-            margin: 25px 0 15px 0;
             color: #2c3e50;
-            border-bottom: 2px solid #ecf0f1;
-            padding-bottom: 8px;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .section h2 {
+            color: #2c3e50;
+            font-size: 18px;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #bdc3c7;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
             background: white;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
         th {
-            background: linear-gradient(135deg, #34495e 0%, #2c3e50 100%);
+            background: #34495e;
             color: white;
             padding: 12px 8px;
             text-align: left;
-            font-weight: 600;
+            font-weight: bold;
             font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
         }
 
         td {
@@ -389,41 +366,36 @@ export default function Detail({ auth, client, stats, factures, reglements }) {
         }
 
         tr:nth-child(even) {
-            background-color: #f8f9fa;
-        }
-
-        tr:hover {
-            background-color: #e8f4f8;
+            background: #f8f9fa;
         }
 
         .amount {
             text-align: right;
             font-weight: bold;
-            font-family: 'Courier New', monospace;
         }
 
-        .status-paid {
-            color: #27ae60;
-            font-weight: bold;
+        .status-payee {
+            background: #d4edda;
+            color: #155724;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 10px;
         }
 
-        .status-unpaid {
-            color: #e74c3c;
-            font-weight: bold;
+        .status-impayee {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 10px;
         }
 
         .status-partial {
-            color: #f39c12;
-            font-weight: bold;
-        }
-
-        .footer {
-            margin-top: 40px;
-            text-align: center;
+            background: #fff3cd;
+            color: #856404;
+            padding: 4px 8px;
+            border-radius: 4px;
             font-size: 10px;
-            color: #7f8c8d;
-            border-top: 1px solid #ecf0f1;
-            padding-top: 15px;
         }
 
         .no-data {
@@ -435,63 +407,81 @@ export default function Detail({ auth, client, stats, factures, reglements }) {
 
         @media print {
             body {
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
+                padding: 0;
             }
 
-            .print-container {
-                padding: 15mm;
+            .header {
+                margin-bottom: 20px;
             }
 
-            .stat-card {
-                break-inside: avoid;
+            .section {
+                page-break-inside: avoid;
+                margin-bottom: 20px;
             }
 
             table {
-                break-inside: auto;
+                page-break-inside: auto;
             }
 
             tr {
-                break-inside: avoid;
-                break-after: auto;
+                page-break-inside: avoid;
+                page-break-after: auto;
             }
         }
     </style>
 </head>
 <body>
-    <div class="print-container">
         <div class="header">
-            <h1>Détail Client - ${client.nom}</h1>
-            <p class="subtitle">Généré le ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR')}</p>
+        <h1>📋 Factures Client</h1>
+        <p>Généré le ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR')}</p>
         </div>
 
         <div class="client-info">
-            <h2>Informations du Client</h2>
-            <div class="client-details">
-                <p><strong>Nom :</strong> ${client.nom}</p>
-                <p><strong>Téléphone :</strong> ${client.telephone}</p>
-                <p><strong>Email :</strong> ${client.email || 'Non renseigné'}</p>
-                <p><strong>Adresse :</strong> ${client.adresse || 'Non renseignée'}</p>
-                <p><strong>Délai de paiement :</strong> ${client.delai_paiement || 0} jours</p>
+        <h2>👤 Informations du Client</h2>
+        <div class="info-grid">
+            <div class="info-item">
+                <span class="info-label">Nom :</span>
+                <span class="info-value">${client.nom}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Téléphone :</span>
+                <span class="info-value">${client.telephone || 'Non renseigné'}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Email :</span>
+                <span class="info-value">${client.email || 'Non renseigné'}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Adresse :</span>
+                <span class="info-value">${client.adresse || 'Non renseignée'}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Délai de paiement :</span>
+                <span class="info-value">${client.delai_paiement || 0} jours</span>
+            </div>
             </div>
         </div>
 
+    <div class="stats-section">
+        <h2>📊 Statistiques Financières</h2>
         <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-value">${new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(stats.montant_total_factures)}</div>
+            <div class="stat-item">
                 <div class="stat-label">Montant Total Factures</div>
+                <div class="stat-value">${new Intl.NumberFormat('fr-FR').format(stats.montant_total_factures)} DHS</div>
             </div>
-            <div class="stat-card">
-                <div class="stat-value">${new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(stats.montant_total_paye)}</div>
+            <div class="stat-item">
                 <div class="stat-label">Montant Total Payé</div>
+                <div class="stat-value">${new Intl.NumberFormat('fr-FR').format(stats.montant_total_paye)} DHS</div>
             </div>
-            <div class="stat-card">
-                <div class="stat-value">${new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(stats.reste_a_payer)}</div>
+            <div class="stat-item">
                 <div class="stat-label">Reste à Payer</div>
+                <div class="stat-value">${new Intl.NumberFormat('fr-FR').format(stats.reste_a_payer)} DHS</div>
+            </div>
             </div>
         </div>
 
-        <div class="section-title">Situation des Factures (${stats.nombre_factures})</div>
+    <div class="section">
+        <h2>🧾 Factures (${stats.nombre_factures})</h2>
         ${factures.length > 0 ? `
         <table>
             <thead>
@@ -512,23 +502,213 @@ export default function Detail({ auth, client, stats, factures, reglements }) {
                     <td>${new Date(facture.date_facture).toLocaleDateString('fr-FR')}</td>
                     <td>${new Date(facture.date_echeance).toLocaleDateString('fr-FR')}</td>
                     <td class="status-${facture.statut_paiement}">${facture.statut_paiement === 'payee' ? 'Payée' : facture.statut_paiement === 'impayee' ? 'Impayée' : 'Partiellement payée'}</td>
-                    <td class="amount">${new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(facture.montant_total)}</td>
-                    <td class="amount">${new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(facture.montant_regle)}</td>
-                    <td class="amount">${new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(facture.reste_a_payer)}</td>
+                    <td class="amount">${new Intl.NumberFormat('fr-FR').format(facture.montant_total)} DHS</td>
+                    <td class="amount">${new Intl.NumberFormat('fr-FR').format(facture.montant_regle)} DHS</td>
+                    <td class="amount">${new Intl.NumberFormat('fr-FR').format(facture.reste_a_payer)} DHS</td>
                 </tr>
                 `).join('')}
             </tbody>
         </table>
         ` : '<div class="no-data">Aucune facture trouvée pour ce client.</div>'}
+    </div>
+</body>
+</html>
+        `;
+    };
 
-        <div class="section-title">Historique des Règlements (${stats.nombre_reglements})</div>
+    const generateReglementsPrintContent = () => {
+        return `
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Règlements Client - ${client.nom}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 12px;
+            line-height: 1.4;
+            color: #333;
+            background: white;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #3498db;
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+
+        .client-info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+
+        .client-info h2 {
+            color: #2c3e50;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .info-label {
+            font-weight: bold;
+            color: #34495e;
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            color: #2c3e50;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .section h2 {
+            color: #2c3e50;
+            font-size: 18px;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #bdc3c7;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        th {
+            background: #34495e;
+            color: white;
+            padding: 12px 8px;
+            text-align: left;
+            font-weight: bold;
+            font-size: 11px;
+        }
+
+        td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #ecf0f1;
+            font-size: 11px;
+        }
+
+        tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        .amount {
+            text-align: right;
+            font-weight: bold;
+        }
+
+        .no-data {
+            text-align: center;
+            color: #7f8c8d;
+            font-style: italic;
+            padding: 20px;
+        }
+
+        @media print {
+            body {
+                padding: 0;
+            }
+
+            .header {
+                margin-bottom: 20px;
+            }
+
+            .section {
+                page-break-inside: avoid;
+                margin-bottom: 20px;
+            }
+
+            table {
+                page-break-inside: auto;
+            }
+
+            tr {
+                page-break-inside: avoid;
+                page-break-after: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>💰 Règlements Client</h1>
+        <p>Généré le ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR')}</p>
+    </div>
+
+    <div class="client-info">
+        <h2>👤 Informations du Client</h2>
+        <div class="info-grid">
+            <div class="info-item">
+                <span class="info-label">Nom :</span>
+                <span class="info-value">${client.nom}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Téléphone :</span>
+                <span class="info-value">${client.telephone || 'Non renseigné'}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Email :</span>
+                <span class="info-value">${client.email || 'Non renseigné'}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Adresse :</span>
+                <span class="info-value">${client.adresse || 'Non renseignée'}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Délai de paiement :</span>
+                <span class="info-value">${client.delai_paiement || 0} jours</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>💰 Historique des Règlements (${stats.nombre_reglements})</h2>
         ${reglements.length > 0 ? `
         <table>
             <thead>
                 <tr>
                     <th>N° Règlement</th>
                     <th>Date Règlement</th>
-                    <th>Type Règlement</th>
+                    <th>Type</th>
                     <th>Montant Payé</th>
                     <th>Description</th>
                     <th>Facture Associée</th>
@@ -540,7 +720,7 @@ export default function Detail({ auth, client, stats, factures, reglements }) {
                     <td>${reglement.numero_reglement || 'N/A'}</td>
                     <td>${new Date(reglement.date_reglement).toLocaleDateString('fr-FR')}</td>
                     <td>${reglement.type_reglement}</td>
-                    <td class="amount">${new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(reglement.montant_paye)}</td>
+                    <td class="amount">${new Intl.NumberFormat('fr-FR').format(reglement.montant_paye)} DHS</td>
                     <td>${reglement.description || 'N/A'}</td>
                     <td>${reglement.facture ? reglement.facture.numero_facture : 'N/A'}</td>
                 </tr>
@@ -548,45 +728,580 @@ export default function Detail({ auth, client, stats, factures, reglements }) {
             </tbody>
         </table>
         ` : '<div class="no-data">Aucun règlement trouvé pour ce client.</div>'}
-
-        <div class="footer">
-            <p>Document généré automatiquement par le système de gestion de factures</p>
-            <p>Page imprimée le ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR')}</p>
-        </div>
     </div>
 </body>
 </html>
         `;
     };
 
+    // Fonctions de génération PDF professionnel avec jsPDF
+    const downloadFacturesPdf = () => {
+        const doc = new jsPDF();
+        let yPosition = 20;
+
+        // En-tête professionnel
+        doc.setFontSize(18);
+        doc.setFont('helvetica', 'bold');
+        doc.text('RAPPORT DES FACTURES CLIENT', 20, yPosition);
+        yPosition += 10;
+
+        // Date de génération
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`Généré le ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR')}`, 20, yPosition);
+        yPosition += 20;
+
+        // Informations client
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.text('INFORMATIONS DU CLIENT', 20, yPosition);
+        yPosition += 8;
+
+        // Ligne de séparation
+        doc.line(20, yPosition, 190, yPosition);
+        yPosition += 8;
+
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`Nom: ${client.nom}`, 20, yPosition);
+        doc.text(`Téléphone: ${client.telephone || 'Non renseigné'}`, 110, yPosition);
+        yPosition += 6;
+        doc.text(`Email: ${client.email || 'Non renseigné'}`, 20, yPosition);
+        doc.text(`Délai de paiement: ${client.delai_paiement || 0} jours`, 110, yPosition);
+        yPosition += 6;
+        doc.text(`Adresse: ${client.adresse || 'Non renseignée'}`, 20, yPosition);
+        yPosition += 15;
+
+        // Tableau des factures
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.text(`FACTURES (${stats.nombre_factures})`, 20, yPosition);
+        yPosition += 8;
+
+        // Ligne de séparation
+        doc.line(20, yPosition, 190, yPosition);
+        yPosition += 8;
+
+        if (factures.length > 0) {
+            // En-têtes du tableau
+            doc.setFontSize(9);
+            doc.setFont('helvetica', 'bold');
+            doc.text('N° Facture', 20, yPosition);
+            doc.text('Date Facture', 50, yPosition);
+            doc.text('Date Échéance', 80, yPosition);
+            doc.text('Statut', 110, yPosition);
+            doc.text('Montant Total', 140, yPosition);
+            doc.text('Montant Payé', 170, yPosition);
+            yPosition += 6;
+
+            // Ligne de séparation
+            doc.line(20, yPosition, 190, yPosition);
+            yPosition += 6;
+
+            // Données du tableau
+            doc.setFont('helvetica', 'normal');
+            factures.forEach((facture, index) => {
+                if (yPosition > 250) {
+                    doc.addPage();
+                    yPosition = 20;
+                }
+
+                doc.text(facture.numero_facture, 20, yPosition);
+                doc.text(new Date(facture.date_facture).toLocaleDateString('fr-FR'), 50, yPosition);
+                doc.text(new Date(facture.date_echeance).toLocaleDateString('fr-FR'), 80, yPosition);
+                doc.text(facture.statut_paiement === 'payee' ? 'Payée' : facture.statut_paiement === 'impayee' ? 'Impayée' : 'Partiel', 110, yPosition);
+                doc.text(`${new Intl.NumberFormat('fr-FR').format(facture.montant_total)} DHS`, 140, yPosition);
+                doc.text(`${new Intl.NumberFormat('fr-FR').format(facture.montant_regle)} DHS`, 170, yPosition);
+                yPosition += 6;
+            });
+
+            // Ligne de séparation après le tableau
+            doc.line(20, yPosition, 190, yPosition);
+            yPosition += 10;
+        } else {
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'italic');
+            doc.text('Aucune facture trouvée pour ce client.', 20, yPosition);
+            yPosition += 15;
+        }
+
+        // Statistiques financières (après le tableau)
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.text('RÉSUMÉ FINANCIER', 20, yPosition);
+        yPosition += 8;
+
+        // Ligne de séparation
+        doc.line(20, yPosition, 190, yPosition);
+        yPosition += 8;
+
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`Montant Total des Factures: ${new Intl.NumberFormat('fr-FR').format(stats.montant_total_factures)} DHS`, 20, yPosition);
+        yPosition += 6;
+        doc.text(`Montant Total Payé: ${new Intl.NumberFormat('fr-FR').format(stats.montant_total_paye)} DHS`, 20, yPosition);
+        yPosition += 6;
+        doc.text(`Reste à Payer: ${new Intl.NumberFormat('fr-FR').format(stats.reste_a_payer)} DHS`, 20, yPosition);
+        yPosition += 6;
+        doc.text(`Nombre de Factures: ${stats.nombre_factures}`, 20, yPosition);
+
+        // Téléchargement
+        doc.save(`Factures_${client.nom}_${new Date().toISOString().split('T')[0]}.pdf`);
+    };
+
+    const downloadReglementsPdf = () => {
+        const doc = new jsPDF();
+        let yPosition = 20;
+
+        // En-tête professionnel
+        doc.setFontSize(18);
+        doc.setFont('helvetica', 'bold');
+        doc.text('RAPPORT DES RÈGLEMENTS CLIENT', 20, yPosition);
+        yPosition += 10;
+
+        // Date de génération
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`Généré le ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR')}`, 20, yPosition);
+        yPosition += 20;
+
+        // Informations client
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.text('INFORMATIONS DU CLIENT', 20, yPosition);
+        yPosition += 8;
+
+        // Ligne de séparation
+        doc.line(20, yPosition, 190, yPosition);
+        yPosition += 8;
+
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`Nom: ${client.nom}`, 20, yPosition);
+        doc.text(`Téléphone: ${client.telephone || 'Non renseigné'}`, 110, yPosition);
+        yPosition += 6;
+        doc.text(`Email: ${client.email || 'Non renseigné'}`, 20, yPosition);
+        doc.text(`Délai de paiement: ${client.delai_paiement || 0} jours`, 110, yPosition);
+        yPosition += 6;
+        doc.text(`Adresse: ${client.adresse || 'Non renseignée'}`, 20, yPosition);
+        yPosition += 15;
+
+        // Tableau des règlements
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.text(`HISTORIQUE DES RÈGLEMENTS (${stats.nombre_reglements})`, 20, yPosition);
+        yPosition += 8;
+
+        // Ligne de séparation
+        doc.line(20, yPosition, 190, yPosition);
+        yPosition += 8;
+
+        if (reglements.length > 0) {
+            // En-têtes du tableau
+            doc.setFontSize(9);
+            doc.setFont('helvetica', 'bold');
+            doc.text('N° Règlement', 20, yPosition);
+            doc.text('Date', 50, yPosition);
+            doc.text('Type', 80, yPosition);
+            doc.text('Montant', 110, yPosition);
+            doc.text('Description', 140, yPosition);
+            doc.text('Facture', 170, yPosition);
+            yPosition += 6;
+
+            // Ligne de séparation
+            doc.line(20, yPosition, 190, yPosition);
+            yPosition += 6;
+
+            // Données du tableau
+            doc.setFont('helvetica', 'normal');
+            reglements.forEach((reglement, index) => {
+                if (yPosition > 250) {
+                    doc.addPage();
+                    yPosition = 20;
+                }
+
+                doc.text(reglement.numero_reglement || '-', 20, yPosition);
+                doc.text(new Date(reglement.date_reglement).toLocaleDateString('fr-FR'), 50, yPosition);
+                doc.text(reglement.type_reglement, 80, yPosition);
+                doc.text(`${new Intl.NumberFormat('fr-FR').format(reglement.montant_paye)} DHS`, 110, yPosition);
+                doc.text(reglement.description || '-', 140, yPosition);
+                doc.text(reglement.facture ? reglement.facture.numero_facture : '-', 170, yPosition);
+                yPosition += 6;
+            });
+
+            // Ligne de séparation après le tableau
+            doc.line(20, yPosition, 190, yPosition);
+            yPosition += 10;
+        } else {
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'italic');
+            doc.text('Aucun règlement trouvé pour ce client.', 20, yPosition);
+            yPosition += 15;
+        }
+
+        // Résumé des règlements (après le tableau)
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.text('RÉSUMÉ DES RÈGLEMENTS', 20, yPosition);
+        yPosition += 8;
+
+        // Ligne de séparation
+        doc.line(20, yPosition, 190, yPosition);
+        yPosition += 8;
+
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        const totalReglements = reglements.reduce((sum, reglement) => sum + parseFloat(reglement.montant_paye), 0);
+        doc.text(`Montant Total des Règlements: ${new Intl.NumberFormat('fr-FR').format(totalReglements)} DHS`, 20, yPosition);
+        yPosition += 6;
+        doc.text(`Nombre de Règlements: ${stats.nombre_reglements}`, 20, yPosition);
+        yPosition += 6;
+        doc.text(`Date du Premier Règlement: ${reglements.length > 0 ? new Date(reglements[reglements.length - 1].date_reglement).toLocaleDateString('fr-FR') : '-'}`, 20, yPosition);
+        yPosition += 6;
+        doc.text(`Date du Dernier Règlement: ${reglements.length > 0 ? new Date(reglements[0].date_reglement).toLocaleDateString('fr-FR') : '-'}`, 20, yPosition);
+
+        // Téléchargement
+        doc.save(`Reglements_${client.nom}_${new Date().toISOString().split('T')[0]}.pdf`);
+    };
+
+    // Fonctions de génération Excel
+    const downloadFacturesExcel = () => {
+        // Créer un nouveau classeur
+        const workbook = XLSX.utils.book_new();
+
+        // Structure professionnelle avec tableaux bien conçus
+        const structuredData = [
+            // En-tête principal
+            ['RAPPORT DES FACTURES CLIENT'],
+            [''],
+            ['Généré le', new Date().toLocaleDateString('fr-FR'), 'à', new Date().toLocaleTimeString('fr-FR')],
+            [''],
+
+            // Informations du client dans une seule cellule
+            ['INFORMATIONS DU CLIENT'],
+            [`Nom: ${client.nom} | Téléphone: ${client.telephone || '-'} | Email: ${client.email || '-'} | Adresse: ${client.adresse || '-'} | Délai de paiement: ${client.delai_paiement || 0} jours`],
+            [''],
+
+            // En-tête du tableau
+            ['FACTURES'],
+            [''],
+            // En-têtes des colonnes du tableau
+            ['N° Facture', 'Date Facture', 'Date Échéance', 'Statut', 'Montant Total (DHS)', 'Montant Payé (DHS)', 'Reste à Payer (DHS)']
+        ];
+
+        // Ajouter les données des factures
+        factures.forEach(facture => {
+            structuredData.push([
+                facture.numero_facture,
+                new Date(facture.date_facture).toLocaleDateString('fr-FR'),
+                new Date(facture.date_echeance).toLocaleDateString('fr-FR'),
+                facture.statut_paiement === 'payee' ? 'Payée' : facture.statut_paiement === 'impayee' ? 'Impayée' : 'Partiel',
+                facture.montant_total,
+                facture.montant_regle,
+                facture.montant_total - facture.montant_regle
+            ]);
+        });
+
+        // Ajouter les statistiques sous le tableau
+        structuredData.push(['']);
+        structuredData.push(['RÉSUMÉ FINANCIER']);
+        structuredData.push(['Montant Total des Factures (DHS)', stats.montant_total_factures]);
+        structuredData.push(['Montant Total Payé (DHS)', stats.montant_total_paye]);
+        structuredData.push(['Reste à Payer (DHS)', stats.reste_a_payer]);
+        structuredData.push(['Nombre de Factures', stats.nombre_factures]);
+
+        // Créer la feuille avec les données structurées
+        const newWorksheet = XLSX.utils.aoa_to_sheet(structuredData);
+
+        // Ajuster la largeur des colonnes
+        const columnWidths = [
+            { wch: 20 }, // A - En-têtes et informations
+            { wch: 15 }, // B - N° Facture
+            { wch: 12 }, // C - Date Facture
+            { wch: 12 }, // D - Date Échéance
+            { wch: 10 }, // E - Statut
+            { wch: 18 }, // F - Montant Total
+            { wch: 18 }, // G - Montant Payé
+            { wch: 18 }  // H - Reste à Payer
+        ];
+        newWorksheet['!cols'] = columnWidths;
+
+        // Ajouter le style professionnel
+        const range = XLSX.utils.decode_range(newWorksheet['!ref']);
+
+        // Style pour l'en-tête principal (ligne 1)
+        if (newWorksheet['A1']) {
+            newWorksheet['A1'].s = {
+                font: { bold: true, size: 16, color: { rgb: "FFFFFF" } },
+                fill: { fgColor: { rgb: "2E86AB" } },
+                alignment: { horizontal: "center", vertical: "center" }
+            };
+        }
+
+        // Style pour la date de génération (ligne 3)
+        if (newWorksheet['A3']) {
+            newWorksheet['A3'].s = {
+                font: { italic: true, size: 10 },
+                alignment: { horizontal: "left" }
+            };
+        }
+
+        // Style pour les sections (INFORMATIONS DU CLIENT, FACTURES, RÉSUMÉ FINANCIER)
+        const sectionRows = [5, 7, 9, structuredData.length - 5]; // Lignes des sections
+        sectionRows.forEach(row => {
+            const cell = newWorksheet[`A${row}`];
+            if (cell) {
+                cell.s = {
+                    font: { bold: true, size: 12, color: { rgb: "FFFFFF" } },
+                    fill: { fgColor: { rgb: "34495E" } },
+                    alignment: { horizontal: "left", vertical: "center" }
+                };
+            }
+        });
+
+        // Style pour les en-têtes du tableau (ligne 11)
+        const headerRow = 11;
+        ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'].forEach(col => {
+            const cell = newWorksheet[`${col}${headerRow}`];
+            if (cell) {
+                cell.s = {
+                    font: { bold: true, size: 10, color: { rgb: "FFFFFF" } },
+                    fill: { fgColor: { rgb: "E74C3C" } },
+                    alignment: { horizontal: "center", vertical: "center" },
+                    border: {
+                        top: { style: "thin", color: { rgb: "000000" } },
+                        bottom: { style: "thin", color: { rgb: "000000" } },
+                        left: { style: "thin", color: { rgb: "000000" } },
+                        right: { style: "thin", color: { rgb: "000000" } }
+                    }
+                };
+            }
+        });
+
+        // Style pour les données du tableau (lignes 12+)
+        for (let row = 12; row <= range.e.r; row++) {
+            ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'].forEach(col => {
+                const cell = newWorksheet[`${col}${row}`];
+                if (cell) {
+                    cell.s = {
+                        font: { size: 10 },
+                        alignment: { horizontal: "center", vertical: "center" },
+                        border: {
+                            top: { style: "thin", color: { rgb: "CCCCCC" } },
+                            bottom: { style: "thin", color: { rgb: "CCCCCC" } },
+                            left: { style: "thin", color: { rgb: "CCCCCC" } },
+                            right: { style: "thin", color: { rgb: "CCCCCC" } }
+                        }
+                    };
+
+                    // Couleur de fond alternée pour les lignes
+                    if (row % 2 === 0) {
+                        cell.s.fill = { fgColor: { rgb: "F8F9FA" } };
+                    }
+                }
+            });
+        }
+
+        // Style pour les statistiques (dernières lignes)
+        const statsStartRow = structuredData.length - 4;
+        for (let row = statsStartRow; row <= range.e.r; row++) {
+            ['A', 'B'].forEach(col => {
+                const cell = newWorksheet[`${col}${row}`];
+                if (cell) {
+                    cell.s = {
+                        font: { size: 10 },
+                        alignment: { horizontal: "left", vertical: "center" },
+                        fill: { fgColor: { rgb: "ECF0F1" } }
+                    };
+                }
+            });
+        }
+
+        // Ajouter la feuille au classeur
+        XLSX.utils.book_append_sheet(workbook, newWorksheet, 'Factures');
+
+        // Télécharger le fichier
+        XLSX.writeFile(workbook, `Factures_${client.nom}_${new Date().toISOString().split('T')[0]}.xlsx`);
+    };
+
+    const downloadReglementsExcel = () => {
+        // Créer un nouveau classeur
+        const workbook = XLSX.utils.book_new();
+
+        // Structure professionnelle avec tableaux bien conçus
+        const structuredData = [
+            // En-tête principal
+            ['RAPPORT DES RÈGLEMENTS CLIENT'],
+            [''],
+            ['Généré le', new Date().toLocaleDateString('fr-FR'), 'à', new Date().toLocaleTimeString('fr-FR')],
+            [''],
+
+            // Informations du client dans une seule cellule
+            ['INFORMATIONS DU CLIENT'],
+            [`Nom: ${client.nom} | Téléphone: ${client.telephone || '-'} | Email: ${client.email || '-'} | Adresse: ${client.adresse || '-'} | Délai de paiement: ${client.delai_paiement || 0} jours`],
+            [''],
+
+            // En-tête du tableau
+            ['HISTORIQUE DES RÈGLEMENTS'],
+            [''],
+            // En-têtes des colonnes du tableau
+            ['N° Règlement', 'Date', 'Type', 'Montant (DHS)', 'Description', 'Facture']
+        ];
+
+        // Ajouter les données des règlements
+        reglements.forEach(reglement => {
+            structuredData.push([
+                reglement.numero_reglement || '-',
+                new Date(reglement.date_reglement).toLocaleDateString('fr-FR'),
+                reglement.type_reglement,
+                reglement.montant_paye,
+                reglement.description || '-',
+                reglement.facture ? reglement.facture.numero_facture : '-'
+            ]);
+        });
+
+        // Ajouter les statistiques sous le tableau
+        structuredData.push(['']);
+        structuredData.push(['RÉSUMÉ DES RÈGLEMENTS']);
+        structuredData.push(['Montant Total des Règlements (DHS)', reglements.reduce((sum, reglement) => sum + parseFloat(reglement.montant_paye), 0)]);
+        structuredData.push(['Nombre de Règlements', stats.nombre_reglements]);
+        structuredData.push(['Date du Premier Règlement', reglements.length > 0 ? new Date(reglements[reglements.length - 1].date_reglement).toLocaleDateString('fr-FR') : '-']);
+        structuredData.push(['Date du Dernier Règlement', reglements.length > 0 ? new Date(reglements[0].date_reglement).toLocaleDateString('fr-FR') : '-']);
+
+        // Créer la feuille avec les données structurées
+        const newWorksheet = XLSX.utils.aoa_to_sheet(structuredData);
+
+        // Ajuster la largeur des colonnes
+        const columnWidths = [
+            { wch: 20 }, // A - En-têtes et informations
+            { wch: 15 }, // B - N° Règlement
+            { wch: 12 }, // C - Date
+            { wch: 12 }, // D - Type
+            { wch: 18 }, // E - Montant
+            { wch: 20 }, // F - Description
+            { wch: 15 }  // G - Facture
+        ];
+        newWorksheet['!cols'] = columnWidths;
+
+        // Ajouter le style professionnel
+        const range = XLSX.utils.decode_range(newWorksheet['!ref']);
+
+        // Style pour l'en-tête principal (ligne 1)
+        if (newWorksheet['A1']) {
+            newWorksheet['A1'].s = {
+                font: { bold: true, size: 16, color: { rgb: "FFFFFF" } },
+                fill: { fgColor: { rgb: "8E44AD" } },
+                alignment: { horizontal: "center", vertical: "center" }
+            };
+        }
+
+        // Style pour la date de génération (ligne 3)
+        if (newWorksheet['A3']) {
+            newWorksheet['A3'].s = {
+                font: { italic: true, size: 10 },
+                alignment: { horizontal: "left" }
+            };
+        }
+
+        // Style pour les sections (INFORMATIONS DU CLIENT, HISTORIQUE DES RÈGLEMENTS, RÉSUMÉ DES RÈGLEMENTS)
+        const sectionRows = [5, 7, 9, structuredData.length - 5]; // Lignes des sections
+        sectionRows.forEach(row => {
+            const cell = newWorksheet[`A${row}`];
+            if (cell) {
+                cell.s = {
+                    font: { bold: true, size: 12, color: { rgb: "FFFFFF" } },
+                    fill: { fgColor: { rgb: "34495E" } },
+                    alignment: { horizontal: "left", vertical: "center" }
+                };
+            }
+        });
+
+        // Style pour les en-têtes du tableau (ligne 11)
+        const headerRow = 11;
+        ['A', 'B', 'C', 'D', 'E', 'F', 'G'].forEach(col => {
+            const cell = newWorksheet[`${col}${headerRow}`];
+            if (cell) {
+                cell.s = {
+                    font: { bold: true, size: 10, color: { rgb: "FFFFFF" } },
+                    fill: { fgColor: { rgb: "E67E22" } },
+                    alignment: { horizontal: "center", vertical: "center" },
+                    border: {
+                        top: { style: "thin", color: { rgb: "000000" } },
+                        bottom: { style: "thin", color: { rgb: "000000" } },
+                        left: { style: "thin", color: { rgb: "000000" } },
+                        right: { style: "thin", color: { rgb: "000000" } }
+                    }
+                };
+            }
+        });
+
+        // Style pour les données du tableau (lignes 12+)
+        for (let row = 12; row <= range.e.r; row++) {
+            ['A', 'B', 'C', 'D', 'E', 'F', 'G'].forEach(col => {
+                const cell = newWorksheet[`${col}${row}`];
+                if (cell) {
+                    cell.s = {
+                        font: { size: 10 },
+                        alignment: { horizontal: "center", vertical: "center" },
+                        border: {
+                            top: { style: "thin", color: { rgb: "CCCCCC" } },
+                            bottom: { style: "thin", color: { rgb: "CCCCCC" } },
+                            left: { style: "thin", color: { rgb: "CCCCCC" } },
+                            right: { style: "thin", color: { rgb: "CCCCCC" } }
+                        }
+                    };
+
+                    // Couleur de fond alternée pour les lignes
+                    if (row % 2 === 0) {
+                        cell.s.fill = { fgColor: { rgb: "F8F9FA" } };
+                    }
+                }
+            });
+        }
+
+        // Style pour les statistiques (dernières lignes)
+        const statsStartRow = structuredData.length - 4;
+        for (let row = statsStartRow; row <= range.e.r; row++) {
+            ['A', 'B'].forEach(col => {
+                const cell = newWorksheet[`${col}${row}`];
+                if (cell) {
+                    cell.s = {
+                        font: { size: 10 },
+                        alignment: { horizontal: "left", vertical: "center" },
+                        fill: { fgColor: { rgb: "ECF0F1" } }
+                    };
+                }
+            });
+        }
+
+        // Ajouter la feuille au classeur
+        XLSX.utils.book_append_sheet(workbook, newWorksheet, 'Règlements');
+
+        // Télécharger le fichier
+        XLSX.writeFile(workbook, `Reglements_${client.nom}_${new Date().toISOString().split('T')[0]}.xlsx`);
+    };
+
     // Composant de pagination
     const Pagination = ({ currentPage, totalPages, onPageChange }) => {
         const pages = [];
-        const maxVisiblePages = 5;
-
-        let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
-        let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-
-        if (endPage - startPage + 1 < maxVisiblePages) {
-            startPage = Math.max(1, endPage - maxVisiblePages + 1);
-        }
-
-        for (let i = startPage; i <= endPage; i++) {
+        for (let i = 1; i <= totalPages; i++) {
             pages.push(i);
         }
+
+        if (totalPages <= 1) return null;
 
         return (
             <div className="flex items-center justify-between px-6 py-3 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
                 <div className="flex-1 flex justify-between sm:hidden">
                     <button
-                        onClick={() => onPageChange(currentPage - 1)}
+                        onClick={() => onPageChange(Math.max(1, currentPage - 1))}
                         disabled={currentPage === 1}
                         className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         Précédent
                     </button>
                     <button
-                        onClick={() => onPageChange(currentPage + 1)}
+                        onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
                         disabled={currentPage === totalPages}
                         className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
@@ -602,13 +1317,6 @@ export default function Detail({ auth, client, stats, factures, reglements }) {
                     </div>
                     <div>
                         <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
-                            <button
-                                onClick={() => onPageChange(currentPage - 1)}
-                                disabled={currentPage === 1}
-                                className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                                Précédent
-                            </button>
                             {pages.map((page) => (
                                 <button
                                     key={page}
@@ -617,18 +1325,13 @@ export default function Detail({ auth, client, stats, factures, reglements }) {
                                         page === currentPage
                                             ? 'z-10 bg-indigo-50 border-indigo-500 text-indigo-600'
                                             : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                                    } ${page === 1 ? 'rounded-l-md' : ''} ${
+                                        page === totalPages ? 'rounded-r-md' : ''
                                     }`}
                                 >
                                     {page}
                                 </button>
                             ))}
-                            <button
-                                onClick={() => onPageChange(currentPage + 1)}
-                                disabled={currentPage === totalPages}
-                                className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                                Suivant
-                            </button>
                         </nav>
                     </div>
                 </div>
@@ -639,165 +1342,139 @@ export default function Detail({ auth, client, stats, factures, reglements }) {
     return (
         <AuthenticatedLayout
             user={auth.user}
-            header={`Détail Client - ${client.nom}`}
+            header={
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                        <Link
+                            href={route('clients.index')}
+                            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors"
+                        >
+                            <ArrowLeft className="h-4 w-4" />
+                            Retour à la liste
+                        </Link>
+                        <h2 className="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
+                            Détail Client - {client.nom}
+                        </h2>
+                    </div>
+                </div>
+            }
         >
             <Head title={`Détail Client - ${client.nom}`} />
 
-            <div className="py-6">
-                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                    {/* Bouton retour */}
-                    <div className="mb-6">
-                        <Link
-                            href={route('clients.index')}
-                            className="inline-flex items-center gap-2 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
-                        >
-                            <ArrowLeft className="h-4 w-4" />
-                            Retour à la liste des clients
-                        </Link>
-                    </div>
-
+            <div className="py-12">
+                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
                     {/* Informations du client */}
-                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mb-6">
-                        <div className="flex items-center gap-4 mb-4">
-                            <div className="p-3 bg-indigo-100 dark:bg-indigo-900 rounded-full">
-                                <User className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
-                            </div>
+                    <div className="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+                        <div className="p-6">
+                            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                                <User className="h-5 w-5 text-indigo-600" />
+                                Informations du Client
+                            </h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                <div className="flex items-center gap-3">
+                                    <User className="h-5 w-5 text-gray-400" />
                             <div>
-                                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                                    {client.nom}
-                                </h1>
-                                <p className="text-gray-600 dark:text-gray-300">
-                                    Informations du client
-                                </p>
+                                        <p className="text-sm text-gray-500 dark:text-gray-400">Nom</p>
+                                        <p className="font-medium text-gray-900 dark:text-white">{client.nom}</p>
                             </div>
                         </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                            <div className="flex items-center gap-2">
-                                <Phone className="h-4 w-4 text-gray-400" />
-                                <span className="text-sm text-gray-600 dark:text-gray-300">
-                                    {client.telephone}
-                                </span>
+                                <div className="flex items-center gap-3">
+                                    <Phone className="h-5 w-5 text-gray-400" />
+                                    <div>
+                                        <p className="text-sm text-gray-500 dark:text-gray-400">Téléphone</p>
+                                        <p className="font-medium text-gray-900 dark:text-white">{client.telephone || 'Non renseigné'}</p>
                             </div>
-                            {client.email && (
-                                <div className="flex items-center gap-2">
-                                    <Mail className="h-4 w-4 text-gray-400" />
-                                    <span className="text-sm text-gray-600 dark:text-gray-300">
-                                        {client.email}
-                                    </span>
                                 </div>
-                            )}
-                            {client.adresse && (
-                                <div className="flex items-center gap-2">
-                                    <MapPin className="h-4 w-4 text-gray-400" />
-                                    <span className="text-sm text-gray-600 dark:text-gray-300">
-                                        {client.adresse}
-                                    </span>
+                                <div className="flex items-center gap-3">
+                                    <Mail className="h-5 w-5 text-gray-400" />
+                                    <div>
+                                        <p className="text-sm text-gray-500 dark:text-gray-400">Email</p>
+                                        <p className="font-medium text-gray-900 dark:text-white">{client.email || 'Non renseigné'}</p>
                                 </div>
-                            )}
-                            <div className="flex items-center gap-2">
-                                <Clock className="h-4 w-4 text-gray-400" />
-                                <span className="text-sm text-gray-600 dark:text-gray-300">
-                                    Délai: {client.delai_paiement || 0} jours
-                                </span>
                             </div>
+                                <div className="flex items-center gap-3">
+                                    <MapPin className="h-5 w-5 text-gray-400" />
+                                    <div>
+                                        <p className="text-sm text-gray-500 dark:text-gray-400">Adresse</p>
+                                        <p className="font-medium text-gray-900 dark:text-white">{client.adresse || 'Non renseignée'}</p>
                         </div>
                     </div>
+                                <div className="flex items-center gap-3">
+                                    <Clock className="h-5 w-5 text-gray-400" />
+                                <div>
+                                        <p className="text-sm text-gray-500 dark:text-gray-400">Délai de paiement</p>
+                                        <p className="font-medium text-gray-900 dark:text-white">{client.delai_paiement || 0} jours</p>
+                                </div>
+                            </div>
+                        </div>
+                            </div>
+                        </div>
 
                     {/* Statistiques financières */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                                        Montant Total Factures
-                                    </p>
-                                    <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                                        {new Intl.NumberFormat('fr-FR', {
-                                            style: 'currency',
-                                            currency: 'EUR'
-                                        }).format(stats.montant_total_factures)}
+                    <div className="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+                        <div className="p-6">
+                            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
+                                Statistiques Financières
+                            </h3>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+                                    <p className="text-sm text-blue-600 dark:text-blue-400">Montant Total Factures</p>
+                                    <p className="text-2xl font-bold text-blue-700 dark:text-blue-300">
+                                        {new Intl.NumberFormat('fr-FR').format(stats.montant_total_factures)} DHS
                                     </p>
                                 </div>
-                                <FileText className="h-8 w-8 text-blue-500" />
-                            </div>
-                        </div>
-
-                        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                                        Montant Total Payé
-                                    </p>
-                                    <p className="text-2xl font-bold text-green-600 dark:text-green-400">
-                                        {new Intl.NumberFormat('fr-FR', {
-                                            style: 'currency',
-                                            currency: 'EUR'
-                                        }).format(stats.montant_total_paye)}
+                                <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
+                                    <p className="text-sm text-green-600 dark:text-green-400">Montant Total Payé</p>
+                                    <p className="text-2xl font-bold text-green-700 dark:text-green-300">
+                                        {new Intl.NumberFormat('fr-FR').format(stats.montant_total_paye)} DHS
                                     </p>
                                 </div>
-                                <Download className="h-8 w-8 text-green-500" />
-                            </div>
-                        </div>
-
-                        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                                        Reste à Payer
-                                    </p>
-                                    <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">
-                                        {new Intl.NumberFormat('fr-FR', {
-                                            style: 'currency',
-                                            currency: 'EUR'
-                                        }).format(stats.reste_a_payer)}
+                                <div className="bg-orange-50 dark:bg-orange-900/20 p-4 rounded-lg">
+                                    <p className="text-sm text-orange-600 dark:text-orange-400">Reste à Payer</p>
+                                    <p className="text-2xl font-bold text-orange-700 dark:text-orange-300">
+                                        {new Intl.NumberFormat('fr-FR').format(stats.reste_a_payer)} DHS
                                     </p>
                                 </div>
-                                <Calendar className="h-8 w-8 text-orange-500" />
                             </div>
                         </div>
                     </div>
 
-                    {/* Navigation par onglets */}
-                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm mb-6">
+                    {/* Onglets */}
+                    <div className="bg-white dark:bg-gray-800 shadow-sm sm:rounded-lg">
                         <div className="border-b border-gray-200 dark:border-gray-700">
-                            <nav className="-mb-px flex space-x-8 px-6">
+                            <nav className="-mb-px flex">
                                 <button
                                     onClick={() => setActiveTab('situation')}
-                                    className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${
+                                    className={`py-4 px-6 text-sm font-medium border-b-2 ${
                                         activeTab === 'situation'
                                             ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400'
                                             : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
                                     }`}
                                 >
-                                    <FileText className="h-4 w-4" />
                                     Situation Factures ({stats.nombre_factures})
                                 </button>
                                 <button
                                     onClick={() => setActiveTab('reglements')}
-                                    className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${
+                                    className={`py-4 px-6 text-sm font-medium border-b-2 ${
                                         activeTab === 'reglements'
                                             ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400'
                                             : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
                                     }`}
                                 >
-                                    <Calendar className="h-4 w-4" />
                                     Événements Règlement ({stats.nombre_reglements})
                                 </button>
                             </nav>
-                        </div>
                     </div>
 
-                    {/* Contenu des onglets */}
                     {activeTab === 'situation' && (
                         <div className="bg-white dark:bg-gray-800 shadow-sm rounded-lg overflow-hidden">
-                            {/* En-tête avec recherche et boutons d'export */}
+                                {/* En-tête avec recherche */}
                             <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
                                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                                     <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-                                        Situation des Factures
+                                            Factures du Client
                                     </h3>
-                                    <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                                        <div className="flex gap-2 items-center">
                                         <div className="relative">
                                             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                                             <input
@@ -808,47 +1485,30 @@ export default function Detail({ auth, client, stats, factures, reglements }) {
                                                 className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                                             />
                                         </div>
-                                        <div className="flex gap-2">
                                             <button
-                                                onClick={handlePrintPDF}
+                                                onClick={printFacturesTable}
                                                 className="flex items-center gap-2 px-3 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm"
+                                                title="Imprimer le tableau des factures"
                                             >
                                                 <Printer className="h-4 w-4" />
                                                 Imprimer
                                             </button>
-                                            <div className="flex gap-2">
                                                 <button
-                                                    onClick={handleExportPDF}
-                                                    className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
-                                                    title="PDF HTML professionnel (design moderne)"
-                                                >
-                                                    <FileText className="h-4 w-4" />
-                                                    PDF HTML
-                                                </button>
-                                                <button
-                                                    onClick={handleExportPDFNative}
+                                                    onClick={downloadFacturesPdf}
                                                     className="flex items-center gap-2 px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm"
-                                                    title="PDF natif (vrai PDF)"
+                                                title="Télécharger le tableau des factures en PDF"
                                                 >
                                                     <FileText className="h-4 w-4" />
-                                                    PDF Natif
+                                                PDF
                                                 </button>
-                                            </div>
-                                            <button
-                                                onClick={handleExportExcel}
-                                                className="flex items-center gap-2 px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
-                                            >
-                                                <FileSpreadsheet className="h-4 w-4" />
+                                                <button
+                                                    onClick={downloadFacturesExcel}
+                                                    className="flex items-center gap-2 px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
+                                                title="Télécharger le tableau des factures en Excel"
+                                                >
+                                                    <FileSpreadsheet className="h-4 w-4" />
                                                 Excel
-                                            </button>
-                                            <button
-                                                onClick={handleExportCSV}
-                                                className="flex items-center gap-2 px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm"
-                                            >
-                                                <FileText className="h-4 w-4" />
-                                                CSV
-                                            </button>
-                                        </div>
+                                                </button>
                                     </div>
                                 </div>
                             </div>
@@ -893,13 +1553,13 @@ export default function Detail({ auth, client, stats, factures, reglements }) {
 
                     {activeTab === 'reglements' && (
                         <div className="bg-white dark:bg-gray-800 shadow-sm rounded-lg overflow-hidden">
-                            {/* En-tête avec recherche et boutons d'export */}
+                                {/* En-tête avec recherche */}
                             <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
                                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                                     <h3 className="text-lg font-medium text-gray-900 dark:text-white">
                                         Historique des Règlements
                                     </h3>
-                                    <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                                        <div className="flex gap-2 items-center">
                                         <div className="relative">
                                             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                                             <input
@@ -910,47 +1570,30 @@ export default function Detail({ auth, client, stats, factures, reglements }) {
                                                 className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                                             />
                                         </div>
-                                        <div className="flex gap-2">
                                             <button
-                                                onClick={handlePrintPDF}
+                                                onClick={printReglementsTable}
                                                 className="flex items-center gap-2 px-3 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm"
+                                                title="Imprimer le tableau des règlements"
                                             >
                                                 <Printer className="h-4 w-4" />
                                                 Imprimer
                                             </button>
-                                            <div className="flex gap-2">
                                                 <button
-                                                    onClick={handleExportPDF}
-                                                    className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
-                                                    title="PDF HTML professionnel (design moderne)"
-                                                >
-                                                    <FileText className="h-4 w-4" />
-                                                    PDF HTML
-                                                </button>
-                                                <button
-                                                    onClick={handleExportPDFNative}
+                                                    onClick={downloadReglementsPdf}
                                                     className="flex items-center gap-2 px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm"
-                                                    title="PDF natif (vrai PDF)"
+                                                title="Télécharger le tableau des règlements en PDF"
                                                 >
                                                     <FileText className="h-4 w-4" />
-                                                    PDF Natif
+                                                PDF
                                                 </button>
-                                            </div>
-                                            <button
-                                                onClick={handleExportExcel}
-                                                className="flex items-center gap-2 px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
-                                            >
-                                                <FileSpreadsheet className="h-4 w-4" />
+                                                <button
+                                                    onClick={downloadReglementsExcel}
+                                                    className="flex items-center gap-2 px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
+                                                title="Télécharger le tableau des règlements en Excel"
+                                                >
+                                                    <FileSpreadsheet className="h-4 w-4" />
                                                 Excel
-                                            </button>
-                                            <button
-                                                onClick={handleExportCSV}
-                                                className="flex items-center gap-2 px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm"
-                                            >
-                                                <FileText className="h-4 w-4" />
-                                                CSV
-                                            </button>
-                                        </div>
+                                                </button>
                                     </div>
                                 </div>
                             </div>
@@ -992,6 +1635,7 @@ export default function Detail({ auth, client, stats, factures, reglements }) {
                             />
                         </div>
                     )}
+                    </div>
                 </div>
             </div>
         </AuthenticatedLayout>
