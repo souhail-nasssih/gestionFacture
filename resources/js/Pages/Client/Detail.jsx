@@ -23,6 +23,8 @@ export default function Detail({ auth, client, stats, factures, reglements }) {
     const [searchReglements, setSearchReglements] = useState('');
     const [currentPageFactures, setCurrentPageFactures] = useState(1);
     const [currentPageReglements, setCurrentPageReglements] = useState(1);
+    const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+    const [isGeneratingExcel, setIsGeneratingExcel] = useState(false);
     const itemsPerPage = 10;
 
     // Filtrage et pagination des factures
@@ -736,8 +738,13 @@ export default function Detail({ auth, client, stats, factures, reglements }) {
 
     // Fonctions de génération PDF professionnel avec jsPDF
     const downloadFacturesPdf = () => {
-        const doc = new jsPDF();
-        let yPosition = 20;
+        setIsGeneratingPdf(true);
+
+        // Utiliser setTimeout pour permettre à l'UI de se mettre à jour
+        setTimeout(() => {
+            try {
+                const doc = new jsPDF();
+                let yPosition = 20;
 
         // En-tête professionnel
         doc.setFontSize(18);
@@ -847,11 +854,25 @@ export default function Detail({ auth, client, stats, factures, reglements }) {
 
         // Téléchargement
         doc.save(`Factures_${client.nom}_${new Date().toISOString().split('T')[0]}.pdf`);
+
+        // Arrêter le loading
+        setIsGeneratingPdf(false);
+            } catch (error) {
+                console.error('Erreur lors de la génération du PDF:', error);
+                setIsGeneratingPdf(false);
+                alert('Erreur lors de la génération du PDF');
+            }
+        }, 100);
     };
 
     const downloadReglementsPdf = () => {
-        const doc = new jsPDF();
-        let yPosition = 20;
+        setIsGeneratingPdf(true);
+
+        // Utiliser setTimeout pour permettre à l'UI de se mettre à jour
+        setTimeout(() => {
+            try {
+                const doc = new jsPDF();
+                let yPosition = 20;
 
         // En-tête professionnel
         doc.setFontSize(18);
@@ -962,12 +983,26 @@ export default function Detail({ auth, client, stats, factures, reglements }) {
 
         // Téléchargement
         doc.save(`Reglements_${client.nom}_${new Date().toISOString().split('T')[0]}.pdf`);
+
+        // Arrêter le loading
+        setIsGeneratingPdf(false);
+            } catch (error) {
+                console.error('Erreur lors de la génération du PDF:', error);
+                setIsGeneratingPdf(false);
+                alert('Erreur lors de la génération du PDF');
+            }
+        }, 100);
     };
 
     // Fonctions de génération Excel
     const downloadFacturesExcel = () => {
-        // Créer un nouveau classeur
-        const workbook = XLSX.utils.book_new();
+        setIsGeneratingExcel(true);
+
+        // Utiliser setTimeout pour permettre à l'UI de se mettre à jour
+        setTimeout(() => {
+            try {
+                // Créer un nouveau classeur
+                const workbook = XLSX.utils.book_new();
 
         // Structure professionnelle avec tableaux bien conçus
         const structuredData = [
@@ -1122,11 +1157,25 @@ export default function Detail({ auth, client, stats, factures, reglements }) {
 
         // Télécharger le fichier
         XLSX.writeFile(workbook, `Factures_${client.nom}_${new Date().toISOString().split('T')[0]}.xlsx`);
+
+        // Arrêter le loading
+        setIsGeneratingExcel(false);
+            } catch (error) {
+                console.error('Erreur lors de la génération du Excel:', error);
+                setIsGeneratingExcel(false);
+                alert('Erreur lors de la génération du fichier Excel');
+            }
+        }, 100);
     };
 
     const downloadReglementsExcel = () => {
-        // Créer un nouveau classeur
-        const workbook = XLSX.utils.book_new();
+        setIsGeneratingExcel(true);
+
+        // Utiliser setTimeout pour permettre à l'UI de se mettre à jour
+        setTimeout(() => {
+            try {
+                // Créer un nouveau classeur
+                const workbook = XLSX.utils.book_new();
 
         // Structure professionnelle avec tableaux bien conçus
         const structuredData = [
@@ -1279,6 +1328,15 @@ export default function Detail({ auth, client, stats, factures, reglements }) {
 
         // Télécharger le fichier
         XLSX.writeFile(workbook, `Reglements_${client.nom}_${new Date().toISOString().split('T')[0]}.xlsx`);
+
+        // Arrêter le loading
+        setIsGeneratingExcel(false);
+            } catch (error) {
+                console.error('Erreur lors de la génération du Excel:', error);
+                setIsGeneratingExcel(false);
+                alert('Erreur lors de la génération du fichier Excel');
+            }
+        }, 100);
     };
 
     // Composant de pagination
@@ -1495,19 +1553,47 @@ export default function Detail({ auth, client, stats, factures, reglements }) {
                                             </button>
                                                 <button
                                                     onClick={downloadFacturesPdf}
-                                                    className="flex items-center gap-2 px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm"
-                                                title="Télécharger le tableau des factures en PDF"
+                                                    disabled={isGeneratingPdf}
+                                                    className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors text-sm ${
+                                                        isGeneratingPdf
+                                                            ? 'bg-gray-400 text-white cursor-not-allowed'
+                                                            : 'bg-red-600 text-white hover:bg-red-700'
+                                                    }`}
+                                                    title="Télécharger le tableau des factures en PDF"
                                                 >
-                                                    <FileText className="h-4 w-4" />
-                                                PDF
+                                                    {isGeneratingPdf ? (
+                                                        <>
+                                                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                                            Génération...
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <FileText className="h-4 w-4" />
+                                                            PDF
+                                                        </>
+                                                    )}
                                                 </button>
-                                                <button
+                                            <button
                                                     onClick={downloadFacturesExcel}
-                                                    className="flex items-center gap-2 px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
-                                                title="Télécharger le tableau des factures en Excel"
+                                                    disabled={isGeneratingExcel}
+                                                    className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors text-sm ${
+                                                        isGeneratingExcel
+                                                            ? 'bg-gray-400 text-white cursor-not-allowed'
+                                                            : 'bg-green-600 text-white hover:bg-green-700'
+                                                    }`}
+                                                    title="Télécharger le tableau des factures en Excel"
                                                 >
-                                                    <FileSpreadsheet className="h-4 w-4" />
-                                                Excel
+                                                    {isGeneratingExcel ? (
+                                                        <>
+                                                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                                            Génération...
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <FileSpreadsheet className="h-4 w-4" />
+                                                            Excel
+                                                        </>
+                                                    )}
                                                 </button>
                                     </div>
                                 </div>
@@ -1580,19 +1666,47 @@ export default function Detail({ auth, client, stats, factures, reglements }) {
                                             </button>
                                                 <button
                                                     onClick={downloadReglementsPdf}
-                                                    className="flex items-center gap-2 px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm"
-                                                title="Télécharger le tableau des règlements en PDF"
+                                                    disabled={isGeneratingPdf}
+                                                    className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors text-sm ${
+                                                        isGeneratingPdf
+                                                            ? 'bg-gray-400 text-white cursor-not-allowed'
+                                                            : 'bg-red-600 text-white hover:bg-red-700'
+                                                    }`}
+                                                    title="Télécharger le tableau des règlements en PDF"
                                                 >
-                                                    <FileText className="h-4 w-4" />
-                                                PDF
+                                                    {isGeneratingPdf ? (
+                                                        <>
+                                                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                                            Génération...
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <FileText className="h-4 w-4" />
+                                                            PDF
+                                                        </>
+                                                    )}
                                                 </button>
-                                                <button
+                                            <button
                                                     onClick={downloadReglementsExcel}
-                                                    className="flex items-center gap-2 px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
-                                                title="Télécharger le tableau des règlements en Excel"
+                                                    disabled={isGeneratingExcel}
+                                                    className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors text-sm ${
+                                                        isGeneratingExcel
+                                                            ? 'bg-gray-400 text-white cursor-not-allowed'
+                                                            : 'bg-green-600 text-white hover:bg-green-700'
+                                                    }`}
+                                                    title="Télécharger le tableau des règlements en Excel"
                                                 >
-                                                    <FileSpreadsheet className="h-4 w-4" />
-                                                Excel
+                                                    {isGeneratingExcel ? (
+                                                        <>
+                                                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                                            Génération...
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <FileSpreadsheet className="h-4 w-4" />
+                                                            Excel
+                                                        </>
+                                                    )}
                                                 </button>
                                     </div>
                                 </div>

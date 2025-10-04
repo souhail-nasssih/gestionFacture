@@ -20,44 +20,6 @@ export default function FacturesTable({
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Calcul des totaux
-  const calculateTotals = () => {
-    let totalClient = 0;
-    let totalFournisseur = 0;
-    let totalRestantClient = 0;
-    let totalRestantFournisseur = 0;
-
-    filteredFactures.forEach(facture => {
-      if (facture.type === "client") {
-        totalClient += parseFloat(facture.montant_total);
-        totalRestantClient += parseFloat(facture.reste_a_payer);
-      } else {
-        totalFournisseur += parseFloat(facture.montant_total);
-        totalRestantFournisseur += parseFloat(facture.reste_a_payer);
-      }
-    });
-
-    const solde = totalClient - totalFournisseur;
-    const soldeRestant = totalRestantClient - totalRestantFournisseur;
-
-    return {
-      totalClient,
-      totalFournisseur,
-      totalRestantClient,
-      totalRestantFournisseur,
-      solde,
-      soldeRestant
-    };
-  };
-
-  const {
-    totalClient,
-    totalFournisseur,
-    totalRestantClient,
-    totalRestantFournisseur,
-    solde,
-    soldeRestant
-  } = calculateTotals();
 
   // Fonction de tri
   const sortedFactures = [...filteredFactures].sort((a, b) => {
@@ -112,34 +74,6 @@ export default function FacturesTable({
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
-      {/* En-tête avec les totaux */}
-      <div className="bg-indigo-50 dark:bg-indigo-900 p-4 border-b border-indigo-100 dark:border-indigo-800">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-white dark:bg-gray-700 p-3 rounded-lg shadow-sm">
-            <h3 className="text-sm font-medium text-gray-500 dark:text-gray-300">Total Clients</h3>
-            <p className="text-lg font-bold text-indigo-600 dark:text-indigo-300">{formatCurrency(totalClient)}</p>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Reste: {formatCurrency(totalRestantClient)}</p>
-          </div>
-          <div className="bg-white dark:bg-gray-700 p-3 rounded-lg shadow-sm">
-            <h3 className="text-sm font-medium text-gray-500 dark:text-gray-300">Total Fournisseurs</h3>
-            <p className="text-lg font-bold text-purple-600 dark:text-purple-300">{formatCurrency(totalFournisseur)}</p>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Reste: {formatCurrency(totalRestantFournisseur)}</p>
-          </div>
-          <div className="bg-white dark:bg-gray-700 p-3 rounded-lg shadow-sm">
-            <h3 className="text-sm font-medium text-gray-500 dark:text-gray-300">Solde Net</h3>
-            <p className={`text-lg font-bold ${solde >= 0 ? 'text-green-600 dark:text-green-300' : 'text-red-600 dark:text-red-300'}`}>
-              {formatCurrency(solde)}
-            </p>
-          </div>
-          <div className="bg-white dark:bg-gray-700 p-3 rounded-lg shadow-sm">
-            <h3 className="text-sm font-medium text-gray-500 dark:text-gray-300">Solde Restant</h3>
-            <p className={`text-lg font-bold ${soldeRestant >= 0 ? 'text-green-600 dark:text-green-300' : 'text-red-600 dark:text-red-300'}`}>
-              {formatCurrency(soldeRestant)}
-            </p>
-          </div>
-        </div>
-      </div>
-
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
           <thead className="bg-gray-50 dark:bg-gray-700">
@@ -279,10 +213,10 @@ export default function FacturesTable({
                     <td className="px-4 py-4 text-sm font-medium text-gray-900 dark:text-white">
                       <div className="flex items-center">
                         <button
-                          onClick={() => toggleRowExpansion(f.id)}
+                          onClick={() => toggleRowExpansion(f.id || rowKey)}
                           className="mr-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
                         >
-                          {expandedRows.has(f.id) ? '▼' : '►'}
+                          {expandedRows.has(f.id || rowKey) ? '▼' : '►'}
                         </button>
                         {f.numero_facture}
                       </div>
@@ -401,7 +335,7 @@ export default function FacturesTable({
                       </button>
                     </td>
                   </tr>
-                  {expandedRows.has(f.id) && (
+                  {expandedRows.has(f.id || rowKey) && (
                     <tr key={`expanded-${rowKey}`} className="bg-gray-50 dark:bg-gray-900">
                       <td colSpan={10} className="px-4 py-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">

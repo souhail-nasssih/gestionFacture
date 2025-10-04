@@ -9,6 +9,7 @@ export default function FactureClientRow({
     onDelete,
 }) {
     const [localExpanded, setLocalExpanded] = useState(false);
+    const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
     const handleToggleExpand = () => {
         if (onToggleExpand) {
@@ -19,8 +20,20 @@ export default function FactureClientRow({
     };
 
     const handlePrint = () => {
-        const printUrl = `/facture-clients/${item.id}/print`;
-        window.open(printUrl, '_blank');
+        setIsGeneratingPdf(true);
+
+        // Utiliser setTimeout pour permettre à l'UI de se mettre à jour
+        setTimeout(() => {
+            try {
+                const printUrl = `/facture-clients/${item.id}/print`;
+                window.open(printUrl, '_blank');
+                setIsGeneratingPdf(false);
+            } catch (error) {
+                console.error('Erreur lors de l\'impression:', error);
+                setIsGeneratingPdf(false);
+                alert('Erreur lors de l\'impression de la facture');
+            }
+        }, 100);
     };
 
     const expanded = onToggleExpand ? isExpanded : localExpanded;
@@ -82,8 +95,21 @@ export default function FactureClientRow({
                         <button onClick={() => onDelete(item)} className="p-1 text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full" title="Supprimer cette facture">
                             <Trash2 className="h-4 w-4" />
                         </button>
-                        <button onClick={handlePrint} className="p-1 text-purple-600 hover:text-purple-900 dark:text-purple-400 dark:hover:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-full" title="Imprimer cette facture">
-                            <Printer className="h-4 w-4" />
+                        <button
+                            onClick={handlePrint}
+                            disabled={isGeneratingPdf}
+                            className={`p-1 rounded-full transition-colors ${
+                                isGeneratingPdf
+                                    ? 'text-gray-400 cursor-not-allowed'
+                                    : 'text-purple-600 hover:text-purple-900 dark:text-purple-400 dark:hover:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-900/20'
+                            }`}
+                            title={isGeneratingPdf ? "Génération en cours..." : "Imprimer cette facture"}
+                        >
+                            {isGeneratingPdf ? (
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-400"></div>
+                            ) : (
+                                <Printer className="h-4 w-4" />
+                            )}
                         </button>
                     </div>
                 </td>

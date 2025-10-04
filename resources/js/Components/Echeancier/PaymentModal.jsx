@@ -122,7 +122,7 @@ export default function PaymentModal({
                             </p>
                             {form.data.montant_paye && calculateRemainingBalance() > 0 && (
                                 <p className="text-xs text-orange-600 dark:text-orange-400 font-medium">
-                                    Reste à payer: {calculateRemainingBalance().toFixed(2)} MAD
+                                    Reste à payer: {calculateRemainingBalance().toFixed(2)} DHS
                                 </p>
                             )}
                         </div>
@@ -207,7 +207,7 @@ export default function PaymentModal({
                             <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Créé le</label>
                             <input
                                 type="date"
-                                className="w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 bg-gray-100 dark:bg-gray-600"
+                                className="w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 bg-gray-100 dark:bg-gray-600"
                                 value={form.data.date_reglement || new Date().toISOString().slice(0, 10)}
                                 readOnly
                             />
@@ -217,8 +217,8 @@ export default function PaymentModal({
                             <input
                                 type="date"
                                 className="w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                                value={form.data.date_paiement || ''}
-                                onChange={e => form.setData('date_paiement', e.target.value)}
+                                value={form.data.date_reglement || new Date().toISOString().slice(0, 10)}
+                                onChange={e => form.setData('date_reglement', e.target.value)}
                             />
                         </div>
                     </div>
@@ -238,8 +238,8 @@ export default function PaymentModal({
                         <textarea
                             rows={3}
                             className="w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                            value={form.data.description || ''}
-                            onChange={e => form.setData('description', e.target.value)}
+                            value={form.data.infos_reglement?.description || ''}
+                            onChange={e => form.setData('infos_reglement', { ...form.data.infos_reglement, description: e.target.value })}
                             placeholder="Ajouter une description ou des notes pour ce règlement..."
                         />
                     </div>

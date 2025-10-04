@@ -87,6 +87,7 @@ export default function Echeancier({
         iban_rib: "",
         reference_paiement: "",
         infos_reglement: {},
+        force_paid_status: false,
     });
 
     useEffect(() => {
@@ -209,12 +210,40 @@ export default function Echeancier({
     }
 
     function submitReglement() {
+        // Validation des champs requis
+        if (!form.data.montant_paye || parseFloat(form.data.montant_paye) <= 0) {
+            alert("Veuillez saisir un montant valide");
+            return;
+        }
+
+        if (!form.data.date_reglement) {
+            alert("Veuillez saisir une date de règlement");
+            return;
+        }
+
+        // Validation du montant par rapport au reste à payer
+        const montantSaisi = parseFloat(form.data.montant_paye);
+        const resteAPayer = parseFloat(selectedFacture.reste_a_payer);
+
+        if (montantSaisi > resteAPayer && !form.data.force_paid_status) {
+            alert(`Le montant saisi (${montantSaisi.toFixed(2)} DHS) dépasse le reste à payer (${resteAPayer.toFixed(2)} DHS). Veuillez cocher la case de confirmation si vous souhaitez continuer.`);
+            return;
+        }
+
         // Préparer les infos de règlement selon le type
         const infos = {};
         if (form.data.type_reglement === "chèque") {
+            if (!form.data.numero_cheque || !form.data.banque_nom) {
+                alert("Veuillez remplir le numéro de chèque et la banque");
+                return;
+            }
             infos.numero_cheque = form.data.numero_cheque;
             infos.banque_nom = form.data.banque_nom;
         } else if (form.data.type_reglement === "virement") {
+            if (!form.data.banque_nom || !form.data.iban_rib || !form.data.reference_paiement) {
+                alert("Veuillez remplir tous les champs requis pour le virement");
+                return;
+            }
             infos.banque_nom = form.data.banque_nom;
             infos.iban_rib = form.data.iban_rib;
             infos.reference_paiement = form.data.reference_paiement;
@@ -234,6 +263,7 @@ export default function Echeancier({
             iban_rib: form.data.iban_rib,
             reference_paiement: form.data.reference_paiement,
             infos_reglement: infos,
+            force_paid_status: form.data.force_paid_status || false,
         };
 
         // Log the submission data for debugging
@@ -251,6 +281,17 @@ export default function Echeancier({
                     if (historyFacture) openHistory(historyFacture);
                     router.reload();
                 },
+                onError: (errors) => {
+                    console.log("Form errors:", errors);
+                    // Afficher les erreurs à l'utilisateur
+                    if (errors.montant_paye) {
+                        alert("Erreur de montant: " + errors.montant_paye);
+                    } else if (errors.date_reglement) {
+                        alert("Erreur de date: " + errors.date_reglement);
+                    } else {
+                        alert("Erreur lors de la modification du règlement");
+                    }
+                },
             });
         } else {
             form.post(route("reglements.store"), {
@@ -266,6 +307,14 @@ export default function Echeancier({
                 },
                 onError: (errors) => {
                     console.log("Form errors:", errors);
+                    // Afficher les erreurs à l'utilisateur
+                    if (errors.montant_paye) {
+                        alert("Erreur de montant: " + errors.montant_paye);
+                    } else if (errors.date_reglement) {
+                        alert("Erreur de date: " + errors.date_reglement);
+                    } else {
+                        alert("Erreur lors de l'enregistrement du règlement");
+                    }
                 },
             });
         }
