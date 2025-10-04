@@ -100,6 +100,33 @@ export default function Dashboard({
 
             {/* Statistiques secondaires */}
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+                {/* CA du mois */}
+                <div className="rounded-lg bg-white p-6 shadow-sm dark:bg-gray-800">
+                    <div className="flex items-center justify-between">
+                        <h3 className="text-lg font-medium text-gray-900 dark:text-white">CA Ce Mois</h3>
+                        <svg className="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                        </svg>
+                    </div>
+                    <p className="mt-2 text-3xl font-bold text-gray-900 dark:text-white">
+                        {formatCurrency(stats?.caCeMois || 0)}
+                    </p>
+                    <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                        {stats?.evolutionCAMois !== undefined && (
+                            <span className={`flex items-center ${stats.evolutionCAMois >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    {stats.evolutionCAMois >= 0 ? (
+                                        <path fillRule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                                    ) : (
+                                        <path fillRule="evenodd" d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 12.586V5a1 1 0 012 0v7.586l2.293-2.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                    )}
+                                </svg>
+                                {Math.abs(stats.evolutionCAMois)}% vs mois précédent
+                            </span>
+                        )}
+                    </p>
+                </div>
+
                 {/* Nombre de clients */}
                 <div className="rounded-lg bg-white p-6 shadow-sm dark:bg-gray-800">
                     <div className="flex items-center justify-between">
@@ -113,22 +140,6 @@ export default function Dashboard({
                     </p>
                     <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                         Clients actifs
-                    </p>
-                </div>
-
-                {/* Factures du mois */}
-                <div className="rounded-lg bg-white p-6 shadow-sm dark:bg-gray-800">
-                    <div className="flex items-center justify-between">
-                        <h3 className="text-lg font-medium text-gray-900 dark:text-white">Factures Ce Mois</h3>
-                        <svg className="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                    </div>
-                    <p className="mt-2 text-3xl font-bold text-gray-900 dark:text-white">
-                        {formatNumber(stats?.facturesCeMois || 0)}
-                    </p>
-                    <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                        Factures émises
                     </p>
                 </div>
 
@@ -161,6 +172,57 @@ export default function Dashboard({
                     </p>
                     <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                         Stock critique
+                    </p>
+                </div>
+            </div>
+
+            {/* Statistiques tertiaires */}
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 mb-8">
+                {/* Factures du mois */}
+                <div className="rounded-lg bg-white p-6 shadow-sm dark:bg-gray-800">
+                    <div className="flex items-center justify-between">
+                        <h3 className="text-lg font-medium text-gray-900 dark:text-white">Factures Ce Mois</h3>
+                        <svg className="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                    </div>
+                    <p className="mt-2 text-3xl font-bold text-gray-900 dark:text-white">
+                        {formatNumber(stats?.facturesCeMois || 0)}
+                    </p>
+                    <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                        Factures émises
+                    </p>
+                </div>
+
+                {/* Total factures */}
+                <div className="rounded-lg bg-white p-6 shadow-sm dark:bg-gray-800">
+                    <div className="flex items-center justify-between">
+                        <h3 className="text-lg font-medium text-gray-900 dark:text-white">Total Factures</h3>
+                        <svg className="h-6 w-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                    </div>
+                    <p className="mt-2 text-3xl font-bold text-gray-900 dark:text-white">
+                        {formatNumber(stats?.totalFactures || 0)}
+                    </p>
+                    <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                        Toutes factures
+                    </p>
+                </div>
+
+                {/* Montant moyen par facture */}
+                <div className="rounded-lg bg-white p-6 shadow-sm dark:bg-gray-800">
+                    <div className="flex items-center justify-between">
+                        <h3 className="text-lg font-medium text-gray-900 dark:text-white">Montant Moyen</h3>
+                        <svg className="h-6 w-6 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                        </svg>
+                    </div>
+                    <p className="mt-2 text-3xl font-bold text-gray-900 dark:text-white">
+                        {formatCurrency(stats?.montantMoyenFacture || 0)}
+                    </p>
+                    <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                        Par facture
                     </p>
                 </div>
             </div>
