@@ -3,9 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Reglement extends Model
 {
+    use SoftDeletes;
     protected $fillable = [
         'facture_id',
         'montant_paye',

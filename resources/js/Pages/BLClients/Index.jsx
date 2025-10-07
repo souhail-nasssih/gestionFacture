@@ -10,6 +10,7 @@ export default function Index({
     blClients,
     clients,
     produits,
+    nextBlNumber,
     success,
     errors: pageErrors,
 }) {
@@ -112,6 +113,7 @@ export default function Index({
                             editingBl={selectedBlClient}
                             onCancel={handleCancelForm}
                             onSuccess={handleFormSuccess}
+                            nextBlNumber={nextBlNumber}
                         />
                     )}
 

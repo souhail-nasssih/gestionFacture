@@ -16,6 +16,7 @@ import {
     Settings,
     ClipboardCheck,
     CalendarClock,
+    Trash2,
 } from "lucide-react";
 import ThemeToggle from "@/Components/ThemeToggle";
 import NotificationCenter from "@/Components/NotificationCenter";
@@ -51,6 +52,7 @@ export default function AuthenticatedLayout({ header, children }) {
         { name: "BL Fournisseurs", href: route("bl-fournisseurs.index"), icon: ClipboardList },
         { name: "BL Clients", href: route("bl-clients.index"), icon: ClipboardCheck },
         { name: "Échéancier", href: route("echeancier.index"), icon: CalendarClock },
+        { name: "Poubelle", href: route("trash.index"), icon: Trash2 },
         // { name: "Règlement", href: "/reglements", icon: ReceiptText },
         { name: "Settings", href: "#", icon: Settings },
     ];

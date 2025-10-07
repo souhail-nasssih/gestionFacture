@@ -6,10 +6,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class BLClient extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $table = 'bl_clients';
 
@@ -81,9 +82,19 @@ class BLClient extends Model
                 }
             }
         });
+
+        static::deleting(function ($blClient) {
+            // Soft delete all related details when BL is soft deleted
+            $blClient->details()->delete();
+        });
+
+        static::restoring(function ($blClient) {
+            // Restore all related details when BL is restored
+            $blClient->details()->onlyTrashed()->restore();
+        });
     }
 
-    protected static function generateNumeroBL()
+    public static function generateNumeroBL()
     {
         // Get all BL numbers and find the highest numeric value
         $allBLs = static::where('numero_bl', 'like', 'BL%')->pluck('numero_bl');

@@ -2,53 +2,84 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\AppNotification;
 use Illuminate\Http\Request;
+use Illuminate\Notifications\DatabaseNotification;
 
 class NotificationController extends Controller
 {
     public function index(Request $request)
     {
-        $query = AppNotification::query()
-            ->when($request->boolean('only_unread'), fn($q)=> $q->whereNull('read_at'))
-            ->orderBy('created_at', 'desc');
+        $user = $request->user();
 
-        if ($request->user()) {
-            $query->where(function($q) use ($request) {
-                $q->whereNull('user_id')->orWhere('user_id', $request->user()->id);
-            });
+        if (!$user) {
+            return response()->json(['notifications' => []]);
         }
 
-        return response()->json($query->paginate(20));
+        $notifications = $user->notifications()
+            ->orderBy('created_at', 'desc')
+            ->paginate(20);
+
+        return response()->json($notifications);
     }
 
     public function unreadCount(Request $request)
     {
-        $query = AppNotification::query()->whereNull('read_at');
-        if ($request->user()) {
-            $query->where(function($q) use ($request) {
-                $q->whereNull('user_id')->orWhere('user_id', $request->user()->id);
-            });
+        $user = $request->user();
+
+        if (!$user) {
+            return response()->json(['count' => 0]);
         }
-        return response()->json(['count' => $query->count()]);
+
+        $count = $user->unreadNotifications()->count();
+        return response()->json(['count' => $count]);
     }
 
-    public function markRead(AppNotification $notification)
+    public function markRead(Request $request, $id)
     {
-        $notification->update(['read_at' => now()]);
-        return response()->json(['success' => true]);
+        $user = $request->user();
+
+        if (!$user) {
+            return response()->json(['success' => false], 401);
+        }
+
+        $notification = $user->notifications()->find($id);
+
+        if ($notification) {
+            $notification->markAsRead();
+            return response()->json(['success' => true]);
+        }
+
+        return response()->json(['success' => false], 404);
     }
 
     public function markAllRead(Request $request)
     {
-        $query = AppNotification::query()->whereNull('read_at');
-        if ($request->user()) {
-            $query->where(function($q) use ($request) {
-                $q->whereNull('user_id')->orWhere('user_id', $request->user()->id);
-            });
+        $user = $request->user();
+
+        if (!$user) {
+            return response()->json(['success' => false], 401);
         }
-        $query->update(['read_at' => now()]);
+
+        $user->unreadNotifications()->update(['read_at' => now()]);
         return response()->json(['success' => true]);
+    }
+
+    public function destroy(Request $request, $id)
+    {
+        $user = $request->user();
+
+        if (!$user) {
+            return response()->json(['success' => false], 401);
+        }
+
+        $notification = $user->notifications()->find($id);
+
+        if ($notification) {
+            $notification->delete();
+            return response()->json(['success' => true]);
+        }
+
+        return response()->json(['success' => false], 404);
     }
 }
 

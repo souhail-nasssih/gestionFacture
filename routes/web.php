@@ -8,6 +8,8 @@ use App\Http\Controllers\FactureClientController;
 use App\Http\Controllers\FactureFournisseurController;
 use App\Http\Controllers\FournisseurController;
 use App\Http\Controllers\ProduitController;
+use App\Http\Controllers\TrashController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -122,9 +124,41 @@ Route::get('/dashboard', [App\Http\Controllers\DashboardController::class, 'inde
     ->name('dashboard');
 
 Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::get('/trash', [TrashController::class, 'index'])->name('trash.index');
+
+    // Routes de restauration
+    Route::post('/trash/restore-bl/{id}', [TrashController::class, 'restoreBL'])->name('trash.restore-bl');
+    Route::post('/trash/restore-bl-fournisseur/{id}', [TrashController::class, 'restoreBLFournisseur'])->name('trash.restore-bl-fournisseur');
+    Route::post('/trash/restore-facture/{id}', [TrashController::class, 'restoreFacture'])->name('trash.restore-facture');
+    Route::post('/trash/restore-facture-fournisseur/{id}', [TrashController::class, 'restoreFactureFournisseur'])->name('trash.restore-facture-fournisseur');
+    Route::post('/trash/restore-client/{id}', [TrashController::class, 'restoreClient'])->name('trash.restore-client');
+    Route::post('/trash/restore-fournisseur/{id}', [TrashController::class, 'restoreFournisseur'])->name('trash.restore-fournisseur');
+    Route::post('/trash/restore-produit/{id}', [TrashController::class, 'restoreProduit'])->name('trash.restore-produit');
+    Route::post('/trash/restore-reglement/{id}', [TrashController::class, 'restoreReglement'])->name('trash.restore-reglement');
+
+    // Routes de suppression définitive
+    Route::delete('/trash/force-delete-bl/{id}', [TrashController::class, 'forceDeleteBL'])->name('trash.force-delete-bl');
+    Route::delete('/trash/force-delete-bl-fournisseur/{id}', [TrashController::class, 'forceDeleteBLFournisseur'])->name('trash.force-delete-bl-fournisseur');
+    Route::delete('/trash/force-delete-facture/{id}', [TrashController::class, 'forceDeleteFacture'])->name('trash.force-delete-facture');
+    Route::delete('/trash/force-delete-facture-fournisseur/{id}', [TrashController::class, 'forceDeleteFactureFournisseur'])->name('trash.force-delete-facture-fournisseur');
+    Route::delete('/trash/force-delete-client/{id}', [TrashController::class, 'forceDeleteClient'])->name('trash.force-delete-client');
+    Route::delete('/trash/force-delete-fournisseur/{id}', [TrashController::class, 'forceDeleteFournisseur'])->name('trash.force-delete-fournisseur');
+    Route::delete('/trash/force-delete-produit/{id}', [TrashController::class, 'forceDeleteProduit'])->name('trash.force-delete-produit');
+    Route::delete('/trash/force-delete-reglement/{id}', [TrashController::class, 'forceDeleteReglement'])->name('trash.force-delete-reglement');
+
+    // Route pour vider la poubelle
+        Route::post('/trash/empty', [TrashController::class, 'emptyTrash'])->name('trash.empty');
+
+        // Routes pour les notifications
+        Route::get('/api/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+        Route::get('/api/notifications/unread-count', [NotificationController::class, 'unreadCount'])->name('notifications.unread-count');
+        Route::post('/api/notifications/{id}/read', [NotificationController::class, 'markRead'])->name('notifications.mark-read');
+        Route::post('/api/notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.mark-all-read');
+        Route::delete('/api/notifications/{id}', [NotificationController::class, 'destroy'])->name('notifications.destroy');
+
+        Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+        Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+        Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
 require __DIR__ . '/auth.php';
@@ -137,14 +171,6 @@ Route::post('/reglements', [\App\Http\Controllers\ReglementController::class, 's
 Route::put('/reglements/{reglement}', [\App\Http\Controllers\ReglementController::class, 'update'])->name('reglements.update')->middleware(['auth', 'verified']);
 Route::delete('/reglements/{reglement}', [\App\Http\Controllers\ReglementController::class, 'destroy'])->name('reglements.destroy')->middleware(['auth', 'verified']);
 Route::get('/reglements/{type}/{id}', [\App\Http\Controllers\ReglementController::class, 'byFacture'])->name('reglements.byFacture')->middleware(['auth', 'verified']);
-
-// Notifications API
-Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('/api/notifications', [\App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
-    Route::get('/api/notifications/unread-count', [\App\Http\Controllers\NotificationController::class, 'unreadCount'])->name('notifications.unreadCount');
-    Route::post('/api/notifications/{notification}/read', [\App\Http\Controllers\NotificationController::class, 'markRead'])->name('notifications.read');
-    Route::post('/api/notifications/read-all', [\App\Http\Controllers\NotificationController::class, 'markAllRead'])->name('notifications.readAll');
-});
 
 Route::get('/produits/{id}/historique', [ProduitController::class, 'historique'])
     ->name('produits.historique');

@@ -15,7 +15,7 @@ class BLClientController extends Controller
 {
     public function index()
     {
-        $bl_clients = BLClient::with(['client', 'details.produit'])
+        $bl_clients = BLClient::with(['client', 'details.produit', 'facture'])
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
@@ -23,6 +23,7 @@ class BLClientController extends Controller
             'blClients' => $bl_clients,
             'clients' => Client::all(),
             'produits' => Produit::where('stock', '>', 0)->get(),
+            'nextBlNumber' => BLClient::generateNumeroBL(),
         ]);
     }
 
@@ -31,6 +32,7 @@ class BLClientController extends Controller
         return Inertia::render('BLClients/Create', [
             'clients' => Client::all(),
             'produits' => Produit::where('stock', '>', 0)->get(),
+            'nextBlNumber' => BLClient::generateNumeroBL(),
         ]);
     }
 
@@ -108,6 +110,7 @@ class BLClientController extends Controller
             'blClient' => $bl_client,
             'clients' => Client::all(),
             'produits' => Produit::where('stock', '>', 0)->get(),
+            'nextBlNumber' => BLClient::generateNumeroBL(),
         ]);
     }
 
@@ -189,16 +192,38 @@ class BLClientController extends Controller
         try {
             DB::beginTransaction();
 
+            // Vérifier si le BL est associé à une facture
+            $factureAssociee = $bl_client->facture;
+            $factureId = $factureAssociee ? $factureAssociee->id : null;
+            $factureNumero = $factureAssociee ? $factureAssociee->numero_facture : null;
+
             // Delete each detail individually to trigger model events (restores stock)
             $bl_client->details->each->delete();
 
             // Delete the BL itself
             $bl_client->delete();
 
+            // Si le BL était associé à une facture, vérifier si la facture a encore des BLs
+            if ($factureAssociee) {
+                $remainingBLs = $factureAssociee->bonsLivraison()->count();
+
+                if ($remainingBLs === 0) {
+                    // Supprimer la facture si elle n'a plus de BLs
+                    $factureAssociee->delete();
+
+                    DB::commit();
+                    return redirect()->route('bl-clients.index')
+                        ->with('success', "BL Client supprimé avec succès. La facture {$factureNumero} a également été supprimée car elle n'avait plus de BL associés.");
+                } else {
+                    DB::commit();
+                    return redirect()->route('bl-clients.index')
+                        ->with('success', "BL Client supprimé avec succès. Ce BL était associé à la facture {$factureNumero} qui contient encore {$remainingBLs} autre(s) BL(s).");
+                }
+            }
+
             DB::commit();
-            // Return a proper Inertia response
             return redirect()->route('bl-clients.index')
-                ->with('success', 'BL Client supprimé avec succès');
+                ->with('success', 'BL Client supprimé avec succès.');
 
         } catch (\Exception $e) {
             DB::rollBack();
