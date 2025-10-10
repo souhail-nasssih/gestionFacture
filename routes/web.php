@@ -154,6 +154,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/api/notifications/unread-count', [NotificationController::class, 'unreadCount'])->name('notifications.unread-count');
         Route::post('/api/notifications/{id}/read', [NotificationController::class, 'markRead'])->name('notifications.mark-read');
         Route::post('/api/notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.mark-all-read');
+        Route::post('/api/notifications/check-due-dates', [NotificationController::class, 'checkDueDates'])->name('notifications.check-due-dates');
         Route::delete('/api/notifications/{id}', [NotificationController::class, 'destroy'])->name('notifications.destroy');
 
         Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

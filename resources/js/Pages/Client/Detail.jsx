@@ -224,151 +224,137 @@ export default function Detail({ auth, client, stats, factures, reglements }) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Factures Client - ${client.nom}</title>
+    <title>Détails Client - ${client.nom}</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        @page { size: A4; margin: 15mm; }
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            font-size: 12px;
-            line-height: 1.4;
-            color: #333;
-            background: white;
-            padding: 20px;
+            font-family: Arial, sans-serif;
+            font-size: 11px;
+            color: #000;
+            margin: 0;
+            padding: 10px;
+        }
+        @media print {
+            .no-print { display: none; }
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
         }
 
+        /* Header */
         .header {
-            text-align: center;
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 2px solid #3498db;
-        }
-
-        .header h1 {
-            color: #2c3e50;
-            font-size: 24px;
-            margin-bottom: 10px;
-        }
-
-        .header p {
-            color: #7f8c8d;
-            font-size: 14px;
-        }
-
-        .client-info {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 30px;
-        }
-
-        .client-info h2 {
-            color: #2c3e50;
-            font-size: 18px;
-            margin-bottom: 15px;
-        }
-
-        .info-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
-        }
-
-        .info-item {
             display: flex;
-            flex-direction: column;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 6px;
+        }
+        .logo img {
+            width: 400px;
+            height: 100px;
+            object-fit: fill;
+        }
+        .report-details {
+            text-align: left;
+            font-size: 11px;
+            line-height: 1.25;
+            margin-right: 130px;
+            margin-top: 40px;
+        }
+        .report-details .fa{
+            color: #b32626;
+            text-decoration: underline;
+            text-decoration-color: #bd2e03;
         }
 
-        .info-label {
-            font-weight: bold;
-            color: #34495e;
-            margin-bottom: 5px;
+        /* Row under header */
+        .top-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 18px;
+            margin-bottom: 8px;
+        }
+        .dates-col {
+            flex: 1 1 60%;
+            font-size: 10.5px;
+            line-height: 1.5;
+        }
+        .client-col {
+            width: 320px;
+            font-size: 11px;
+            line-height: 1.4;
+            text-align: left;
+            margin-left: 180px;
+        }
+        .client-col strong.company {
+            display:inline-block;
+            margin-left:4px;
+            color: #b32626;
+            text-decoration-color: #bd2e03;
         }
 
-        .info-value {
-            color: #2c3e50;
+        .legal-note {
+            font-size: 10px;
+            margin: 6px 0 10px 0;
+            font-style: italic;
+            text-align: right;
         }
 
+        /* Stats Section */
         .stats-section {
-            background: #e8f5e8;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 30px;
+            background: #f8f9fa;
+            padding: 15px;
+            margin: 15px 0;
+            border: 1px solid #ddd;
         }
-
-        .stats-section h2 {
-            color: #27ae60;
-            font-size: 18px;
-            margin-bottom: 15px;
-        }
-
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 15px;
         }
-
         .stat-item {
             text-align: center;
-            padding: 15px;
+            padding: 10px;
             background: white;
-            border-radius: 6px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border: 1px solid #ddd;
         }
-
         .stat-label {
-            font-size: 12px;
-            color: #7f8c8d;
+            font-size: 10px;
+            color: #666;
             margin-bottom: 5px;
         }
-
         .stat-value {
-            font-size: 16px;
+            font-size: 14px;
             font-weight: bold;
-            color: #2c3e50;
+            color: #2B4C7E;
         }
 
-        .section {
-            margin-bottom: 30px;
-        }
-
-        .section h2 {
-            color: #2c3e50;
-            font-size: 18px;
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #bdc3c7;
-        }
-
+        /* Table */
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 20px;
-            background: white;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin: 10px 0 15px 0;
+            font-size: 9px;
         }
-
         th {
-            background: #34495e;
+            background: #2B4C7E;
             color: white;
-            padding: 12px 8px;
-            text-align: left;
+            padding: 5px 4px;
+            text-align: center;
             font-weight: bold;
-            font-size: 11px;
+            border: 1px solid #000;
+            font-size: 8px;
         }
-
         td {
-            padding: 10px 8px;
-            border-bottom: 1px solid #ecf0f1;
-            font-size: 11px;
+            border: 1px solid #000;
+            padding: 5px 4px;
+            text-align: center;
+            vertical-align: middle;
         }
-
-        tr:nth-child(even) {
-            background: #f8f9fa;
+        .description-col {
+            text-align: left !important;
+            padding-left: 6px;
         }
 
         .amount {
@@ -379,25 +365,25 @@ export default function Detail({ auth, client, stats, factures, reglements }) {
         .status-payee {
             background: #d4edda;
             color: #155724;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 10px;
+            padding: 2px 4px;
+            border-radius: 2px;
+            font-size: 8px;
         }
 
         .status-impayee {
             background: #f8d7da;
             color: #721c24;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 10px;
+            padding: 2px 4px;
+            border-radius: 2px;
+            font-size: 8px;
         }
 
         .status-partial {
             background: #fff3cd;
             color: #856404;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 10px;
+            padding: 2px 4px;
+            border-radius: 2px;
+            font-size: 8px;
         }
 
         .no-data {
@@ -407,65 +393,63 @@ export default function Detail({ auth, client, stats, factures, reglements }) {
             padding: 20px;
         }
 
-        @media print {
-            body {
-                padding: 0;
-            }
+        .section-title {
+            color: #2B4C7E;
+            font-size: 14px;
+            margin: 20px 0 10px 0;
+            padding-bottom: 5px;
+            border-bottom: 2px solid #2B4C7E;
+        }
 
-            .header {
-                margin-bottom: 20px;
-            }
-
-            .section {
-                page-break-inside: avoid;
-                margin-bottom: 20px;
-            }
-
-            table {
-                page-break-inside: auto;
-            }
-
-            tr {
-                page-break-inside: avoid;
-                page-break-after: auto;
-            }
+        .footer {
+            margin-top: 20px;
+            font-size: 9px;
+            text-align: center;
+            line-height: 1.4;
         }
     </style>
 </head>
 <body>
-        <div class="header">
-        <h1>📋 Factures Client</h1>
-        <p>Généré le ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR')}</p>
+    <!-- HEADER -->
+    <div class="header">
+        <div class="logo">
+            <img src="/logo.jpg" alt="Logo">
+        </div>
+        <div class="report-details">
+            <div class="fa"><strong>Rapport Client N°:</strong> ${client.id}</div>
+            <div><strong>Généré le:</strong> ${new Date().toLocaleDateString('fr-FR')}</div>
+            <div><strong>Heure:</strong> ${new Date().toLocaleTimeString('fr-FR')}</div>
+        </div>
+    </div>
+
+    <!-- TOP ROW: left = dates, right = Client info -->
+    <div class="top-row">
+        <!-- LEFT: Dates block -->
+        <div class="dates-col">
+            <div><strong>Date du Rapport:</strong> ${new Date().toLocaleDateString('fr-FR')}</div>
+            <div><strong>Période:</strong> Toutes les factures</div>
+            <div><strong>Type de Rapport:</strong> Détails Client</div>
         </div>
 
-        <div class="client-info">
-        <h2>👤 Informations du Client</h2>
-        <div class="info-grid">
-            <div class="info-item">
-                <span class="info-label">Nom :</span>
-                <span class="info-value">${client.nom}</span>
-            </div>
-            <div class="info-item">
-                <span class="info-label">Téléphone :</span>
-                <span class="info-value">${client.telephone || 'Non renseigné'}</span>
-            </div>
-            <div class="info-item">
-                <span class="info-label">Email :</span>
-                <span class="info-value">${client.email || 'Non renseigné'}</span>
-            </div>
-            <div class="info-item">
-                <span class="info-label">Adresse :</span>
-                <span class="info-value">${client.adresse || 'Non renseignée'}</span>
-            </div>
-            <div class="info-item">
-                <span class="info-label">Délai de paiement :</span>
-                <span class="info-value">${client.delai_paiement || 0} jours</span>
-            </div>
-            </div>
+        <!-- RIGHT: Client block -->
+        <div class="client-col">
+            <div><strong>Client:</strong></div>
+            <div>Nom: <strong class="company">${client.nom}</strong></div>
+            <div>Adresse: ${client.adresse || 'Non renseignée'}</div>
+            <div>Téléphone: ${client.telephone || 'Non renseigné'}</div>
+            <div>Email: ${client.email || 'Non renseigné'}</div>
+            <div>Délai de paiement: ${client.delai_paiement || 0} jours</div>
         </div>
+    </div>
 
+    <!-- LEGAL NOTE -->
+    <div class="legal-note">
+        **Rapport généré automatiquement le ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR')}**
+    </div>
+
+    <!-- STATISTIQUES -->
     <div class="stats-section">
-        <h2>📊 Statistiques Financières</h2>
+        <div class="section-title">📊 Statistiques Financières</div>
         <div class="stats-grid">
             <div class="stat-item">
                 <div class="stat-label">Montant Total Factures</div>
@@ -479,39 +463,48 @@ export default function Detail({ auth, client, stats, factures, reglements }) {
                 <div class="stat-label">Reste à Payer</div>
                 <div class="stat-value">${new Intl.NumberFormat('fr-FR').format(stats.reste_a_payer)} DHS</div>
             </div>
-            </div>
         </div>
+    </div>
 
-    <div class="section">
-        <h2>🧾 Factures (${stats.nombre_factures})</h2>
-        ${factures.length > 0 ? `
-        <table>
-            <thead>
-                <tr>
-                    <th>N° Facture</th>
-                    <th>Date Facture</th>
-                    <th>Date Échéance</th>
-                    <th>Statut</th>
-                    <th>Montant Total</th>
-                    <th>Montant Payé</th>
-                    <th>Reste à Payer</th>
-                </tr>
-            </thead>
-            <tbody>
-                ${factures.map(facture => `
-                <tr>
-                    <td>${facture.numero_facture}</td>
-                    <td>${new Date(facture.date_facture).toLocaleDateString('fr-FR')}</td>
-                    <td>${new Date(facture.date_echeance).toLocaleDateString('fr-FR')}</td>
-                    <td class="status-${facture.statut_paiement}">${facture.statut_paiement === 'payee' ? 'Payée' : facture.statut_paiement === 'impayee' ? 'Impayée' : 'Partiellement payée'}</td>
-                    <td class="amount">${new Intl.NumberFormat('fr-FR').format(facture.montant_total)} DHS</td>
-                    <td class="amount">${new Intl.NumberFormat('fr-FR').format(facture.montant_regle)} DHS</td>
-                    <td class="amount">${new Intl.NumberFormat('fr-FR').format(facture.reste_a_payer)} DHS</td>
-                </tr>
-                `).join('')}
-            </tbody>
-        </table>
-        ` : '<div class="no-data">Aucune facture trouvée pour ce client.</div>'}
+    <!-- FACTURES TABLE -->
+    <div class="section-title">🧾 Détail des Factures (${stats.nombre_factures})</div>
+    ${factures.length > 0 ? `
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 15%;">N° Facture</th>
+                <th style="width: 12%;">Date Facture</th>
+                <th style="width: 12%;">Date Échéance</th>
+                <th style="width: 12%;">Statut</th>
+                <th style="width: 15%;">Montant Total</th>
+                <th style="width: 15%;">Montant Payé</th>
+                <th style="width: 15%;">Reste à Payer</th>
+            </tr>
+        </thead>
+        <tbody>
+            ${factures.map(facture => `
+            <tr>
+                <td>${facture.numero_facture}</td>
+                <td>${new Date(facture.date_facture).toLocaleDateString('fr-FR')}</td>
+                <td>${new Date(facture.date_echeance).toLocaleDateString('fr-FR')}</td>
+                <td class="status-${facture.statut_paiement}">${facture.statut_paiement === 'payee' ? 'Payée' : facture.statut_paiement === 'impayee' ? 'Impayée' : 'Partiellement payée'}</td>
+                <td class="amount">${new Intl.NumberFormat('fr-FR').format(facture.montant_total)} DHS</td>
+                <td class="amount">${new Intl.NumberFormat('fr-FR').format(facture.montant_regle)} DHS</td>
+                <td class="amount">${new Intl.NumberFormat('fr-FR').format(facture.reste_a_payer)} DHS</td>
+            </tr>
+            `).join('')}
+        </tbody>
+    </table>
+    ` : '<div class="no-data">Aucune facture trouvée pour ce client.</div>'}
+
+    <!-- FOOTER -->
+    <div class="footer">
+        SARL au capital: 100000,00 - Siège social: 77 Rue Mohamed Smiha 10 Etg Appt N°57 Casablanca RC: 689565 - PATENTE: 32108409 - IF: 68363934 - ICE: 003789368000045 - Email: finducarr@gmail.com - Tél: 0708-330546
+    </div>
+
+    <!-- PRINT BUTTON -->
+    <div class="no-print" style="text-align:center; margin-top:20px;">
+        <button onclick="window.print()" style="padding: 10px 20px; background: #2B4C7E; color: white; border: none; border-radius: 5px; cursor: pointer;">Imprimer le Rapport</button>
     </div>
 </body>
 </html>
@@ -1004,71 +997,89 @@ export default function Detail({ auth, client, stats, factures, reglements }) {
                 // Créer un nouveau classeur
                 const workbook = XLSX.utils.book_new();
 
-        // Structure professionnelle avec tableaux bien conçus
+        // Structure identique à la version print (Imprimer)
         const structuredData = [
-            // En-tête principal
-            ['RAPPORT DES FACTURES CLIENT'],
+            // En-tête principal (comme dans le print)
+            ['RAPPORT CLIENT'],
             [''],
-            ['Généré le', new Date().toLocaleDateString('fr-FR'), 'à', new Date().toLocaleTimeString('fr-FR')],
-            [''],
-
-            // Informations du client dans une seule cellule
-            ['INFORMATIONS DU CLIENT'],
-            [`Nom: ${client.nom} | Téléphone: ${client.telephone || '-'} | Email: ${client.email || '-'} | Adresse: ${client.adresse || '-'} | Délai de paiement: ${client.delai_paiement || 0} jours`],
+            ['Rapport Client N°:', client.id],
+            ['Généré le:', new Date().toLocaleDateString('fr-FR')],
+            ['Heure:', new Date().toLocaleTimeString('fr-FR')],
             [''],
 
-            // En-tête du tableau
-            ['FACTURES'],
+            // Informations de l'entreprise (comme dans le print)
+            ['INFORMATIONS DE L\'ENTREPRISE'],
+            ['SARL au capital: 100000,00'],
+            ['Siège social: 77 Rue Mohamed Smiha 10 Etg Appt N°57 Casablanca'],
+            ['RC: 689565 - PATENTE: 32108409 - IF: 68363934 - ICE: 003789368000045'],
+            ['Email: finducarr@gmail.com - Tél: 0708-330546'],
+            [''],
+
+            // Informations du client (comme dans le print)
+            ['CLIENT'],
+            ['Nom:', client.nom],
+            ['Adresse:', client.adresse || 'Non renseignée'],
+            ['Téléphone:', client.telephone || 'Non renseigné'],
+            ['Email:', client.email || 'Non renseigné'],
+            ['Délai de paiement:', `${client.delai_paiement || 0} jours`],
+            [''],
+
+            // Statistiques financières (comme dans le print)
+            ['📊 STATISTIQUES FINANCIÈRES'],
+            ['Montant Total Factures:', `${new Intl.NumberFormat('fr-FR').format(stats.montant_total_factures)} DHS`],
+            ['Montant Total Payé:', `${new Intl.NumberFormat('fr-FR').format(stats.montant_total_paye)} DHS`],
+            ['Reste à Payer:', `${new Intl.NumberFormat('fr-FR').format(stats.reste_a_payer)} DHS`],
+            [''],
+
+            // En-tête du tableau (comme dans le print)
+            ['🧾 DÉTAIL DES FACTURES (' + stats.nombre_factures + ')'],
             [''],
             // En-têtes des colonnes du tableau
-            ['N° Facture', 'Date Facture', 'Date Échéance', 'Statut', 'Montant Total (DHS)', 'Montant Payé (DHS)', 'Reste à Payer (DHS)']
+            ['N° Facture', 'Date Facture', 'Date Échéance', 'Statut', 'Montant Total', 'Montant Payé', 'Reste à Payer']
         ];
 
-        // Ajouter les données des factures
+        // Ajouter les données des factures (comme dans le print)
         factures.forEach(facture => {
             structuredData.push([
                 facture.numero_facture,
                 new Date(facture.date_facture).toLocaleDateString('fr-FR'),
                 new Date(facture.date_echeance).toLocaleDateString('fr-FR'),
-                facture.statut_paiement === 'payee' ? 'Payée' : facture.statut_paiement === 'impayee' ? 'Impayée' : 'Partiel',
-                facture.montant_total,
-                facture.montant_regle,
-                facture.montant_total - facture.montant_regle
+                facture.statut_paiement === 'payee' ? 'Payée' : facture.statut_paiement === 'impayee' ? 'Impayée' : 'Partiellement payée',
+                `${new Intl.NumberFormat('fr-FR').format(facture.montant_total)} DHS`,
+                `${new Intl.NumberFormat('fr-FR').format(facture.montant_regle)} DHS`,
+                `${new Intl.NumberFormat('fr-FR').format(facture.reste_a_payer)} DHS`
             ]);
         });
 
-        // Ajouter les statistiques sous le tableau
+        // Ajouter le footer comme dans le print
         structuredData.push(['']);
-        structuredData.push(['RÉSUMÉ FINANCIER']);
-        structuredData.push(['Montant Total des Factures (DHS)', stats.montant_total_factures]);
-        structuredData.push(['Montant Total Payé (DHS)', stats.montant_total_paye]);
-        structuredData.push(['Reste à Payer (DHS)', stats.reste_a_payer]);
-        structuredData.push(['Nombre de Factures', stats.nombre_factures]);
+        structuredData.push(['FOOTER']);
+        structuredData.push(['SARL au capital: 100000,00 - Siège social: 77 Rue Mohamed Smiha 10 Etg Appt N°57 Casablanca RC: 689565 - PATENTE: 32108409 - IF: 68363934 - ICE: 003789368000045 - Email: finducarr@gmail.com - Tél: 0708-330546']);
 
         // Créer la feuille avec les données structurées
         const newWorksheet = XLSX.utils.aoa_to_sheet(structuredData);
 
         // Ajuster la largeur des colonnes
         const columnWidths = [
-            { wch: 20 }, // A - En-têtes et informations
-            { wch: 15 }, // B - N° Facture
-            { wch: 12 }, // C - Date Facture
-            { wch: 12 }, // D - Date Échéance
-            { wch: 10 }, // E - Statut
-            { wch: 18 }, // F - Montant Total
-            { wch: 18 }, // G - Montant Payé
-            { wch: 18 }  // H - Reste à Payer
+            { wch: 25 }, // A - En-têtes et informations
+            { wch: 20 }, // B - Valeurs
+            { wch: 15 }, // C - N° Facture
+            { wch: 12 }, // D - Date Facture
+            { wch: 12 }, // E - Date Échéance
+            { wch: 15 }, // F - Statut
+            { wch: 18 }, // G - Montant Total
+            { wch: 18 }  // H - Montant Payé
         ];
         newWorksheet['!cols'] = columnWidths;
 
-        // Ajouter le style professionnel
+        // Ajouter le style professionnel simple
         const range = XLSX.utils.decode_range(newWorksheet['!ref']);
 
-        // Style pour l'en-tête principal (ligne 1)
+        // Style pour l'en-tête principal (ligne 1) - Bleu professionnel
         if (newWorksheet['A1']) {
             newWorksheet['A1'].s = {
-                font: { bold: true, size: 16, color: { rgb: "FFFFFF" } },
-                fill: { fgColor: { rgb: "2E86AB" } },
+                font: { bold: true, size: 18, color: { rgb: "FFFFFF" } },
+                fill: { fgColor: { rgb: "2B4C7E" } },
                 alignment: { horizontal: "center", vertical: "center" }
             };
         }
@@ -1076,57 +1087,94 @@ export default function Detail({ auth, client, stats, factures, reglements }) {
         // Style pour la date de génération (ligne 3)
         if (newWorksheet['A3']) {
             newWorksheet['A3'].s = {
-                font: { italic: true, size: 10 },
+                font: { italic: true, size: 11, color: { rgb: "2B4C7E" } },
                 alignment: { horizontal: "left" }
             };
         }
 
-        // Style pour les sections (INFORMATIONS DU CLIENT, FACTURES, RÉSUMÉ FINANCIER)
-        const sectionRows = [5, 7, 9, structuredData.length - 5]; // Lignes des sections
+        // Style pour les sections principales
+        const sectionRows = [7, 13, 19, 25]; // Lignes des sections principales
         sectionRows.forEach(row => {
             const cell = newWorksheet[`A${row}`];
             if (cell) {
                 cell.s = {
-                    font: { bold: true, size: 12, color: { rgb: "FFFFFF" } },
-                    fill: { fgColor: { rgb: "34495E" } },
+                    font: { bold: true, size: 14, color: { rgb: "FFFFFF" } },
+                    fill: { fgColor: { rgb: "2B4C7E" } },
                     alignment: { horizontal: "left", vertical: "center" }
                 };
             }
         });
 
-        // Style pour les en-têtes du tableau (ligne 11)
-        const headerRow = 11;
+        // Style pour les informations de l'entreprise (lignes 8-12)
+        for (let row = 8; row <= 12; row++) {
+            const cell = newWorksheet[`A${row}`];
+            if (cell) {
+                cell.s = {
+                    font: { size: 10, color: { rgb: "2B4C7E" } },
+                    alignment: { horizontal: "left", vertical: "center" }
+                };
+            }
+        }
+
+        // Style pour les informations du client (lignes 14-18)
+        for (let row = 14; row <= 18; row++) {
+            ['A', 'B'].forEach(col => {
+                const cell = newWorksheet[`${col}${row}`];
+                if (cell) {
+                    cell.s = {
+                        font: { size: 10 },
+                        alignment: { horizontal: "left", vertical: "center" }
+                    };
+                    if (col === 'A') {
+                        cell.s.font.bold = true;
+                        cell.s.font.color = { rgb: "2B4C7E" };
+                    }
+                }
+            });
+        }
+
+        // Style pour les statistiques (lignes 20-23)
+        for (let row = 20; row <= 23; row++) {
+            ['A', 'B'].forEach(col => {
+                const cell = newWorksheet[`${col}${row}`];
+                if (cell) {
+                    cell.s = {
+                        font: { size: 10 },
+                        alignment: { horizontal: "left", vertical: "center" }
+                    };
+                    if (col === 'A') {
+                        cell.s.font.bold = true;
+                        cell.s.font.color = { rgb: "2B4C7E" };
+                    }
+                    if (col === 'B') {
+                        cell.s.font.bold = true;
+                        cell.s.font.color = { rgb: "27AE60" };
+                    }
+                }
+            });
+        }
+
+        // Style pour les en-têtes du tableau (ligne 27)
+        const headerRow = 27;
         ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'].forEach(col => {
             const cell = newWorksheet[`${col}${headerRow}`];
             if (cell) {
                 cell.s = {
-                    font: { bold: true, size: 10, color: { rgb: "FFFFFF" } },
-                    fill: { fgColor: { rgb: "E74C3C" } },
-                    alignment: { horizontal: "center", vertical: "center" },
-                    border: {
-                        top: { style: "thin", color: { rgb: "000000" } },
-                        bottom: { style: "thin", color: { rgb: "000000" } },
-                        left: { style: "thin", color: { rgb: "000000" } },
-                        right: { style: "thin", color: { rgb: "000000" } }
-                    }
+                    font: { bold: true, size: 11, color: { rgb: "FFFFFF" } },
+                    fill: { fgColor: { rgb: "2B4C7E" } },
+                    alignment: { horizontal: "center", vertical: "center" }
                 };
             }
         });
 
-        // Style pour les données du tableau (lignes 12+)
-        for (let row = 12; row <= range.e.r; row++) {
+        // Style pour les données du tableau (lignes 28+)
+        for (let row = 28; row <= range.e.r; row++) {
             ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'].forEach(col => {
                 const cell = newWorksheet[`${col}${row}`];
                 if (cell) {
                     cell.s = {
                         font: { size: 10 },
-                        alignment: { horizontal: "center", vertical: "center" },
-                        border: {
-                            top: { style: "thin", color: { rgb: "CCCCCC" } },
-                            bottom: { style: "thin", color: { rgb: "CCCCCC" } },
-                            left: { style: "thin", color: { rgb: "CCCCCC" } },
-                            right: { style: "thin", color: { rgb: "CCCCCC" } }
-                        }
+                        alignment: { horizontal: "center", vertical: "center" }
                     };
 
                     // Couleur de fond alternée pour les lignes
@@ -1137,26 +1185,25 @@ export default function Detail({ auth, client, stats, factures, reglements }) {
             });
         }
 
-        // Style pour les statistiques (dernières lignes)
-        const statsStartRow = structuredData.length - 4;
-        for (let row = statsStartRow; row <= range.e.r; row++) {
-            ['A', 'B'].forEach(col => {
-                const cell = newWorksheet[`${col}${row}`];
-                if (cell) {
-                    cell.s = {
-                        font: { size: 10 },
-                        alignment: { horizontal: "left", vertical: "center" },
-                        fill: { fgColor: { rgb: "ECF0F1" } }
-                    };
-                }
-            });
+        // Style pour le footer (comme dans le print)
+        const footerStartRow = structuredData.length - 1;
+        for (let row = footerStartRow; row <= range.e.r; row++) {
+            const cell = newWorksheet[`A${row}`];
+            if (cell) {
+                cell.s = {
+                    font: { size: 9, color: { rgb: "2B4C7E" } },
+                    alignment: { horizontal: "center", vertical: "center" },
+                    fill: { fgColor: { rgb: "F8F9FA" } }
+                };
+            }
         }
 
         // Ajouter la feuille au classeur
-        XLSX.utils.book_append_sheet(workbook, newWorksheet, 'Factures');
+        XLSX.utils.book_append_sheet(workbook, newWorksheet, 'Détails Client');
 
-        // Télécharger le fichier
-        XLSX.writeFile(workbook, `Factures_${client.nom}_${new Date().toISOString().split('T')[0]}.xlsx`);
+        // Télécharger le fichier (comme dans le print)
+        const fileName = `Rapport_Client_${client.nom.replace(/[^a-zA-Z0-9]/g, '_')}_${new Date().toISOString().split('T')[0]}.xlsx`;
+        XLSX.writeFile(workbook, fileName);
 
         // Arrêter le loading
         setIsGeneratingExcel(false);

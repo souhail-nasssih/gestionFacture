@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Services\NotificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -33,7 +34,35 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
+        // Check for expired due dates after successful login
+        $this->checkDueDatesOnLogin();
+
         return redirect()->intended(route('dashboard', absolute: false));
+    }
+
+    /**
+     * Check for expired due dates and send notifications after login
+     */
+    private function checkDueDatesOnLogin(): void
+    {
+        try {
+            $user = Auth::user();
+            if ($user) {
+                // Check for overdue invoices and send notifications
+                $overdueNotifications = NotificationService::checkDueDates($user->id);
+
+                // Check for upcoming due dates (optional - you can remove this if not needed)
+                $upcomingNotifications = NotificationService::checkUpcomingDueDates($user->id);
+
+                // Log the check (optional)
+                \Log::info("Due date check on login for user {$user->id}: " .
+                    count($overdueNotifications) . " overdue, " .
+                    count($upcomingNotifications) . " upcoming notifications");
+            }
+        } catch (\Exception $e) {
+            // Log error but don't break the login process
+            \Log::error("Error checking due dates on login: " . $e->getMessage());
+        }
     }
 
     /**

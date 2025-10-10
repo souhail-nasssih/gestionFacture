@@ -1,13 +1,52 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { router } from '@inertiajs/react';
-import { Bell, X, Check, Trash2, AlertTriangle, AlertCircle } from 'lucide-react';
+import { Bell, X, Check, Trash2, AlertTriangle, AlertCircle, Calendar, Clock } from 'lucide-react';
 
-export default function NotificationCenter() {
+const NotificationCenter = forwardRef((props, ref) => {
     const [notifications, setNotifications] = useState([]);
     const [unreadCount, setUnreadCount] = useState(0);
     const [isOpen, setIsOpen] = useState(false);
     const [loading, setLoading] = useState(false);
     const [isInitialized, setIsInitialized] = useState(false);
+
+    // Expose functions to parent component
+    useImperativeHandle(ref, () => ({
+        checkDueDates,
+        refreshNotifications: fetchNotifications,
+        refreshUnreadCount: fetchUnreadCount
+    }));
+
+    // Trigger due date check on backend
+    const checkDueDates = async () => {
+        try {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]');
+            if (!csrfToken) {
+                console.error('❌ CSRF token not found in meta tags');
+                return;
+            }
+
+            const response = await fetch('/api/notifications/check-due-dates', {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken.getAttribute('content'),
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                credentials: 'same-origin'
+            });
+
+            if (response.ok) {
+                // After checking due dates, refresh notifications
+                await fetchNotifications();
+                await fetchUnreadCount();
+            } else {
+                console.error('❌ Failed to check due dates:', response.status, response.statusText);
+            }
+        } catch (error) {
+            console.error('❌ Error checking due dates:', error);
+        }
+    };
 
     // Charger les notifications
     const fetchNotifications = async () => {
@@ -251,6 +290,12 @@ export default function NotificationCenter() {
                 return <AlertTriangle className="h-5 w-5 text-yellow-500" />;
             case 'out_of_stock':
                 return <AlertCircle className="h-5 w-5 text-red-500" />;
+            case 'due_date.client':
+            case 'due_date.fournisseur':
+                return <AlertCircle className="h-5 w-5 text-red-500" />;
+            case 'due_date.upcoming.client':
+            case 'due_date.upcoming.fournisseur':
+                return <Calendar className="h-5 w-5 text-blue-500" />;
             default:
                 return <Bell className="h-5 w-5 text-blue-500" />;
         }
@@ -263,6 +308,12 @@ export default function NotificationCenter() {
                 return 'border-l-yellow-500 bg-yellow-50 dark:bg-yellow-900/20';
             case 'out_of_stock':
                 return 'border-l-red-500 bg-red-50 dark:bg-red-900/20';
+            case 'due_date.client':
+            case 'due_date.fournisseur':
+                return 'border-l-red-500 bg-red-50 dark:bg-red-900/20';
+            case 'due_date.upcoming.client':
+            case 'due_date.upcoming.fournisseur':
+                return 'border-l-blue-500 bg-blue-50 dark:bg-blue-900/20';
             default:
                 return 'border-l-blue-500 bg-blue-50 dark:bg-blue-900/20';
         }
@@ -403,6 +454,36 @@ export default function NotificationCenter() {
                                                         Stock actuel: {data.stock_actuel} {data.unite || 'unités'}
                                                     </p>
                                                 )}
+                                                {/* Informations supplémentaires pour les notifications de date d'échéance */}
+                                                {(data.type?.includes('due_date') || data.facture_type) && (
+                                                    <div className="mt-2 space-y-1">
+                                                        {data.numero_facture && (
+                                                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                                                                Facture: {data.numero_facture}
+                                                            </p>
+                                                        )}
+                                                        {data.date_echeance && (
+                                                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                                                                Date d'échéance: {new Date(data.date_echeance).toLocaleDateString('fr-FR')}
+                                                            </p>
+                                                        )}
+                                                        {data.montant_restant !== undefined && (
+                                                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                                                                Montant restant: {new Intl.NumberFormat('fr-FR').format(data.montant_restant)} DHS
+                                                            </p>
+                                                        )}
+                                                        {data.days_overdue !== undefined && data.days_overdue > 0 && (
+                                                            <p className="text-xs text-red-500 dark:text-red-400 font-medium">
+                                                                En retard de {data.days_overdue} jour(s)
+                                                            </p>
+                                                        )}
+                                                        {data.days_until_due !== undefined && (
+                                                            <p className="text-xs text-blue-500 dark:text-blue-400 font-medium">
+                                                                Échéance dans {data.days_until_due} jour(s)
+                                                            </p>
+                                                        )}
+                                                    </div>
+                                                )}
                                                 <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
                                                     {formatDate(notification.created_at)}
                                                 </p>
@@ -417,6 +498,21 @@ export default function NotificationCenter() {
                                                         Voir le produit →
                                                     </button>
                                                 )}
+                                                {/* Bouton d'action pour les notifications de date d'échéance */}
+                                                {(data.type?.includes('due_date') || data.facture_type) && data.facture_id && (
+                                                    <button
+                                                        onClick={() => {
+                                                            const route = data.type?.includes('client') || data.facture_type === 'client'
+                                                                ? `/facture-clients/${data.facture_id}`
+                                                                : `/facture-fournisseurs/${data.facture_id}`;
+                                                            router.visit(route);
+                                                            setIsOpen(false);
+                                                        }}
+                                                        className="text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 mt-1"
+                                                    >
+                                                        Voir la facture →
+                                                    </button>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
@@ -428,4 +524,6 @@ export default function NotificationCenter() {
             )}
         </div>
     );
-}
+});
+
+export default NotificationCenter;
