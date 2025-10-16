@@ -16,6 +16,8 @@ import {
 } from "lucide-react";
 import jsPDF from 'jspdf';
 import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
+import { saveAs } from 'file-saver';
 
 export default function Detail({ auth, client, stats, factures, reglements }) {
     const [activeTab, setActiveTab] = useState('situation');
@@ -988,231 +990,209 @@ export default function Detail({ auth, client, stats, factures, reglements }) {
     };
 
     // Fonctions de génération Excel
-    const downloadFacturesExcel = () => {
+    const downloadFacturesExcel = async () => {
         setIsGeneratingExcel(true);
+        try {
+            const workbook = new ExcelJS.Workbook();
+            const sheet = workbook.addWorksheet("Détails Client");
 
-        // Utiliser setTimeout pour permettre à l'UI de se mettre à jour
-        setTimeout(() => {
-            try {
-                // Créer un nouveau classeur
-                const workbook = XLSX.utils.book_new();
+            // 🖼️ === ADD LOGO ===
+            // Use the logo from public folder
+            const logoUrl = "/logo.jpg"; // Using the same logo as PDF
+            const response = await fetch(logoUrl);
+            const logoBlob = await response.blob();
+            const logoArrayBuffer = await logoBlob.arrayBuffer();
 
-        // Structure identique à la version print (Imprimer)
-        const structuredData = [
-            // En-tête principal (comme dans le print)
-            ['RAPPORT CLIENT'],
-            [''],
-            ['Rapport Client N°:', client.id],
-            ['Généré le:', new Date().toLocaleDateString('fr-FR')],
-            ['Heure:', new Date().toLocaleTimeString('fr-FR')],
-            [''],
-
-            // Informations de l'entreprise (comme dans le print)
-            ['INFORMATIONS DE L\'ENTREPRISE'],
-            ['SARL au capital: 100000,00'],
-            ['Siège social: 77 Rue Mohamed Smiha 10 Etg Appt N°57 Casablanca'],
-            ['RC: 689565 - PATENTE: 32108409 - IF: 68363934 - ICE: 003789368000045'],
-            ['Email: finducarr@gmail.com - Tél: 0708-330546'],
-            [''],
-
-            // Informations du client (comme dans le print)
-            ['CLIENT'],
-            ['Nom:', client.nom],
-            ['Adresse:', client.adresse || 'Non renseignée'],
-            ['Téléphone:', client.telephone || 'Non renseigné'],
-            ['Email:', client.email || 'Non renseigné'],
-            ['Délai de paiement:', `${client.delai_paiement || 0} jours`],
-            [''],
-
-            // Statistiques financières (comme dans le print)
-            ['📊 STATISTIQUES FINANCIÈRES'],
-            ['Montant Total Factures:', `${new Intl.NumberFormat('fr-FR').format(stats.montant_total_factures)} DHS`],
-            ['Montant Total Payé:', `${new Intl.NumberFormat('fr-FR').format(stats.montant_total_paye)} DHS`],
-            ['Reste à Payer:', `${new Intl.NumberFormat('fr-FR').format(stats.reste_a_payer)} DHS`],
-            [''],
-
-            // En-tête du tableau (comme dans le print)
-            ['🧾 DÉTAIL DES FACTURES (' + stats.nombre_factures + ')'],
-            [''],
-            // En-têtes des colonnes du tableau
-            ['N° Facture', 'Date Facture', 'Date Échéance', 'Statut', 'Montant Total', 'Montant Payé', 'Reste à Payer']
-        ];
-
-        // Ajouter les données des factures (comme dans le print)
-        factures.forEach(facture => {
-            structuredData.push([
-                facture.numero_facture,
-                new Date(facture.date_facture).toLocaleDateString('fr-FR'),
-                new Date(facture.date_echeance).toLocaleDateString('fr-FR'),
-                facture.statut_paiement === 'payee' ? 'Payée' : facture.statut_paiement === 'impayee' ? 'Impayée' : 'Partiellement payée',
-                `${new Intl.NumberFormat('fr-FR').format(facture.montant_total)} DHS`,
-                `${new Intl.NumberFormat('fr-FR').format(facture.montant_regle)} DHS`,
-                `${new Intl.NumberFormat('fr-FR').format(facture.reste_a_payer)} DHS`
-            ]);
-        });
-
-        // Ajouter le footer comme dans le print
-        structuredData.push(['']);
-        structuredData.push(['FOOTER']);
-        structuredData.push(['SARL au capital: 100000,00 - Siège social: 77 Rue Mohamed Smiha 10 Etg Appt N°57 Casablanca RC: 689565 - PATENTE: 32108409 - IF: 68363934 - ICE: 003789368000045 - Email: finducarr@gmail.com - Tél: 0708-330546']);
-
-        // Créer la feuille avec les données structurées
-        const newWorksheet = XLSX.utils.aoa_to_sheet(structuredData);
-
-        // Ajuster la largeur des colonnes
-        const columnWidths = [
-            { wch: 25 }, // A - En-têtes et informations
-            { wch: 20 }, // B - Valeurs
-            { wch: 15 }, // C - N° Facture
-            { wch: 12 }, // D - Date Facture
-            { wch: 12 }, // E - Date Échéance
-            { wch: 15 }, // F - Statut
-            { wch: 18 }, // G - Montant Total
-            { wch: 18 }  // H - Montant Payé
-        ];
-        newWorksheet['!cols'] = columnWidths;
-
-        // Ajouter le style professionnel simple
-        const range = XLSX.utils.decode_range(newWorksheet['!ref']);
-
-        // Style pour l'en-tête principal (ligne 1) - Bleu professionnel
-        if (newWorksheet['A1']) {
-            newWorksheet['A1'].s = {
-                font: { bold: true, size: 18, color: { rgb: "FFFFFF" } },
-                fill: { fgColor: { rgb: "2B4C7E" } },
-                alignment: { horizontal: "center", vertical: "center" }
-            };
-        }
-
-        // Style pour la date de génération (ligne 3)
-        if (newWorksheet['A3']) {
-            newWorksheet['A3'].s = {
-                font: { italic: true, size: 11, color: { rgb: "2B4C7E" } },
-                alignment: { horizontal: "left" }
-            };
-        }
-
-        // Style pour les sections principales
-        const sectionRows = [7, 13, 19, 25]; // Lignes des sections principales
-        sectionRows.forEach(row => {
-            const cell = newWorksheet[`A${row}`];
-            if (cell) {
-                cell.s = {
-                    font: { bold: true, size: 14, color: { rgb: "FFFFFF" } },
-                    fill: { fgColor: { rgb: "2B4C7E" } },
-                    alignment: { horizontal: "left", vertical: "center" }
-                };
-            }
-        });
-
-        // Style pour les informations de l'entreprise (lignes 8-12)
-        for (let row = 8; row <= 12; row++) {
-            const cell = newWorksheet[`A${row}`];
-            if (cell) {
-                cell.s = {
-                    font: { size: 10, color: { rgb: "2B4C7E" } },
-                    alignment: { horizontal: "left", vertical: "center" }
-                };
-            }
-        }
-
-        // Style pour les informations du client (lignes 14-18)
-        for (let row = 14; row <= 18; row++) {
-            ['A', 'B'].forEach(col => {
-                const cell = newWorksheet[`${col}${row}`];
-                if (cell) {
-                    cell.s = {
-                        font: { size: 10 },
-                        alignment: { horizontal: "left", vertical: "center" }
-                    };
-                    if (col === 'A') {
-                        cell.s.font.bold = true;
-                        cell.s.font.color = { rgb: "2B4C7E" };
-                    }
-                }
+            const logoId = workbook.addImage({
+                buffer: logoArrayBuffer,
+                extension: "jpg",
             });
-        }
 
-        // Style pour les statistiques (lignes 20-23)
-        for (let row = 20; row <= 23; row++) {
-            ['A', 'B'].forEach(col => {
-                const cell = newWorksheet[`${col}${row}`];
-                if (cell) {
-                    cell.s = {
-                        font: { size: 10 },
-                        alignment: { horizontal: "left", vertical: "center" }
-                    };
-                    if (col === 'A') {
-                        cell.s.font.bold = true;
-                        cell.s.font.color = { rgb: "2B4C7E" };
-                    }
-                    if (col === 'B') {
-                        cell.s.font.bold = true;
-                        cell.s.font.color = { rgb: "27AE60" };
-                    }
-                }
+            // Place logo in the top-left corner (like PDF)
+            sheet.addImage(logoId, {
+                tl: { col: 0, row: 0 },
+                ext: { width: 200, height: 50 },
             });
-        }
 
-        // Style pour les en-têtes du tableau (ligne 27)
-        const headerRow = 27;
-        ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'].forEach(col => {
-            const cell = newWorksheet[`${col}${headerRow}`];
-            if (cell) {
-                cell.s = {
-                    font: { bold: true, size: 11, color: { rgb: "FFFFFF" } },
-                    fill: { fgColor: { rgb: "2B4C7E" } },
-                    alignment: { horizontal: "center", vertical: "center" }
+            // === HEADER SECTION (like PDF) ===
+            // Report details on the right side of logo
+            const reportDetailsRow = sheet.getRow(1);
+            reportDetailsRow.getCell(4).value = "Rapport Client N°:";
+            reportDetailsRow.getCell(5).value = client.id;
+            reportDetailsRow.getCell(4).font = { bold: true, color: { argb: "B32626" } };
+            reportDetailsRow.getCell(5).font = { bold: true, color: { argb: "B32626" } };
+
+            const reportDetailsRow2 = sheet.getRow(2);
+            reportDetailsRow2.getCell(4).value = "Généré le:";
+            reportDetailsRow2.getCell(5).value = new Date().toLocaleDateString('fr-FR');
+            reportDetailsRow2.getCell(4).font = { bold: true };
+            reportDetailsRow2.getCell(5).font = { bold: true };
+
+            const reportDetailsRow3 = sheet.getRow(3);
+            reportDetailsRow3.getCell(4).value = "Heure:";
+            reportDetailsRow3.getCell(5).value = new Date().toLocaleTimeString('fr-FR');
+            reportDetailsRow3.getCell(4).font = { bold: true };
+            reportDetailsRow3.getCell(5).font = { bold: true };
+
+            // === TOP ROW SECTION (like PDF) ===
+            // Left side: Dates block
+            const datesRow = sheet.getRow(5);
+            datesRow.getCell(1).value = "Date du Rapport:";
+            datesRow.getCell(2).value = new Date().toLocaleDateString('fr-FR');
+            datesRow.getCell(1).font = { bold: true };
+            datesRow.getCell(2).font = { bold: true };
+
+            const datesRow2 = sheet.getRow(6);
+            datesRow2.getCell(1).value = "Période:";
+            datesRow2.getCell(2).value = "Toutes les factures";
+            datesRow2.getCell(1).font = { bold: true };
+            datesRow2.getCell(2).font = { bold: true };
+
+            const datesRow3 = sheet.getRow(7);
+            datesRow3.getCell(1).value = "Type de Rapport:";
+            datesRow3.getCell(2).value = "Détails Client";
+            datesRow3.getCell(1).font = { bold: true };
+            datesRow3.getCell(2).font = { bold: true };
+
+            // Right side: Client info block
+            const clientRow = sheet.getRow(5);
+            clientRow.getCell(4).value = "Client:";
+            clientRow.getCell(4).font = { bold: true };
+
+            const clientRow2 = sheet.getRow(6);
+            clientRow2.getCell(4).value = "Nom:";
+            clientRow2.getCell(5).value = client.nom;
+            clientRow2.getCell(4).font = { bold: true };
+            clientRow2.getCell(5).font = { bold: true, color: { argb: "B32626" } };
+
+            const clientRow3 = sheet.getRow(7);
+            clientRow3.getCell(4).value = "Adresse:";
+            clientRow3.getCell(5).value = client.adresse || 'Non renseignée';
+            clientRow3.getCell(4).font = { bold: true };
+
+            const clientRow4 = sheet.getRow(8);
+            clientRow4.getCell(4).value = "Téléphone:";
+            clientRow4.getCell(5).value = client.telephone || 'Non renseigné';
+            clientRow4.getCell(4).font = { bold: true };
+
+            const clientRow5 = sheet.getRow(9);
+            clientRow5.getCell(4).value = "Email:";
+            clientRow5.getCell(5).value = client.email || 'Non renseigné';
+            clientRow5.getCell(4).font = { bold: true };
+
+            const clientRow6 = sheet.getRow(10);
+            clientRow6.getCell(4).value = "Délai de paiement:";
+            clientRow6.getCell(5).value = `${client.delai_paiement || 0} jours`;
+            clientRow6.getCell(4).font = { bold: true };
+
+            // === LEGAL NOTE (like PDF) ===
+            const legalRow = sheet.getRow(12);
+            legalRow.getCell(1).value = `**Rapport généré automatiquement le ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR')}**`;
+            legalRow.getCell(1).font = { italic: true, size: 10 };
+            sheet.mergeCells(`A${legalRow.number}:F${legalRow.number}`);
+
+            // === STATISTIQUES SECTION (like PDF) ===
+            const statsHeaderRow = sheet.getRow(14);
+            statsHeaderRow.getCell(1).value = "📊 STATISTIQUES FINANCIÈRES";
+            statsHeaderRow.getCell(1).font = { bold: true, size: 14, color: { argb: "FFFFFFFF" } };
+            statsHeaderRow.getCell(1).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "2B4C7E" } };
+            sheet.mergeCells(`A${statsHeaderRow.number}:F${statsHeaderRow.number}`);
+
+            const statsRow1 = sheet.getRow(15);
+            statsRow1.getCell(1).value = "Montant Total Factures:";
+            statsRow1.getCell(2).value = `${new Intl.NumberFormat("fr-FR").format(stats.montant_total_factures)} DHS`;
+            statsRow1.getCell(1).font = { bold: true, color: { argb: "2B4C7E" } };
+            statsRow1.getCell(2).font = { bold: true, color: { argb: "27AE60" } };
+
+            const statsRow2 = sheet.getRow(16);
+            statsRow2.getCell(1).value = "Montant Total Payé:";
+            statsRow2.getCell(2).value = `${new Intl.NumberFormat("fr-FR").format(stats.montant_total_paye)} DHS`;
+            statsRow2.getCell(1).font = { bold: true, color: { argb: "2B4C7E" } };
+            statsRow2.getCell(2).font = { bold: true, color: { argb: "27AE60" } };
+
+            const statsRow3 = sheet.getRow(17);
+            statsRow3.getCell(1).value = "Reste à Payer:";
+            statsRow3.getCell(2).value = `${new Intl.NumberFormat("fr-FR").format(stats.reste_a_payer)} DHS`;
+            statsRow3.getCell(1).font = { bold: true, color: { argb: "2B4C7E" } };
+            statsRow3.getCell(2).font = { bold: true, color: { argb: "27AE60" } };
+
+            // === FACTURES TABLE (like PDF) ===
+            const facturesHeaderRow = sheet.getRow(19);
+            facturesHeaderRow.getCell(1).value = `🧾 DÉTAIL DES FACTURES (${stats.nombre_factures})`;
+            facturesHeaderRow.getCell(1).font = { bold: true, size: 14, color: { argb: "FFFFFFFF" } };
+            facturesHeaderRow.getCell(1).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "2B4C7E" } };
+            sheet.mergeCells(`A${facturesHeaderRow.number}:G${facturesHeaderRow.number}`);
+
+            const tableHeaders = ["N° Facture", "Date Facture", "Date Échéance", "Statut", "Montant Total", "Montant Payé", "Reste à Payer"];
+            const headerRow = sheet.getRow(21);
+            headerRow.values = tableHeaders;
+            headerRow.eachCell((cell) => {
+                cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
+                cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "2B4C7E" } };
+                cell.alignment = { horizontal: "center" };
+                cell.border = {
+                    top: { style: "thin", color: { argb: "000000" } },
+                    bottom: { style: "thin", color: { argb: "000000" } },
+                    left: { style: "thin", color: { argb: "000000" } },
+                    right: { style: "thin", color: { argb: "000000" } }
                 };
-            }
-        });
-
-        // Style pour les données du tableau (lignes 28+)
-        for (let row = 28; row <= range.e.r; row++) {
-            ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'].forEach(col => {
-                const cell = newWorksheet[`${col}${row}`];
-                if (cell) {
-                    cell.s = {
-                        font: { size: 10 },
-                        alignment: { horizontal: "center", vertical: "center" }
-                    };
-
-                    // Couleur de fond alternée pour les lignes
-                    if (row % 2 === 0) {
-                        cell.s.fill = { fgColor: { rgb: "F8F9FA" } };
-                    }
-                }
             });
+
+            // Add factures data
+            factures.forEach((f, index) => {
+                const row = sheet.getRow(22 + index);
+                row.values = [
+                    f.numero_facture,
+                    new Date(f.date_facture).toLocaleDateString("fr-FR"),
+                    new Date(f.date_echeance).toLocaleDateString("fr-FR"),
+                    f.statut_paiement === "payee" ? "Payée" : f.statut_paiement === "impayee" ? "Impayée" : "Partiellement payée",
+                    `${new Intl.NumberFormat("fr-FR").format(f.montant_total)} DHS`,
+                    `${new Intl.NumberFormat("fr-FR").format(f.montant_regle)} DHS`,
+                    `${new Intl.NumberFormat("fr-FR").format(f.reste_a_payer)} DHS`,
+                ];
+                row.eachCell((cell) => {
+                    cell.alignment = { horizontal: "center" };
+                    cell.border = {
+                        top: { style: "thin", color: { argb: "CCCCCC" } },
+                        bottom: { style: "thin", color: { argb: "CCCCCC" } },
+                        left: { style: "thin", color: { argb: "CCCCCC" } },
+                        right: { style: "thin", color: { argb: "CCCCCC" } }
+                    };
+                    // Alternating row colors
+                    if (index % 2 === 0) {
+                        cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "F8F9FA" } };
+                    }
+                });
+            });
+
+            // Set column widths
+            sheet.columns = [
+                { width: 20 }, // A
+                { width: 15 }, // B
+                { width: 15 }, // C
+                { width: 20 }, // D
+                { width: 20 }, // E
+                { width: 15 }, // F
+                { width: 15 }, // G
+            ];
+
+            // === FOOTER (like PDF) ===
+            const footerStartRow = 22 + factures.length + 2;
+            const footer = sheet.getRow(footerStartRow);
+            footer.getCell(1).value = "SARL au capital: 100000,00 - Siège social: 77 Rue Mohamed Smiha 10 Etg Appt N°57 Casablanca RC: 34329 - PATENTE: - IF: 68363934 - ICE: 003789368000045 - Email: finducarr@gmail.com - Tél: 0708-330546";
+            footer.getCell(1).font = { size: 9, color: { argb: "2B4C7E" } };
+            footer.getCell(1).alignment = { horizontal: "center" };
+            sheet.mergeCells(`A${footerStartRow}:G${footerStartRow}`);
+
+            // === SAVE FILE ===
+            const buffer = await workbook.xlsx.writeBuffer();
+            saveAs(new Blob([buffer]), `Rapport_Client_${client.nom.replace(/[^a-zA-Z0-9]/g, '_')}_${new Date().toISOString().split("T")[0]}.xlsx`);
+        } catch (err) {
+            console.error(err);
+            alert("Erreur lors de la génération du fichier Excel");
+        } finally {
+            setIsGeneratingExcel(false);
         }
-
-        // Style pour le footer (comme dans le print)
-        const footerStartRow = structuredData.length - 1;
-        for (let row = footerStartRow; row <= range.e.r; row++) {
-            const cell = newWorksheet[`A${row}`];
-            if (cell) {
-                cell.s = {
-                    font: { size: 9, color: { rgb: "2B4C7E" } },
-                    alignment: { horizontal: "center", vertical: "center" },
-                    fill: { fgColor: { rgb: "F8F9FA" } }
-                };
-            }
-        }
-
-        // Ajouter la feuille au classeur
-        XLSX.utils.book_append_sheet(workbook, newWorksheet, 'Détails Client');
-
-        // Télécharger le fichier (comme dans le print)
-        const fileName = `Rapport_Client_${client.nom.replace(/[^a-zA-Z0-9]/g, '_')}_${new Date().toISOString().split('T')[0]}.xlsx`;
-        XLSX.writeFile(workbook, fileName);
-
-        // Arrêter le loading
-        setIsGeneratingExcel(false);
-            } catch (error) {
-                console.error('Erreur lors de la génération du Excel:', error);
-                setIsGeneratingExcel(false);
-                alert('Erreur lors de la génération du fichier Excel');
-            }
-        }, 100);
     };
 
     const downloadReglementsExcel = () => {
