@@ -24,7 +24,11 @@ import NotificationCenter from "@/Components/NotificationCenter";
 export default function AuthenticatedLayout({ header, children }) {
     const { url } = usePage();
     const user = usePage().props.auth.user;
-    const [sidebarOpen, setSidebarOpen] = useState(true);
+    const [sidebarOpen, setSidebarOpen] = useState(() => {
+        // Initialize from localStorage, default to true if not set
+        const saved = localStorage.getItem('sidebarOpen');
+        return saved !== null ? JSON.parse(saved) : true;
+    });
     const [isMobile, setIsMobile] = useState(false);
     const notificationCenterRef = useRef(null);
     const lastCheckTimeRef = useRef(0);
@@ -51,8 +55,12 @@ export default function AuthenticatedLayout({ header, children }) {
         const handleResize = () => {
             setIsMobile(window.innerWidth < 1024);
             if (window.innerWidth >= 1024) {
-                setSidebarOpen(true);
+                // On desktop, restore the saved state or default to true
+                const saved = localStorage.getItem('sidebarOpen');
+                const shouldOpen = saved !== null ? JSON.parse(saved) : true;
+                setSidebarOpen(shouldOpen);
             } else {
+                // On mobile, always close sidebar
                 setSidebarOpen(false);
             }
         };
@@ -104,7 +112,10 @@ export default function AuthenticatedLayout({ header, children }) {
                     className={`fixed inset-0 z-20 bg-black/50 transition-opacity duration-300 ${
                         sidebarOpen ? "opacity-100" : "opacity-0 pointer-events-none"
                     }`}
-                    onClick={() => setSidebarOpen(false)}
+                    onClick={() => {
+                        setSidebarOpen(false);
+                        localStorage.setItem('sidebarOpen', JSON.stringify(false));
+                    }}
                 />
             )}
 
@@ -187,7 +198,6 @@ export default function AuthenticatedLayout({ header, children }) {
                                 </p>
                             </div>
                         </div>
-                        {!sidebarOpen && <ThemeToggle />}
                     </div>
                 </div>
             </div>
@@ -202,7 +212,11 @@ export default function AuthenticatedLayout({ header, children }) {
                         <div className="flex h-16 items-center justify-between w-full">
                             <div className="flex items-center">
                                 <button
-                                    onClick={() => setSidebarOpen(!sidebarOpen)}
+                                    onClick={() => {
+                                        const newState = !sidebarOpen;
+                                        setSidebarOpen(newState);
+                                        localStorage.setItem('sidebarOpen', JSON.stringify(newState));
+                                    }}
                                     className="p-2 text-gray-500 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-gray-400 dark:hover:bg-gray-700"
                                     aria-label={sidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
                                 >
