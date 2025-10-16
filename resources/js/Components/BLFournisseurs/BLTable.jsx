@@ -1,8 +1,10 @@
-import { Eye, Edit2, Trash2 } from "lucide-react";
+import { Eye, Edit2, Trash2, Printer } from "lucide-react";
 import { useState } from "react";
+import React from "react";
 
-const BLTable = ({ blFournisseurs, onEdit, onDelete }) => {
+const BLTable = ({ blFournisseurs, onEdit, onDelete, onPrint }) => {
     const [expandedRows, setExpandedRows] = useState(new Set());
+    const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
     const toggleRowExpansion = (blId) => {
         setExpandedRows(prev => {
@@ -14,6 +16,22 @@ const BLTable = ({ blFournisseurs, onEdit, onDelete }) => {
             }
             return newSet;
         });
+    };
+
+    const handlePrintWithLoading = (blFournisseur) => {
+        setIsGeneratingPdf(true);
+
+        // Utiliser setTimeout pour permettre à l'UI de se mettre à jour
+        setTimeout(() => {
+            try {
+                onPrint(blFournisseur);
+                setIsGeneratingPdf(false);
+            } catch (error) {
+                console.error('Erreur lors de l\'impression:', error);
+                setIsGeneratingPdf(false);
+                alert('Erreur lors de l\'impression du BL');
+            }
+        }, 100);
     };
 
     const columns = [
@@ -100,6 +118,22 @@ const BLTable = ({ blFournisseurs, onEdit, onDelete }) => {
                         title={expandedRows.has(item.id) ? "Masquer les détails" : "Afficher les détails"}
                     >
                         <Eye className="h-4 w-4" />
+                    </button>
+                    <button
+                        onClick={() => handlePrintWithLoading(item)}
+                        disabled={isGeneratingPdf}
+                        className={`p-1 rounded-full transition-colors ${
+                            isGeneratingPdf
+                                ? 'text-gray-400 cursor-not-allowed'
+                                : 'text-purple-600 hover:text-purple-900 dark:text-purple-400 dark:hover:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-900/20'
+                        }`}
+                        title={isGeneratingPdf ? "Génération en cours..." : "Imprimer"}
+                    >
+                        {isGeneratingPdf ? (
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-400"></div>
+                        ) : (
+                            <Printer className="h-4 w-4" />
+                        )}
                     </button>
                     <button
                         onClick={() => onEdit(item)}
@@ -248,8 +282,8 @@ const BLTable = ({ blFournisseurs, onEdit, onDelete }) => {
                     </thead>
                     <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                         {blFournisseurs.data.map((item) => (
-                            <>
-                                <tr key={item.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                            <React.Fragment key={item.id}>
+                                <tr className="hover:bg-gray-50 dark:hover:bg-gray-700">
                                     {columns.map((column) => (
                                         <td key={`${item.id}-${column.key}`} className="px-6 py-4 whitespace-nowrap">
                                             {column.render(item, { onEdit, onDelete })}
@@ -257,7 +291,7 @@ const BLTable = ({ blFournisseurs, onEdit, onDelete }) => {
                                     ))}
                                 </tr>
                                 {renderRowDetails(item)}
-                            </>
+                            </React.Fragment>
                         ))}
                     </tbody>
                 </table>

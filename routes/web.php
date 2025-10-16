@@ -119,6 +119,11 @@ Route::get('/bl-clients/{blClient}/print', [BLClientController::class, 'print'])
     ->name('bl-clients.print')
     ->middleware(['auth']);
 
+// Route pour l'impression des BL fournisseurs
+Route::get('/bl-fournisseurs/{blFournisseur}/print', [BLFournisseurController::class, 'print'])
+    ->name('bl-fournisseurs.print')
+    ->middleware(['auth']);
+
 Route::get('/dashboard', [App\Http\Controllers\DashboardController::class, 'index'])
     ->middleware(['auth', 'verified'])
     ->name('dashboard');

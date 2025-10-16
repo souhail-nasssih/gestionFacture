@@ -10,6 +10,7 @@ use DB;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class BLFournisseurController extends Controller
 {
@@ -290,6 +291,19 @@ class BLFournisseurController extends Controller
 
             return back()->withErrors(['general' => 'Erreur: ' . $e->getMessage()]);
         }
+    }
+
+    public function print(BLFournisseur $blFournisseur)
+    {
+        $blFournisseur->load(['fournisseur', 'details.produit']);
+
+        $pdf = Pdf::loadView('pdf.bl_fournisseur', [
+            'blFournisseur' => $blFournisseur
+        ]);
+
+        $pdf->setPaper('A4', 'portrait');
+
+        return $pdf->stream('BL-Fournisseur-' . $blFournisseur->numero_bl . '.pdf');
     }
 
 }

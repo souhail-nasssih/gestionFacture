@@ -43,6 +43,11 @@ export default function Index({
         setShowDeleteModal(true);
     };
 
+    const handlePrint = (blFournisseur) => {
+        // Open print route in new window
+        window.open(route('bl-fournisseurs.print', blFournisseur.id), '_blank');
+    };
+
     return (
         <AuthenticatedLayout>
             <div className="py-6 px-4 sm:px-0">
@@ -107,6 +112,7 @@ export default function Index({
                         blFournisseurs={blFournisseurs}
                         onEdit={handleEdit}
                         onDelete={handleDelete}
+                        onPrint={handlePrint}
                     />
 
                     {/* Delete Confirmation Modal */}
