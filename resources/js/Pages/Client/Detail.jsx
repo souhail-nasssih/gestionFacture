@@ -11,10 +11,8 @@ import {
     MapPin,
     Clock,
     Printer,
-    FileText,
     FileSpreadsheet
 } from "lucide-react";
-import jsPDF from 'jspdf';
 import * as XLSX from 'xlsx';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
@@ -26,7 +24,6 @@ export default function Detail({ auth, client, stats, factures, reglements }) {
     const [searchReglements, setSearchReglements] = useState('');
     const [currentPageFactures, setCurrentPageFactures] = useState(1);
     const [currentPageReglements, setCurrentPageReglements] = useState(1);
-    const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
     const [isGeneratingExcel, setIsGeneratingExcel] = useState(false);
     const itemsPerPage = 10;
 
@@ -755,273 +752,6 @@ export default function Detail({ auth, client, stats, factures, reglements }) {
         `;
     };
 
-    // Fonctions de génération PDF professionnel avec jsPDF
-    const downloadFacturesPdf = () => {
-        setIsGeneratingPdf(true);
-
-        // Utiliser setTimeout pour permettre à l'UI de se mettre à jour
-        setTimeout(() => {
-            try {
-                const doc = new jsPDF();
-                let yPosition = 20;
-
-        // En-tête professionnel
-        doc.setFontSize(18);
-        doc.setFont('helvetica', 'bold');
-        doc.text('RAPPORT DES FACTURES CLIENT', 20, yPosition);
-        yPosition += 10;
-
-        // Date de génération
-        doc.setFontSize(9);
-        doc.setFont('helvetica', 'normal');
-        doc.text(`Généré le ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR')}`, 20, yPosition);
-        yPosition += 20;
-
-        // Informations client
-        doc.setFontSize(12);
-        doc.setFont('helvetica', 'bold');
-        doc.text('INFORMATIONS DU CLIENT', 20, yPosition);
-        yPosition += 8;
-
-        // Ligne de séparation
-        doc.line(20, yPosition, 190, yPosition);
-        yPosition += 8;
-
-        doc.setFontSize(10);
-        doc.setFont('helvetica', 'normal');
-        doc.text(`Nom: ${client.nom}`, 20, yPosition);
-        doc.text(`Téléphone: ${client.telephone || 'Non renseigné'}`, 110, yPosition);
-        yPosition += 6;
-        doc.text(`Email: ${client.email || 'Non renseigné'}`, 20, yPosition);
-        doc.text(`Délai de paiement: ${client.delai_paiement || 0} jours`, 110, yPosition);
-        yPosition += 6;
-        doc.text(`Adresse: ${client.adresse || 'Non renseignée'}`, 20, yPosition);
-        yPosition += 15;
-
-        // Tableau des factures
-        doc.setFontSize(12);
-        doc.setFont('helvetica', 'bold');
-        doc.text(`FACTURES (${stats.nombre_factures})`, 20, yPosition);
-        yPosition += 8;
-
-        // Ligne de séparation
-        doc.line(20, yPosition, 190, yPosition);
-        yPosition += 8;
-
-        if (factures.length > 0) {
-            // En-têtes du tableau
-            doc.setFontSize(9);
-            doc.setFont('helvetica', 'bold');
-            doc.text('N° Facture', 20, yPosition);
-            doc.text('Date Facture', 50, yPosition);
-            doc.text('Date Échéance', 80, yPosition);
-            doc.text('Statut', 110, yPosition);
-            doc.text('Montant Total', 140, yPosition);
-            doc.text('Montant Payé', 170, yPosition);
-            yPosition += 6;
-
-            // Ligne de séparation
-            doc.line(20, yPosition, 190, yPosition);
-            yPosition += 6;
-
-            // Données du tableau
-            doc.setFont('helvetica', 'normal');
-            factures.forEach((facture, index) => {
-                if (yPosition > 250) {
-                    doc.addPage();
-                    yPosition = 20;
-                }
-
-                doc.text(facture.numero_facture, 20, yPosition);
-                doc.text(new Date(facture.date_facture).toLocaleDateString('fr-FR'), 50, yPosition);
-                doc.text(new Date(facture.date_echeance).toLocaleDateString('fr-FR'), 80, yPosition);
-                doc.text(facture.statut_paiement === 'payee' ? 'Payée' : facture.statut_paiement === 'impayee' ? 'Impayée' : 'Partiel', 110, yPosition);
-                doc.text(`${new Intl.NumberFormat('fr-FR').format(facture.montant_total)} DHS`, 140, yPosition);
-                doc.text(`${new Intl.NumberFormat('fr-FR').format(facture.montant_regle)} DHS`, 170, yPosition);
-                yPosition += 6;
-            });
-
-            // Ligne de séparation après le tableau
-            doc.line(20, yPosition, 190, yPosition);
-            yPosition += 10;
-        } else {
-            doc.setFontSize(10);
-            doc.setFont('helvetica', 'italic');
-            doc.text('Aucune facture trouvée pour ce client.', 20, yPosition);
-            yPosition += 15;
-        }
-
-        // Statistiques financières (après le tableau)
-        doc.setFontSize(12);
-        doc.setFont('helvetica', 'bold');
-        doc.text('RÉSUMÉ FINANCIER', 20, yPosition);
-        yPosition += 8;
-
-        // Ligne de séparation
-        doc.line(20, yPosition, 190, yPosition);
-        yPosition += 8;
-
-        doc.setFontSize(10);
-        doc.setFont('helvetica', 'normal');
-        doc.text(`Montant Total des Factures: ${new Intl.NumberFormat('fr-FR').format(stats.montant_total_factures)} DHS`, 20, yPosition);
-        yPosition += 6;
-        doc.text(`Montant Total Payé: ${new Intl.NumberFormat('fr-FR').format(stats.montant_total_paye)} DHS`, 20, yPosition);
-        yPosition += 6;
-        doc.text(`Reste à Payer: ${new Intl.NumberFormat('fr-FR').format(stats.reste_a_payer)} DHS`, 20, yPosition);
-        yPosition += 6;
-        doc.text(`Nombre de Factures: ${stats.nombre_factures}`, 20, yPosition);
-
-        // Téléchargement
-        doc.save(`Factures_${client.nom}_${new Date().toISOString().split('T')[0]}.pdf`);
-
-        // Arrêter le loading
-        setIsGeneratingPdf(false);
-            } catch (error) {
-                console.error('Erreur lors de la génération du PDF:', error);
-                setIsGeneratingPdf(false);
-                showToast('Erreur lors de la génération du PDF', 'error');
-            }
-        }, 100);
-    };
-
-    const downloadReglementsPdf = () => {
-        setIsGeneratingPdf(true);
-
-        // Utiliser setTimeout pour permettre à l'UI de se mettre à jour
-        setTimeout(() => {
-            try {
-                const doc = new jsPDF();
-                let yPosition = 20;
-
-        // En-tête professionnel
-        doc.setFontSize(18);
-        doc.setFont('helvetica', 'bold');
-        doc.text('RAPPORT DES RÈGLEMENTS CLIENT', 20, yPosition);
-        yPosition += 10;
-
-        // Date de génération
-        doc.setFontSize(9);
-        doc.setFont('helvetica', 'normal');
-        doc.text(`Généré le ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR')}`, 20, yPosition);
-        yPosition += 20;
-
-        // Informations client
-        doc.setFontSize(12);
-        doc.setFont('helvetica', 'bold');
-        doc.text('INFORMATIONS DU CLIENT', 20, yPosition);
-        yPosition += 8;
-
-        // Ligne de séparation
-        doc.line(20, yPosition, 190, yPosition);
-        yPosition += 8;
-
-        doc.setFontSize(10);
-        doc.setFont('helvetica', 'normal');
-        doc.text(`Nom: ${client.nom}`, 20, yPosition);
-        doc.text(`Téléphone: ${client.telephone || 'Non renseigné'}`, 110, yPosition);
-        yPosition += 6;
-        doc.text(`Email: ${client.email || 'Non renseigné'}`, 20, yPosition);
-        doc.text(`Délai de paiement: ${client.delai_paiement || 0} jours`, 110, yPosition);
-        yPosition += 6;
-        doc.text(`Adresse: ${client.adresse || 'Non renseignée'}`, 20, yPosition);
-        yPosition += 15;
-
-        // Tableau des règlements
-        doc.setFontSize(12);
-        doc.setFont('helvetica', 'bold');
-        doc.text(`HISTORIQUE DES RÈGLEMENTS (${stats.nombre_reglements})`, 20, yPosition);
-        yPosition += 8;
-
-        // Ligne de séparation
-        doc.line(20, yPosition, 190, yPosition);
-        yPosition += 8;
-
-        if (reglements.length > 0) {
-            // En-têtes du tableau
-            doc.setFontSize(9);
-            doc.setFont('helvetica', 'bold');
-            doc.text('N° Règlement', 20, yPosition);
-            doc.text('Créé le', 60, yPosition);
-            doc.text('Type', 80, yPosition);
-            doc.text('Montant', 100, yPosition);
-            doc.text('Description', 130, yPosition);
-            doc.text('Facture', 170, yPosition);
-            yPosition += 6;
-
-            // Ligne de séparation
-            doc.line(20, yPosition, 190, yPosition);
-            yPosition += 6;
-
-            // Données du tableau
-            doc.setFont('helvetica', 'normal');
-            reglements.forEach((reglement, index) => {
-                if (yPosition > 250) {
-                    doc.addPage();
-                    yPosition = 20;
-                }
-
-                doc.text(reglement.numero_reglement || '-', 20, yPosition);
-                doc.text(new Date(reglement.date_reglement).toLocaleDateString('fr-FR'), 60, yPosition);
-                doc.text(reglement.type_reglement, 80, yPosition);
-                doc.text(`${new Intl.NumberFormat('fr-FR').format(reglement.montant_paye)} DHS`, 100, yPosition);
-                doc.text(reglement.description || '-', 130, yPosition);
-                doc.text(reglement.facture ? reglement.facture.numero_facture : '-', 170, yPosition);
-                yPosition += 6;
-            });
-
-            // Ligne de séparation après le tableau
-            doc.line(20, yPosition, 190, yPosition);
-            yPosition += 10;
-        } else {
-            doc.setFontSize(10);
-            doc.setFont('helvetica', 'italic');
-            doc.text('Aucun règlement trouvé pour ce client.', 20, yPosition);
-            yPosition += 15;
-        }
-
-        // Statistiques financières (après le tableau)
-        doc.setFontSize(12);
-        doc.setFont('helvetica', 'bold');
-        doc.setTextColor(0, 0, 0); // Black color
-        doc.text('STATISTIQUES FINANCIÈRES', 20, yPosition);
-        yPosition += 8;
-
-        // Ligne de séparation
-        doc.line(20, yPosition, 190, yPosition);
-        yPosition += 8;
-
-        // Table headers
-        doc.setFontSize(9);
-        doc.setFont('helvetica', 'bold');
-        doc.setTextColor(255, 255, 255); // White text
-        doc.setFillColor(43, 76, 126); // #2B4C7E background
-        doc.rect(20, yPosition - 5, 170, 6, 'F');
-        doc.text('Montant Total Factures', 25, yPosition);
-        doc.text('Montant Total Payé', 85, yPosition);
-        doc.text('Reste à Payer', 145, yPosition);
-        yPosition += 8;
-
-        // Table data
-        doc.setFontSize(10);
-        doc.setFont('helvetica', 'normal');
-        doc.setTextColor(0, 0, 0); // Black text
-        doc.text(`${new Intl.NumberFormat('fr-FR').format(stats.montant_total_factures)} DHS`, 25, yPosition);
-        doc.text(`${new Intl.NumberFormat('fr-FR').format(stats.montant_total_paye)} DHS`, 85, yPosition);
-        doc.text(`${new Intl.NumberFormat('fr-FR').format(stats.reste_a_payer)} DHS`, 145, yPosition);
-
-        // Téléchargement
-        doc.save(`Reglements_${client.nom}_${new Date().toISOString().split('T')[0]}.pdf`);
-
-        // Arrêter le loading
-        setIsGeneratingPdf(false);
-            } catch (error) {
-                console.error('Erreur lors de la génération du PDF:', error);
-                setIsGeneratingPdf(false);
-                showToast('Erreur lors de la génération du PDF', 'error');
-            }
-        }, 100);
-    };
-
     // Fonctions de génération Excel
     const downloadFacturesExcel = async () => {
         setIsGeneratingExcel(true);
@@ -1669,30 +1399,8 @@ export default function Detail({ auth, client, stats, factures, reglements }) {
                                                 title="Imprimer le tableau des factures"
                                             >
                                                 <Printer className="h-4 w-4" />
-                                                Imprimer
+                                                Imprimer PDF
                                             </button>
-                                                <button
-                                                    onClick={downloadFacturesPdf}
-                                                    disabled={isGeneratingPdf}
-                                                    className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors text-sm ${
-                                                        isGeneratingPdf
-                                                            ? 'bg-gray-400 text-white cursor-not-allowed'
-                                                            : 'bg-red-600 text-white hover:bg-red-700'
-                                                    }`}
-                                                    title="Télécharger le tableau des factures en PDF"
-                                                >
-                                                    {isGeneratingPdf ? (
-                                                        <>
-                                                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                                                            Génération...
-                                                        </>
-                                                    ) : (
-                                                        <>
-                                                            <FileText className="h-4 w-4" />
-                                                            PDF
-                                                        </>
-                                                    )}
-                                                </button>
                                             <button
                                                     onClick={downloadFacturesExcel}
                                                     disabled={isGeneratingExcel}
@@ -1782,30 +1490,8 @@ export default function Detail({ auth, client, stats, factures, reglements }) {
                                                 title="Imprimer le tableau des règlements"
                                             >
                                                 <Printer className="h-4 w-4" />
-                                                Imprimer
+                                                Imprimer PDF
                                             </button>
-                                                <button
-                                                    onClick={downloadReglementsPdf}
-                                                    disabled={isGeneratingPdf}
-                                                    className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors text-sm ${
-                                                        isGeneratingPdf
-                                                            ? 'bg-gray-400 text-white cursor-not-allowed'
-                                                            : 'bg-red-600 text-white hover:bg-red-700'
-                                                    }`}
-                                                    title="Télécharger le tableau des règlements en PDF"
-                                                >
-                                                    {isGeneratingPdf ? (
-                                                        <>
-                                                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                                                            Génération...
-                                                        </>
-                                                    ) : (
-                                                        <>
-                                                            <FileText className="h-4 w-4" />
-                                                            PDF
-                                                        </>
-                                                    )}
-                                                </button>
                                             <button
                                                     onClick={downloadReglementsExcel}
                                                     disabled={isGeneratingExcel}

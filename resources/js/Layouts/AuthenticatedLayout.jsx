@@ -137,7 +137,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                 sidebarOpen ? "opacity-100" : "opacity-0"
                             } text-gray-900 dark:text-white`}
                         >
-                            YourApp
+                            Gestion Facture
                         </span>
                     </Link>
                 </div>
