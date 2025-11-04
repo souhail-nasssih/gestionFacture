@@ -523,110 +523,106 @@ export default function Detail({ auth, client, stats, factures, reglements }) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Règlements Client - ${client.nom}</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        @page { size: A4; margin: 15mm; }
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            font-size: 12px;
-            line-height: 1.4;
-            color: #333;
-            background: white;
-            padding: 20px;
+            font-family: Arial, sans-serif;
+            font-size: 11px;
+            color: #000;
+            margin: 0;
+            padding: 10px;
+        }
+        @media print {
+            .no-print { display: none; }
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
         }
 
+        /* Header */
         .header {
-            text-align: center;
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 2px solid #3498db;
-        }
-
-        .header h1 {
-            color: #2c3e50;
-            font-size: 24px;
-            margin-bottom: 10px;
-        }
-
-        .header p {
-            color: #7f8c8d;
-            font-size: 14px;
-        }
-
-        .client-info {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 30px;
-        }
-
-        .client-info h2 {
-            color: #2c3e50;
-            font-size: 18px;
-            margin-bottom: 15px;
-        }
-
-        .info-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
-        }
-
-        .info-item {
             display: flex;
-            flex-direction: column;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 6px;
+        }
+        .logo img {
+            width: 400px;
+            height: 100px;
+            object-fit: fill;
+        }
+        .report-details {
+            text-align: left;
+            font-size: 11px;
+            line-height: 1.25;
+            margin-right: 130px;
+            margin-top: 40px;
+        }
+        .report-details .fa{
+            color: #b32626;
+            text-decoration: underline;
+            text-decoration-color: #bd2e03;
         }
 
-        .info-label {
-            font-weight: bold;
-            color: #34495e;
-            margin-bottom: 5px;
+        /* Row under header */
+        .top-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 18px;
+            margin-bottom: 8px;
+        }
+        .dates-col {
+            flex: 1 1 60%;
+            font-size: 10.5px;
+            line-height: 1.5;
+        }
+        .client-col {
+            width: 320px;
+            font-size: 11px;
+            line-height: 1.4;
+            text-align: left;
+            margin-left: 180px;
+        }
+        .client-col strong.company {
+            display:inline-block;
+            margin-left:4px;
+            color: #b32626;
+            text-decoration-color: #bd2e03;
         }
 
-        .info-value {
-            color: #2c3e50;
+        .legal-note {
+            font-size: 10px;
+            margin: 6px 0 10px 0;
+            font-style: italic;
+            text-align: right;
         }
 
-        .section {
-            margin-bottom: 30px;
-        }
-
-        .section h2 {
-            color: #2c3e50;
-            font-size: 18px;
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #bdc3c7;
-        }
-
+        /* Table */
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 20px;
-            background: white;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin: 10px 0 15px 0;
+            font-size: 9px;
         }
-
         th {
-            background: #34495e;
+            background: #2B4C7E;
             color: white;
-            padding: 12px 8px;
-            text-align: left;
+            padding: 5px 4px;
+            text-align: center;
             font-weight: bold;
-            font-size: 11px;
+            border: 1px solid #000;
+            font-size: 8px;
         }
-
         td {
-            padding: 10px 8px;
-            border-bottom: 1px solid #ecf0f1;
-            font-size: 11px;
+            border: 1px solid #000;
+            padding: 5px 4px;
+            text-align: center;
+            vertical-align: middle;
         }
-
-        tr:nth-child(even) {
-            background: #f8f9fa;
+        .description-col {
+            text-align: left !important;
+            padding-left: 6px;
         }
 
         .amount {
@@ -641,91 +637,117 @@ export default function Detail({ auth, client, stats, factures, reglements }) {
             padding: 20px;
         }
 
-        @media print {
-            body {
-                padding: 0;
-            }
+        .section-title {
+            color: #000000;
+            font-size: 14px;
+            font-weight: bold;
+            margin: 20px 0 10px 0;
+            padding-bottom: 5px;
+            border-bottom: 2px solid #2B4C7E;
+        }
 
-            .header {
-                margin-bottom: 20px;
-            }
-
-            .section {
-                page-break-inside: avoid;
-                margin-bottom: 20px;
-            }
-
-            table {
-                page-break-inside: auto;
-            }
-
-            tr {
-                page-break-inside: avoid;
-                page-break-after: auto;
-            }
+        .footer {
+            margin-top: 20px;
+            font-size: 9px;
+            text-align: center;
+            line-height: 1.4;
         }
     </style>
 </head>
 <body>
+    <!-- HEADER -->
     <div class="header">
-        <h1>💰 Règlements Client</h1>
-        <p>Généré le ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR')}</p>
-    </div>
-
-    <div class="client-info">
-        <h2>👤 Informations du Client</h2>
-        <div class="info-grid">
-            <div class="info-item">
-                <span class="info-label">Nom :</span>
-                <span class="info-value">${client.nom}</span>
-            </div>
-            <div class="info-item">
-                <span class="info-label">Téléphone :</span>
-                <span class="info-value">${client.telephone || 'Non renseigné'}</span>
-            </div>
-            <div class="info-item">
-                <span class="info-label">Email :</span>
-                <span class="info-value">${client.email || 'Non renseigné'}</span>
-            </div>
-            <div class="info-item">
-                <span class="info-label">Adresse :</span>
-                <span class="info-value">${client.adresse || 'Non renseignée'}</span>
-            </div>
-            <div class="info-item">
-                <span class="info-label">Délai de paiement :</span>
-                <span class="info-value">${client.delai_paiement || 0} jours</span>
-            </div>
+        <div class="logo">
+            <img src="/logo.jpg" alt="Logo">
+        </div>
+        <div class="report-details">
+            <div class="fa"><strong>Rapport Client N°:</strong> ${client.id}</div>
+            <div><strong>Généré le:</strong> ${new Date().toLocaleDateString('fr-FR')}</div>
+            <div><strong>Heure:</strong> ${new Date().toLocaleTimeString('fr-FR')}</div>
         </div>
     </div>
 
-    <div class="section">
-        <h2>💰 Historique des Règlements (${stats.nombre_reglements})</h2>
-        ${reglements.length > 0 ? `
-        <table>
-            <thead>
-                <tr>
-                    <th>N° Règlement</th>
-                    <th>Créé le</th>
-                    <th>Type</th>
-                    <th>Montant Payé</th>
-                    <th>Description</th>
-                    <th>Facture Associée</th>
-                </tr>
-            </thead>
-            <tbody>
-                ${reglements.map(reglement => `
-                <tr>
-                    <td>${reglement.numero_reglement || 'N/A'}</td>
-                    <td>${new Date(reglement.date_reglement).toLocaleDateString('fr-FR')}</td>
-                    <td>${reglement.type_reglement}</td>
-                    <td class="amount">${new Intl.NumberFormat('fr-FR').format(reglement.montant_paye)} DHS</td>
-                    <td>${reglement.description || 'N/A'}</td>
-                    <td>${reglement.facture ? reglement.facture.numero_facture : 'N/A'}</td>
-                </tr>
-                `).join('')}
-            </tbody>
-        </table>
-        ` : '<div class="no-data">Aucun règlement trouvé pour ce client.</div>'}
+    <!-- TOP ROW: left = dates, right = Client info -->
+    <div class="top-row">
+        <!-- LEFT: Dates block -->
+        <div class="dates-col">
+            <div><strong>Date du Rapport:</strong> ${new Date().toLocaleDateString('fr-FR')}</div>
+            <div><strong>Période:</strong> Tous les règlements</div>
+            <div><strong>Type de Rapport:</strong> Détails Client</div>
+        </div>
+
+        <!-- RIGHT: Client block -->
+        <div class="client-col">
+            <div><strong>Client:</strong></div>
+            <div>Nom: <strong class="company">${client.nom}</strong></div>
+            <div>Adresse: ${client.adresse || 'Non renseignée'}</div>
+            <div>Téléphone: ${client.telephone || 'Non renseigné'}</div>
+            <div>Email: ${client.email || 'Non renseigné'}</div>
+            <div>Délai de paiement: ${client.delai_paiement || 0} jours</div>
+        </div>
+    </div>
+
+    <!-- LEGAL NOTE -->
+    <div class="legal-note">
+        **Rapport généré automatiquement le ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR')}**
+    </div>
+
+    <!-- REGLEMENTS TABLE -->
+    <div class="section-title">Historique des Règlements (${stats.nombre_reglements})</div>
+    ${reglements.length > 0 ? `
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 15%;">N° Règlement</th>
+                <th style="width: 12%;">Créé le</th>
+                <th style="width: 12%;">Type</th>
+                <th style="width: 15%;">Montant Payé</th>
+                <th style="width: 20%;">Description</th>
+                <th style="width: 15%;">Facture Associée</th>
+            </tr>
+        </thead>
+        <tbody>
+            ${reglements.map(reglement => `
+            <tr>
+                <td>${reglement.numero_reglement || 'N/A'}</td>
+                <td>${new Date(reglement.date_reglement).toLocaleDateString('fr-FR')}</td>
+                <td>${reglement.type_reglement}</td>
+                <td class="amount">${new Intl.NumberFormat('fr-FR').format(reglement.montant_paye)} DHS</td>
+                <td>${reglement.description || 'N/A'}</td>
+                <td>${reglement.facture ? reglement.facture.numero_facture : 'N/A'}</td>
+            </tr>
+            `).join('')}
+        </tbody>
+    </table>
+    ` : '<div class="no-data">Aucun règlement trouvé pour ce client.</div>'}
+
+    <!-- STATISTIQUES -->
+    <div class="section-title">Statistiques Financières</div>
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 33.33%;">Montant Total Factures</th>
+                <th style="width: 33.33%;">Montant Total Payé</th>
+                <th style="width: 33.33%;">Reste à Payer</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="amount">${new Intl.NumberFormat('fr-FR').format(stats.montant_total_factures)} DHS</td>
+                <td class="amount">${new Intl.NumberFormat('fr-FR').format(stats.montant_total_paye)} DHS</td>
+                <td class="amount">${new Intl.NumberFormat('fr-FR').format(stats.reste_a_payer)} DHS</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- FOOTER -->
+    <div class="footer">
+        SARL au capital: 100000,00 - Siège social: 77 Rue Mohamed Smiha 10 Etg Appt N°57 Casablanca RC: 689565 - PATENTE: 32108409 - IF: 68363934 - ICE: 003789368000045 - Email: finducarr@gmail.com - Tél: 0708-330546
+    </div>
+
+    <!-- PRINT BUTTON -->
+    <div class="no-print" style="text-align:center; margin-top:20px;">
+        <button onclick="window.print()" style="padding: 10px 20px; background: #2B4C7E; color: white; border: none; border-radius: 5px; cursor: pointer;">Imprimer le Rapport</button>
     </div>
 </body>
 </html>
@@ -956,26 +978,35 @@ export default function Detail({ auth, client, stats, factures, reglements }) {
             yPosition += 15;
         }
 
-        // Résumé des règlements (après le tableau)
+        // Statistiques financières (après le tableau)
         doc.setFontSize(12);
         doc.setFont('helvetica', 'bold');
-        doc.text('RÉSUMÉ DES RÈGLEMENTS', 20, yPosition);
+        doc.setTextColor(0, 0, 0); // Black color
+        doc.text('STATISTIQUES FINANCIÈRES', 20, yPosition);
         yPosition += 8;
 
         // Ligne de séparation
         doc.line(20, yPosition, 190, yPosition);
         yPosition += 8;
 
+        // Table headers
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(255, 255, 255); // White text
+        doc.setFillColor(43, 76, 126); // #2B4C7E background
+        doc.rect(20, yPosition - 5, 170, 6, 'F');
+        doc.text('Montant Total Factures', 25, yPosition);
+        doc.text('Montant Total Payé', 85, yPosition);
+        doc.text('Reste à Payer', 145, yPosition);
+        yPosition += 8;
+
+        // Table data
         doc.setFontSize(10);
         doc.setFont('helvetica', 'normal');
-        const totalReglements = reglements.reduce((sum, reglement) => sum + parseFloat(reglement.montant_paye), 0);
-        doc.text(`Montant Total des Règlements: ${new Intl.NumberFormat('fr-FR').format(totalReglements)} DHS`, 20, yPosition);
-        yPosition += 6;
-        doc.text(`Nombre de Règlements: ${stats.nombre_reglements}`, 20, yPosition);
-        yPosition += 6;
-        doc.text(`Date du Premier Règlement: ${reglements.length > 0 ? new Date(reglements[reglements.length - 1].date_reglement).toLocaleDateString('fr-FR') : '-'}`, 20, yPosition);
-        yPosition += 6;
-        doc.text(`Date du Dernier Règlement: ${reglements.length > 0 ? new Date(reglements[0].date_reglement).toLocaleDateString('fr-FR') : '-'}`, 20, yPosition);
+        doc.setTextColor(0, 0, 0); // Black text
+        doc.text(`${new Intl.NumberFormat('fr-FR').format(stats.montant_total_factures)} DHS`, 25, yPosition);
+        doc.text(`${new Intl.NumberFormat('fr-FR').format(stats.montant_total_paye)} DHS`, 85, yPosition);
+        doc.text(`${new Intl.NumberFormat('fr-FR').format(stats.reste_a_payer)} DHS`, 145, yPosition);
 
         // Téléchargement
         doc.save(`Reglements_${client.nom}_${new Date().toISOString().split('T')[0]}.pdf`);
@@ -1210,175 +1241,221 @@ export default function Detail({ auth, client, stats, factures, reglements }) {
         }
     };
 
-    const downloadReglementsExcel = () => {
+    const downloadReglementsExcel = async () => {
         setIsGeneratingExcel(true);
+        try {
+            const workbook = new ExcelJS.Workbook();
+            const sheet = workbook.addWorksheet("Règlements Client");
 
-        // Utiliser setTimeout pour permettre à l'UI de se mettre à jour
-        setTimeout(() => {
-            try {
-                // Créer un nouveau classeur
-                const workbook = XLSX.utils.book_new();
+            // 🖼️ === ADD LOGO ===
+            // Use the logo from public folder
+            const logoUrl = "/logo.jpg"; // Using the same logo as PDF
+            const response = await fetch(logoUrl);
+            const logoBlob = await response.blob();
+            const logoArrayBuffer = await logoBlob.arrayBuffer();
 
-        // Structure professionnelle avec tableaux bien conçus
-        const structuredData = [
-            // En-tête principal
-            ['RAPPORT DES RÈGLEMENTS CLIENT'],
-            [''],
-            ['Généré le', new Date().toLocaleDateString('fr-FR'), 'à', new Date().toLocaleTimeString('fr-FR')],
-            [''],
-
-            // Informations du client dans une seule cellule
-            ['INFORMATIONS DU CLIENT'],
-            [`Nom: ${client.nom} | Téléphone: ${client.telephone || '-'} | Email: ${client.email || '-'} | Adresse: ${client.adresse || '-'} | Délai de paiement: ${client.delai_paiement || 0} jours`],
-            [''],
-
-            // En-tête du tableau
-            ['HISTORIQUE DES RÈGLEMENTS'],
-            [''],
-            // En-têtes des colonnes du tableau
-            ['N° Règlement', 'Créé le', 'Type', 'Montant (DHS)', 'Description', 'Facture']
-        ];
-
-        // Ajouter les données des règlements
-        reglements.forEach(reglement => {
-            structuredData.push([
-                reglement.numero_reglement || '-',
-                new Date(reglement.date_reglement).toLocaleDateString('fr-FR'),
-                reglement.type_reglement,
-                reglement.montant_paye,
-                reglement.description || '-',
-                reglement.facture ? reglement.facture.numero_facture : '-'
-            ]);
-        });
-
-        // Ajouter les statistiques sous le tableau
-        structuredData.push(['']);
-        structuredData.push(['RÉSUMÉ DES RÈGLEMENTS']);
-        structuredData.push(['Montant Total des Règlements (DHS)', reglements.reduce((sum, reglement) => sum + parseFloat(reglement.montant_paye), 0)]);
-        structuredData.push(['Nombre de Règlements', stats.nombre_reglements]);
-        structuredData.push(['Date du Premier Règlement', reglements.length > 0 ? new Date(reglements[reglements.length - 1].date_reglement).toLocaleDateString('fr-FR') : '-']);
-        structuredData.push(['Date du Dernier Règlement', reglements.length > 0 ? new Date(reglements[0].date_reglement).toLocaleDateString('fr-FR') : '-']);
-
-        // Créer la feuille avec les données structurées
-        const newWorksheet = XLSX.utils.aoa_to_sheet(structuredData);
-
-        // Ajuster la largeur des colonnes
-        const columnWidths = [
-            { wch: 20 }, // A - En-têtes et informations
-            { wch: 15 }, // B - N° Règlement
-            { wch: 12 }, // C - Date
-            { wch: 12 }, // D - Type
-            { wch: 18 }, // E - Montant
-            { wch: 20 }, // F - Description
-            { wch: 15 }  // G - Facture
-        ];
-        newWorksheet['!cols'] = columnWidths;
-
-        // Ajouter le style professionnel
-        const range = XLSX.utils.decode_range(newWorksheet['!ref']);
-
-        // Style pour l'en-tête principal (ligne 1)
-        if (newWorksheet['A1']) {
-            newWorksheet['A1'].s = {
-                font: { bold: true, size: 16, color: { rgb: "FFFFFF" } },
-                fill: { fgColor: { rgb: "8E44AD" } },
-                alignment: { horizontal: "center", vertical: "center" }
-            };
-        }
-
-        // Style pour la date de génération (ligne 3)
-        if (newWorksheet['A3']) {
-            newWorksheet['A3'].s = {
-                font: { italic: true, size: 10 },
-                alignment: { horizontal: "left" }
-            };
-        }
-
-        // Style pour les sections (INFORMATIONS DU CLIENT, HISTORIQUE DES RÈGLEMENTS, RÉSUMÉ DES RÈGLEMENTS)
-        const sectionRows = [5, 7, 9, structuredData.length - 5]; // Lignes des sections
-        sectionRows.forEach(row => {
-            const cell = newWorksheet[`A${row}`];
-            if (cell) {
-                cell.s = {
-                    font: { bold: true, size: 12, color: { rgb: "FFFFFF" } },
-                    fill: { fgColor: { rgb: "34495E" } },
-                    alignment: { horizontal: "left", vertical: "center" }
-                };
-            }
-        });
-
-        // Style pour les en-têtes du tableau (ligne 11)
-        const headerRow = 11;
-        ['A', 'B', 'C', 'D', 'E', 'F', 'G'].forEach(col => {
-            const cell = newWorksheet[`${col}${headerRow}`];
-            if (cell) {
-                cell.s = {
-                    font: { bold: true, size: 10, color: { rgb: "FFFFFF" } },
-                    fill: { fgColor: { rgb: "E67E22" } },
-                    alignment: { horizontal: "center", vertical: "center" },
-                    border: {
-                        top: { style: "thin", color: { rgb: "000000" } },
-                        bottom: { style: "thin", color: { rgb: "000000" } },
-                        left: { style: "thin", color: { rgb: "000000" } },
-                        right: { style: "thin", color: { rgb: "000000" } }
-                    }
-                };
-            }
-        });
-
-        // Style pour les données du tableau (lignes 12+)
-        for (let row = 12; row <= range.e.r; row++) {
-            ['A', 'B', 'C', 'D', 'E', 'F', 'G'].forEach(col => {
-                const cell = newWorksheet[`${col}${row}`];
-                if (cell) {
-                    cell.s = {
-                        font: { size: 10 },
-                        alignment: { horizontal: "center", vertical: "center" },
-                        border: {
-                            top: { style: "thin", color: { rgb: "CCCCCC" } },
-                            bottom: { style: "thin", color: { rgb: "CCCCCC" } },
-                            left: { style: "thin", color: { rgb: "CCCCCC" } },
-                            right: { style: "thin", color: { rgb: "CCCCCC" } }
-                        }
-                    };
-
-                    // Couleur de fond alternée pour les lignes
-                    if (row % 2 === 0) {
-                        cell.s.fill = { fgColor: { rgb: "F8F9FA" } };
-                    }
-                }
+            const logoId = workbook.addImage({
+                buffer: logoArrayBuffer,
+                extension: "jpg",
             });
-        }
 
-        // Style pour les statistiques (dernières lignes)
-        const statsStartRow = structuredData.length - 4;
-        for (let row = statsStartRow; row <= range.e.r; row++) {
-            ['A', 'B'].forEach(col => {
-                const cell = newWorksheet[`${col}${row}`];
-                if (cell) {
-                    cell.s = {
-                        font: { size: 10 },
-                        alignment: { horizontal: "left", vertical: "center" },
-                        fill: { fgColor: { rgb: "ECF0F1" } }
-                    };
-                }
+            // Place logo in the top-left corner (like PDF)
+            sheet.addImage(logoId, {
+                tl: { col: 0, row: 0 },
+                ext: { width: 200, height: 50 },
             });
+
+            // === HEADER SECTION (like PDF) ===
+            // Report details on the right side of logo
+            const reportDetailsRow = sheet.getRow(1);
+            reportDetailsRow.getCell(4).value = "Rapport Client N°:";
+            reportDetailsRow.getCell(5).value = client.id;
+            reportDetailsRow.getCell(4).font = { bold: true, color: { argb: "B32626" } };
+            reportDetailsRow.getCell(5).font = { bold: true, color: { argb: "B32626" } };
+
+            const reportDetailsRow2 = sheet.getRow(2);
+            reportDetailsRow2.getCell(4).value = "Généré le:";
+            reportDetailsRow2.getCell(5).value = new Date().toLocaleDateString('fr-FR');
+            reportDetailsRow2.getCell(4).font = { bold: true };
+            reportDetailsRow2.getCell(5).font = { bold: true };
+
+            const reportDetailsRow3 = sheet.getRow(3);
+            reportDetailsRow3.getCell(4).value = "Heure:";
+            reportDetailsRow3.getCell(5).value = new Date().toLocaleTimeString('fr-FR');
+            reportDetailsRow3.getCell(4).font = { bold: true };
+            reportDetailsRow3.getCell(5).font = { bold: true };
+
+            // === TOP ROW SECTION (like PDF) ===
+            // Left side: Dates block
+            const datesRow = sheet.getRow(5);
+            datesRow.getCell(1).value = "Date du Rapport:";
+            datesRow.getCell(2).value = new Date().toLocaleDateString('fr-FR');
+            datesRow.getCell(1).font = { bold: true };
+            datesRow.getCell(2).font = { bold: true };
+
+            const datesRow2 = sheet.getRow(6);
+            datesRow2.getCell(1).value = "Période:";
+            datesRow2.getCell(2).value = "Tous les règlements";
+            datesRow2.getCell(1).font = { bold: true };
+            datesRow2.getCell(2).font = { bold: true };
+
+            const datesRow3 = sheet.getRow(7);
+            datesRow3.getCell(1).value = "Type de Rapport:";
+            datesRow3.getCell(2).value = "Détails Client";
+            datesRow3.getCell(1).font = { bold: true };
+            datesRow3.getCell(2).font = { bold: true };
+
+            // Right side: Client info block
+            const clientRow = sheet.getRow(5);
+            clientRow.getCell(4).value = "Client:";
+            clientRow.getCell(4).font = { bold: true };
+
+            const clientRow2 = sheet.getRow(6);
+            clientRow2.getCell(4).value = "Nom:";
+            clientRow2.getCell(5).value = client.nom;
+            clientRow2.getCell(4).font = { bold: true };
+            clientRow2.getCell(5).font = { bold: true, color: { argb: "B32626" } };
+
+            const clientRow3 = sheet.getRow(7);
+            clientRow3.getCell(4).value = "Adresse:";
+            clientRow3.getCell(5).value = client.adresse || 'Non renseignée';
+            clientRow3.getCell(4).font = { bold: true };
+
+            const clientRow4 = sheet.getRow(8);
+            clientRow4.getCell(4).value = "Téléphone:";
+            clientRow4.getCell(5).value = client.telephone || 'Non renseigné';
+            clientRow4.getCell(4).font = { bold: true };
+
+            const clientRow5 = sheet.getRow(9);
+            clientRow5.getCell(4).value = "Email:";
+            clientRow5.getCell(5).value = client.email || 'Non renseigné';
+            clientRow5.getCell(4).font = { bold: true };
+
+            const clientRow6 = sheet.getRow(10);
+            clientRow6.getCell(4).value = "Délai de paiement:";
+            clientRow6.getCell(5).value = `${client.delai_paiement || 0} jours`;
+            clientRow6.getCell(4).font = { bold: true };
+
+            // === LEGAL NOTE (like PDF) ===
+            const legalRow = sheet.getRow(12);
+            legalRow.getCell(1).value = `**Rapport généré automatiquement le ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR')}**`;
+            legalRow.getCell(1).font = { italic: true, size: 10 };
+            sheet.mergeCells(`A${legalRow.number}:F${legalRow.number}`);
+
+            // === REGLEMENTS TABLE (like PDF) ===
+            const reglementsHeaderRow = sheet.getRow(14);
+            reglementsHeaderRow.getCell(1).value = `HISTORIQUE DES RÈGLEMENTS (${stats.nombre_reglements})`;
+            reglementsHeaderRow.getCell(1).font = { bold: true, size: 14, color: { argb: "000000" } };
+            sheet.mergeCells(`A${reglementsHeaderRow.number}:F${reglementsHeaderRow.number}`);
+
+            const tableHeaders = ["N° Règlement", "Créé le", "Type", "Montant Payé", "Description", "Facture Associée"];
+            const headerRow = sheet.getRow(16);
+            headerRow.values = tableHeaders;
+            headerRow.eachCell((cell) => {
+                cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
+                cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "2B4C7E" } };
+                cell.alignment = { horizontal: "center" };
+                cell.border = {
+                    top: { style: "thin", color: { argb: "000000" } },
+                    bottom: { style: "thin", color: { argb: "000000" } },
+                    left: { style: "thin", color: { argb: "000000" } },
+                    right: { style: "thin", color: { argb: "000000" } }
+                };
+            });
+
+            // Add reglements data
+            reglements.forEach((r, index) => {
+                const row = sheet.getRow(17 + index);
+                row.values = [
+                    r.numero_reglement || 'N/A',
+                    new Date(r.date_reglement).toLocaleDateString("fr-FR"),
+                    r.type_reglement,
+                    `${new Intl.NumberFormat("fr-FR").format(r.montant_paye)} DHS`,
+                    r.description || 'N/A',
+                    r.facture ? r.facture.numero_facture : 'N/A',
+                ];
+                row.eachCell((cell) => {
+                    cell.alignment = { horizontal: "center" };
+                    cell.border = {
+                        top: { style: "thin", color: { argb: "CCCCCC" } },
+                        bottom: { style: "thin", color: { argb: "CCCCCC" } },
+                        left: { style: "thin", color: { argb: "CCCCCC" } },
+                        right: { style: "thin", color: { argb: "CCCCCC" } }
+                    };
+                    // Alternating row colors
+                    if (index % 2 === 0) {
+                        cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "F8F9FA" } };
+                    }
+                });
+            });
+
+            // === STATISTIQUES SECTION (after reglements table) ===
+            const statsStartRow = 17 + reglements.length + 2;
+            const statsHeaderRow = sheet.getRow(statsStartRow);
+            statsHeaderRow.getCell(1).value = "STATISTIQUES FINANCIÈRES";
+            statsHeaderRow.getCell(1).font = { bold: true, size: 14, color: { argb: "000000" } };
+            sheet.mergeCells(`A${statsHeaderRow.number}:C${statsHeaderRow.number}`);
+
+            // Statistics table headers
+            const statsTableHeaders = ["Montant Total Factures", "Montant Total Payé", "Reste à Payer"];
+            const statsHeaderTableRow = sheet.getRow(statsStartRow + 2);
+            statsHeaderTableRow.values = statsTableHeaders;
+            statsHeaderTableRow.eachCell((cell) => {
+                cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
+                cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "2B4C7E" } };
+                cell.alignment = { horizontal: "center" };
+                cell.border = {
+                    top: { style: "thin", color: { argb: "000000" } },
+                    bottom: { style: "thin", color: { argb: "000000" } },
+                    left: { style: "thin", color: { argb: "000000" } },
+                    right: { style: "thin", color: { argb: "000000" } }
+                };
+            });
+
+            // Statistics table data
+            const statsDataRow = sheet.getRow(statsStartRow + 3);
+            statsDataRow.values = [
+                `${new Intl.NumberFormat("fr-FR").format(stats.montant_total_factures)} DHS`,
+                `${new Intl.NumberFormat("fr-FR").format(stats.montant_total_paye)} DHS`,
+                `${new Intl.NumberFormat("fr-FR").format(stats.reste_a_payer)} DHS`,
+            ];
+            statsDataRow.eachCell((cell) => {
+                cell.alignment = { horizontal: "center" };
+                cell.border = {
+                    top: { style: "thin", color: { argb: "000000" } },
+                    bottom: { style: "thin", color: { argb: "000000" } },
+                    left: { style: "thin", color: { argb: "000000" } },
+                    right: { style: "thin", color: { argb: "000000" } }
+                };
+            });
+
+            // Set column widths
+            sheet.columns = [
+                { width: 20 }, // A
+                { width: 15 }, // B
+                { width: 15 }, // C
+                { width: 18 }, // D
+                { width: 25 }, // E
+                { width: 20 }, // F
+            ];
+
+            // === FOOTER (like PDF) ===
+            const footerStartRow = statsStartRow + 3 + 2;
+            const footer = sheet.getRow(footerStartRow);
+            footer.getCell(1).value = "SARL au capital: 100000,00 - Siège social: 77 Rue Mohamed Smiha 10 Etg Appt N°57 Casablanca RC: 34329 - PATENTE: - IF: 68363934 - ICE: 003789368000045 - Email: finducarr@gmail.com - Tél: 0708-330546";
+            footer.getCell(1).font = { size: 9, color: { argb: "2B4C7E" } };
+            footer.getCell(1).alignment = { horizontal: "center" };
+            sheet.mergeCells(`A${footerStartRow}:F${footerStartRow}`);
+
+            // === SAVE FILE ===
+            const buffer = await workbook.xlsx.writeBuffer();
+            saveAs(new Blob([buffer]), `Reglements_${client.nom.replace(/[^a-zA-Z0-9]/g, '_')}_${new Date().toISOString().split("T")[0]}.xlsx`);
+        } catch (err) {
+            console.error(err);
+            alert("Erreur lors de la génération du fichier Excel");
+        } finally {
+            setIsGeneratingExcel(false);
         }
-
-        // Ajouter la feuille au classeur
-        XLSX.utils.book_append_sheet(workbook, newWorksheet, 'Règlements');
-
-        // Télécharger le fichier
-        XLSX.writeFile(workbook, `Reglements_${client.nom}_${new Date().toISOString().split('T')[0]}.xlsx`);
-
-        // Arrêter le loading
-        setIsGeneratingExcel(false);
-            } catch (error) {
-                console.error('Erreur lors de la génération du Excel:', error);
-                setIsGeneratingExcel(false);
-                alert('Erreur lors de la génération du fichier Excel');
-            }
-        }, 100);
     };
 
     // Composant de pagination
