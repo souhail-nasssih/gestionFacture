@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import ThemeToggle from "@/Components/ThemeToggle";
 import NotificationCenter from "@/Components/NotificationCenter";
+import ToastContainer from "@/Components/Toast";
 
 export default function AuthenticatedLayout({ header, children }) {
     const { url } = usePage();
@@ -291,6 +292,7 @@ export default function AuthenticatedLayout({ header, children }) {
                     </div>
                 </main>
             </div>
+            <ToastContainer />
         </div>
     );
 }

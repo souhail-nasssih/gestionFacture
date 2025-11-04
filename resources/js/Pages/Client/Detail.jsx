@@ -18,6 +18,7 @@ import jsPDF from 'jspdf';
 import * as XLSX from 'xlsx';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
+import { showToast } from "@/Components/Toast";
 
 export default function Detail({ auth, client, stats, factures, reglements }) {
     const [activeTab, setActiveTab] = useState('situation');
@@ -878,7 +879,7 @@ export default function Detail({ auth, client, stats, factures, reglements }) {
             } catch (error) {
                 console.error('Erreur lors de la génération du PDF:', error);
                 setIsGeneratingPdf(false);
-                alert('Erreur lors de la génération du PDF');
+                showToast('Erreur lors de la génération du PDF', 'error');
             }
         }, 100);
     };
@@ -1016,7 +1017,7 @@ export default function Detail({ auth, client, stats, factures, reglements }) {
             } catch (error) {
                 console.error('Erreur lors de la génération du PDF:', error);
                 setIsGeneratingPdf(false);
-                alert('Erreur lors de la génération du PDF');
+                showToast('Erreur lors de la génération du PDF', 'error');
             }
         }, 100);
     };
@@ -1235,7 +1236,7 @@ export default function Detail({ auth, client, stats, factures, reglements }) {
             saveAs(new Blob([buffer]), `Rapport_Client_${client.nom.replace(/[^a-zA-Z0-9]/g, '_')}_${new Date().toISOString().split("T")[0]}.xlsx`);
         } catch (err) {
             console.error(err);
-            alert("Erreur lors de la génération du fichier Excel");
+            showToast("Erreur lors de la génération du fichier Excel", "error");
         } finally {
             setIsGeneratingExcel(false);
         }
@@ -1452,7 +1453,7 @@ export default function Detail({ auth, client, stats, factures, reglements }) {
             saveAs(new Blob([buffer]), `Reglements_${client.nom.replace(/[^a-zA-Z0-9]/g, '_')}_${new Date().toISOString().split("T")[0]}.xlsx`);
         } catch (err) {
             console.error(err);
-            alert("Erreur lors de la génération du fichier Excel");
+            showToast("Erreur lors de la génération du fichier Excel", "error");
         } finally {
             setIsGeneratingExcel(false);
         }

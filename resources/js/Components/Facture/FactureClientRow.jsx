@@ -1,5 +1,6 @@
 import { Eye, Edit2, Trash2, Printer } from "lucide-react";
 import { useState } from "react";
+import { showToast } from "@/Components/Toast";
 
 export default function FactureClientRow({
     item,
@@ -31,7 +32,7 @@ export default function FactureClientRow({
             } catch (error) {
                 console.error('Erreur lors de l\'impression:', error);
                 setIsGeneratingPdf(false);
-                alert('Erreur lors de l\'impression de la facture');
+                showToast('Erreur lors de l\'impression de la facture', 'error');
             }
         }, 100);
     };

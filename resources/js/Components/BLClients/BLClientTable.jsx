@@ -1,6 +1,7 @@
 import { Eye, Edit2, Trash2, Printer } from "lucide-react";
 import { useState } from "react";
 import React from "react";
+import { showToast } from "@/Components/Toast";
 
 const BLClientTable = ({ blClients, onEdit, onDelete, onPrint }) => {
     const [expandedRows, setExpandedRows] = useState(new Set());
@@ -29,7 +30,7 @@ const BLClientTable = ({ blClients, onEdit, onDelete, onPrint }) => {
             } catch (error) {
                 console.error('Erreur lors de l\'impression:', error);
                 setIsGeneratingPdf(false);
-                alert('Erreur lors de l\'impression du BL');
+                showToast('Erreur lors de l\'impression du BL', 'error');
             }
         }, 100);
     };

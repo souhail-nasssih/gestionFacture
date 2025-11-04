@@ -1,6 +1,7 @@
 import React, { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { router } from '@inertiajs/react';
 import { Bell, X, Check, Trash2, AlertTriangle, AlertCircle, Calendar, Clock } from 'lucide-react';
+import { showToast } from '@/Components/Toast';
 
 const NotificationCenter = forwardRef((props, ref) => {
     const [notifications, setNotifications] = useState([]);
@@ -211,11 +212,11 @@ const NotificationCenter = forwardRef((props, ref) => {
                 console.log('Notification deleted successfully');
             } else {
                 console.error('Failed to delete notification:', result);
-                alert('Erreur lors de la suppression de la notification');
+                showToast('Erreur lors de la suppression de la notification', 'error');
             }
         } catch (error) {
             console.error('Error deleting notification:', error);
-            alert('Erreur lors de la suppression de la notification');
+            showToast('Erreur lors de la suppression de la notification', 'error');
         }
     };
 

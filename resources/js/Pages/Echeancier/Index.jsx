@@ -6,6 +6,7 @@ import FacturesTable from "../../Components/Echeancier/FacturesTable";
 import HistoryModal from "../../Components/Echeancier/HistoryModal";
 import PaymentModal from "../../Components/Echeancier/PaymentModal";
 import { getStatusBadge } from "../../Components/Echeancier/utils";
+import { showToast } from "@/Components/Toast";
 
 export default function Echeancier({
     factures: initialFactures,
@@ -212,12 +213,12 @@ export default function Echeancier({
     function submitReglement() {
         // Validation des champs requis
         if (!form.data.montant_paye || parseFloat(form.data.montant_paye) <= 0) {
-            alert("Veuillez saisir un montant valide");
+            showToast("Veuillez saisir un montant valide", "error");
             return;
         }
 
         if (!form.data.date_reglement) {
-            alert("Veuillez saisir une date de règlement");
+            showToast("Veuillez saisir une date de règlement", "error");
             return;
         }
 
@@ -226,7 +227,7 @@ export default function Echeancier({
         const resteAPayer = parseFloat(selectedFacture.reste_a_payer);
 
         if (montantSaisi > resteAPayer && !form.data.force_paid_status) {
-            alert(`Le montant saisi (${montantSaisi.toFixed(2)} DHS) dépasse le reste à payer (${resteAPayer.toFixed(2)} DHS). Veuillez cocher la case de confirmation si vous souhaitez continuer.`);
+            showToast(`Le montant saisi (${montantSaisi.toFixed(2)} DHS) dépasse le reste à payer (${resteAPayer.toFixed(2)} DHS). Veuillez cocher la case de confirmation si vous souhaitez continuer.`, "error");
             return;
         }
 
@@ -234,14 +235,14 @@ export default function Echeancier({
         const infos = {};
         if (form.data.type_reglement === "chèque") {
             if (!form.data.numero_cheque || !form.data.banque_nom) {
-                alert("Veuillez remplir le numéro de chèque et la banque");
+                showToast("Veuillez remplir le numéro de chèque et la banque", "error");
                 return;
             }
             infos.numero_cheque = form.data.numero_cheque;
             infos.banque_nom = form.data.banque_nom;
         } else if (form.data.type_reglement === "virement") {
             if (!form.data.banque_nom || !form.data.iban_rib || !form.data.reference_paiement) {
-                alert("Veuillez remplir tous les champs requis pour le virement");
+                showToast("Veuillez remplir tous les champs requis pour le virement", "error");
                 return;
             }
             infos.banque_nom = form.data.banque_nom;
@@ -285,11 +286,11 @@ export default function Echeancier({
                     console.log("Form errors:", errors);
                     // Afficher les erreurs à l'utilisateur
                     if (errors.montant_paye) {
-                        alert("Erreur de montant: " + errors.montant_paye);
+                        showToast("Erreur de montant: " + errors.montant_paye, "error");
                     } else if (errors.date_reglement) {
-                        alert("Erreur de date: " + errors.date_reglement);
+                        showToast("Erreur de date: " + errors.date_reglement, "error");
                     } else {
-                        alert("Erreur lors de la modification du règlement");
+                        showToast("Erreur lors de la modification du règlement", "error");
                     }
                 },
             });
@@ -309,11 +310,11 @@ export default function Echeancier({
                     console.log("Form errors:", errors);
                     // Afficher les erreurs à l'utilisateur
                     if (errors.montant_paye) {
-                        alert("Erreur de montant: " + errors.montant_paye);
+                        showToast("Erreur de montant: " + errors.montant_paye, "error");
                     } else if (errors.date_reglement) {
-                        alert("Erreur de date: " + errors.date_reglement);
+                        showToast("Erreur de date: " + errors.date_reglement, "error");
                     } else {
-                        alert("Erreur lors de l'enregistrement du règlement");
+                        showToast("Erreur lors de l'enregistrement du règlement", "error");
                     }
                 },
             });
