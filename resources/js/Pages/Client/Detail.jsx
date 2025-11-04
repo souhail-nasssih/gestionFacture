@@ -396,8 +396,9 @@ export default function Detail({ auth, client, stats, factures, reglements }) {
         }
 
         .section-title {
-            color: #2B4C7E;
+            color: #000000;
             font-size: 14px;
+            font-weight: bold;
             margin: 20px 0 10px 0;
             padding-bottom: 5px;
             border-bottom: 2px solid #2B4C7E;
@@ -449,27 +450,8 @@ export default function Detail({ auth, client, stats, factures, reglements }) {
         **Rapport généré automatiquement le ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR')}**
     </div>
 
-    <!-- STATISTIQUES -->
-    <div class="stats-section">
-        <div class="section-title">📊 Statistiques Financières</div>
-        <div class="stats-grid">
-            <div class="stat-item">
-                <div class="stat-label">Montant Total Factures</div>
-                <div class="stat-value">${new Intl.NumberFormat('fr-FR').format(stats.montant_total_factures)} DHS</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-label">Montant Total Payé</div>
-                <div class="stat-value">${new Intl.NumberFormat('fr-FR').format(stats.montant_total_paye)} DHS</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-label">Reste à Payer</div>
-                <div class="stat-value">${new Intl.NumberFormat('fr-FR').format(stats.reste_a_payer)} DHS</div>
-            </div>
-        </div>
-    </div>
-
     <!-- FACTURES TABLE -->
-    <div class="section-title">🧾 Détail des Factures (${stats.nombre_factures})</div>
+    <div class="section-title">Détail des Factures (${stats.nombre_factures})</div>
     ${factures.length > 0 ? `
     <table>
         <thead>
@@ -498,6 +480,25 @@ export default function Detail({ auth, client, stats, factures, reglements }) {
         </tbody>
     </table>
     ` : '<div class="no-data">Aucune facture trouvée pour ce client.</div>'}
+
+    <!-- STATISTIQUES -->
+    <div class="section-title">Statistiques Financières</div>
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 33.33%;">Montant Total Factures</th>
+                <th style="width: 33.33%;">Montant Total Payé</th>
+                <th style="width: 33.33%;">Reste à Payer</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="amount">${new Intl.NumberFormat('fr-FR').format(stats.montant_total_factures)} DHS</td>
+                <td class="amount">${new Intl.NumberFormat('fr-FR').format(stats.montant_total_paye)} DHS</td>
+                <td class="amount">${new Intl.NumberFormat('fr-FR').format(stats.reste_a_payer)} DHS</td>
+            </tr>
+        </tbody>
+    </table>
 
     <!-- FOOTER -->
     <div class="footer">
@@ -1091,40 +1092,14 @@ export default function Detail({ auth, client, stats, factures, reglements }) {
             legalRow.getCell(1).font = { italic: true, size: 10 };
             sheet.mergeCells(`A${legalRow.number}:F${legalRow.number}`);
 
-            // === STATISTIQUES SECTION (like PDF) ===
-            const statsHeaderRow = sheet.getRow(14);
-            statsHeaderRow.getCell(1).value = "📊 STATISTIQUES FINANCIÈRES";
-            statsHeaderRow.getCell(1).font = { bold: true, size: 14, color: { argb: "FFFFFFFF" } };
-            statsHeaderRow.getCell(1).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "2B4C7E" } };
-            sheet.mergeCells(`A${statsHeaderRow.number}:F${statsHeaderRow.number}`);
-
-            const statsRow1 = sheet.getRow(15);
-            statsRow1.getCell(1).value = "Montant Total Factures:";
-            statsRow1.getCell(2).value = `${new Intl.NumberFormat("fr-FR").format(stats.montant_total_factures)} DHS`;
-            statsRow1.getCell(1).font = { bold: true, color: { argb: "2B4C7E" } };
-            statsRow1.getCell(2).font = { bold: true, color: { argb: "27AE60" } };
-
-            const statsRow2 = sheet.getRow(16);
-            statsRow2.getCell(1).value = "Montant Total Payé:";
-            statsRow2.getCell(2).value = `${new Intl.NumberFormat("fr-FR").format(stats.montant_total_paye)} DHS`;
-            statsRow2.getCell(1).font = { bold: true, color: { argb: "2B4C7E" } };
-            statsRow2.getCell(2).font = { bold: true, color: { argb: "27AE60" } };
-
-            const statsRow3 = sheet.getRow(17);
-            statsRow3.getCell(1).value = "Reste à Payer:";
-            statsRow3.getCell(2).value = `${new Intl.NumberFormat("fr-FR").format(stats.reste_a_payer)} DHS`;
-            statsRow3.getCell(1).font = { bold: true, color: { argb: "2B4C7E" } };
-            statsRow3.getCell(2).font = { bold: true, color: { argb: "27AE60" } };
-
             // === FACTURES TABLE (like PDF) ===
-            const facturesHeaderRow = sheet.getRow(19);
-            facturesHeaderRow.getCell(1).value = `🧾 DÉTAIL DES FACTURES (${stats.nombre_factures})`;
-            facturesHeaderRow.getCell(1).font = { bold: true, size: 14, color: { argb: "FFFFFFFF" } };
-            facturesHeaderRow.getCell(1).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "2B4C7E" } };
+            const facturesHeaderRow = sheet.getRow(14);
+            facturesHeaderRow.getCell(1).value = `DÉTAIL DES FACTURES (${stats.nombre_factures})`;
+            facturesHeaderRow.getCell(1).font = { bold: true, size: 14, color: { argb: "000000" } };
             sheet.mergeCells(`A${facturesHeaderRow.number}:G${facturesHeaderRow.number}`);
 
             const tableHeaders = ["N° Facture", "Date Facture", "Date Échéance", "Statut", "Montant Total", "Montant Payé", "Reste à Payer"];
-            const headerRow = sheet.getRow(21);
+            const headerRow = sheet.getRow(16);
             headerRow.values = tableHeaders;
             headerRow.eachCell((cell) => {
                 cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
@@ -1140,7 +1115,7 @@ export default function Detail({ auth, client, stats, factures, reglements }) {
 
             // Add factures data
             factures.forEach((f, index) => {
-                const row = sheet.getRow(22 + index);
+                const row = sheet.getRow(17 + index);
                 row.values = [
                     f.numero_facture,
                     new Date(f.date_facture).toLocaleDateString("fr-FR"),
@@ -1165,6 +1140,46 @@ export default function Detail({ auth, client, stats, factures, reglements }) {
                 });
             });
 
+            // === STATISTIQUES SECTION (after factures table) ===
+            const statsStartRow = 17 + factures.length + 2;
+            const statsHeaderRow = sheet.getRow(statsStartRow);
+            statsHeaderRow.getCell(1).value = "STATISTIQUES FINANCIÈRES";
+            statsHeaderRow.getCell(1).font = { bold: true, size: 14, color: { argb: "000000" } };
+            sheet.mergeCells(`A${statsHeaderRow.number}:C${statsHeaderRow.number}`);
+
+            // Statistics table headers
+            const statsTableHeaders = ["Montant Total Factures", "Montant Total Payé", "Reste à Payer"];
+            const statsHeaderTableRow = sheet.getRow(statsStartRow + 2);
+            statsHeaderTableRow.values = statsTableHeaders;
+            statsHeaderTableRow.eachCell((cell) => {
+                cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
+                cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "2B4C7E" } };
+                cell.alignment = { horizontal: "center" };
+                cell.border = {
+                    top: { style: "thin", color: { argb: "000000" } },
+                    bottom: { style: "thin", color: { argb: "000000" } },
+                    left: { style: "thin", color: { argb: "000000" } },
+                    right: { style: "thin", color: { argb: "000000" } }
+                };
+            });
+
+            // Statistics table data
+            const statsDataRow = sheet.getRow(statsStartRow + 3);
+            statsDataRow.values = [
+                `${new Intl.NumberFormat("fr-FR").format(stats.montant_total_factures)} DHS`,
+                `${new Intl.NumberFormat("fr-FR").format(stats.montant_total_paye)} DHS`,
+                `${new Intl.NumberFormat("fr-FR").format(stats.reste_a_payer)} DHS`,
+            ];
+            statsDataRow.eachCell((cell) => {
+                cell.alignment = { horizontal: "center" };
+                cell.border = {
+                    top: { style: "thin", color: { argb: "000000" } },
+                    bottom: { style: "thin", color: { argb: "000000" } },
+                    left: { style: "thin", color: { argb: "000000" } },
+                    right: { style: "thin", color: { argb: "000000" } }
+                };
+            });
+
             // Set column widths
             sheet.columns = [
                 { width: 20 }, // A
@@ -1177,7 +1192,7 @@ export default function Detail({ auth, client, stats, factures, reglements }) {
             ];
 
             // === FOOTER (like PDF) ===
-            const footerStartRow = 22 + factures.length + 2;
+            const footerStartRow = statsStartRow + 3 + 2;
             const footer = sheet.getRow(footerStartRow);
             footer.getCell(1).value = "SARL au capital: 100000,00 - Siège social: 77 Rue Mohamed Smiha 10 Etg Appt N°57 Casablanca RC: 34329 - PATENTE: - IF: 68363934 - ICE: 003789368000045 - Email: finducarr@gmail.com - Tél: 0708-330546";
             footer.getCell(1).font = { size: 9, color: { argb: "2B4C7E" } };
