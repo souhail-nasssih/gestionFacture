@@ -13,6 +13,8 @@ export default function TrashIndex({
     deletedReglements
 }) {
     const [showEmptyConfirm, setShowEmptyConfirm] = useState(false);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [itemToDelete, setItemToDelete] = useState(null);
 
     const handleRestore = (type, id) => {
         router.post(route(`trash.restore-${type}`, id), {}, {
@@ -21,19 +23,24 @@ export default function TrashIndex({
     };
 
     const handleForceDelete = (type, id) => {
-        if (confirm('Êtes-vous sûr de vouloir supprimer définitivement cet élément ? Cette action est irréversible.')) {
-            router.delete(route(`trash.force-delete-${type}`, id), {
+        setItemToDelete({ type, id });
+        setShowDeleteConfirm(true);
+    };
+
+    const confirmForceDelete = () => {
+        if (itemToDelete) {
+            router.delete(route(`trash.force-delete-${itemToDelete.type}`, itemToDelete.id), {
                 preserveScroll: true,
             });
         }
+        setShowDeleteConfirm(false);
+        setItemToDelete(null);
     };
 
     const handleEmptyTrash = () => {
-        if (confirm('Êtes-vous sûr de vouloir vider complètement la poubelle ? Cette action est irréversible.')) {
-            router.post(route('trash.empty'), {}, {
-                preserveScroll: true,
-            });
-        }
+        router.post(route('trash.empty'), {}, {
+            preserveScroll: true,
+        });
         setShowEmptyConfirm(false);
     };
 
@@ -96,6 +103,37 @@ export default function TrashIndex({
                                                 className="px-4 py-2 bg-red-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
                                             >
                                                 Vider définitivement
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Confirmation pour supprimer définitivement un élément */}
+                            {showDeleteConfirm && (
+                                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-md">
+                                        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
+                                            Confirmer la suppression définitive
+                                        </h3>
+                                        <p className="text-gray-600 dark:text-gray-300 mb-6">
+                                            Êtes-vous sûr de vouloir supprimer définitivement cet élément ? Cette action est irréversible.
+                                        </p>
+                                        <div className="flex justify-end space-x-3">
+                                            <button
+                                                onClick={() => {
+                                                    setShowDeleteConfirm(false);
+                                                    setItemToDelete(null);
+                                                }}
+                                                className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                                            >
+                                                Annuler
+                                            </button>
+                                            <button
+                                                onClick={confirmForceDelete}
+                                                className="px-4 py-2 bg-red-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
+                                            >
+                                                Supprimer définitivement
                                             </button>
                                         </div>
                                     </div>
