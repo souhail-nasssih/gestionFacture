@@ -2,11 +2,8 @@
 
 namespace App\Models;
 
-use App\Notifications\LowStockNotification;
-use App\Notifications\OutOfStockNotification;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Facades\Notification;
 
 class Produit extends Model
 {
@@ -108,67 +105,6 @@ class Produit extends Model
         } else {
             // Aucun achat, mettre le prix d'achat à 0
             $this->update(['prix_achat' => 0]);
-        }
-    }
-
-    /**
-     * Boot method to handle stock notifications
-     */
-    protected static function boot()
-    {
-        parent::boot();
-
-        static::updated(function ($produit) {
-            // Vérifier si le stock a changé
-            if ($produit->isDirty('stock')) {
-                $oldStock = $produit->getOriginal('stock');
-                $newStock = $produit->stock;
-
-                // Si le stock a diminué et est maintenant en rupture
-                if ($newStock <= 0 && $oldStock > 0) {
-                    static::sendOutOfStockNotification($produit);
-                }
-                // Si le stock est maintenant en dessous du seuil d'alerte
-                elseif ($newStock <= $produit->seuil_alerte && $newStock > 0) {
-                    // Envoyer une notification si le stock précédent était au-dessus du seuil
-                    if ($oldStock > $produit->seuil_alerte) {
-                        static::sendLowStockNotification($produit);
-                    }
-                }
-            }
-        });
-
-        static::created(function ($produit) {
-            // Vérifier le stock initial
-            if ($produit->stock <= 0) {
-                static::sendOutOfStockNotification($produit);
-            } elseif ($produit->stock <= $produit->seuil_alerte) {
-                static::sendLowStockNotification($produit);
-            }
-        });
-    }
-
-    /**
-     * Send low stock notification
-     */
-    protected static function sendLowStockNotification($produit)
-    {
-        // Envoyer à tous les utilisateurs administrateurs
-        $users = \App\Models\User::all();
-        foreach ($users as $user) {
-            $user->notify(new LowStockNotification($produit));
-        }
-    }
-
-    /**
-     * Send out of stock notification
-     */
-    protected static function sendOutOfStockNotification($produit)
-    {
-        // Envoyer à tous les utilisateurs administrateurs
-        $users = \App\Models\User::all();
-        foreach ($users as $user) {
-            $user->notify(new OutOfStockNotification($produit));
         }
     }
 

@@ -1,7 +1,7 @@
 import ApplicationLogo from "@/Components/ApplicationLogo";
 import Dropdown from "@/Components/Dropdown";
 import { Link, usePage } from "@inertiajs/react";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import {
     LayoutDashboard,
     Users,
@@ -19,8 +19,9 @@ import {
     Trash2,
 } from "lucide-react";
 import ThemeToggle from "@/Components/ThemeToggle";
-import NotificationCenter from "@/Components/NotificationCenter";
+import NotificationBell from "@/Components/NotificationBell";
 import ToastContainer from "@/Components/Toast";
+import NotificationCenter from "@/Components/NotificationCenter";
 
 export default function AuthenticatedLayout({ header, children }) {
     const { url } = usePage();
@@ -31,26 +32,6 @@ export default function AuthenticatedLayout({ header, children }) {
         return saved !== null ? JSON.parse(saved) : true;
     });
     const [isMobile, setIsMobile] = useState(false);
-    const notificationCenterRef = useRef(null);
-    const lastCheckTimeRef = useRef(0);
-
-    // Handle navigation and trigger due date check with debounce
-    const handleNavigation = () => {
-        const now = Date.now();
-        const timeSinceLastCheck = now - lastCheckTimeRef.current;
-
-        // Only check if it's been more than 30 seconds since last check
-        if (timeSinceLastCheck > 30000) {
-            lastCheckTimeRef.current = now;
-
-            // Small delay to ensure the page has loaded
-            setTimeout(() => {
-                if (notificationCenterRef.current) {
-                    notificationCenterRef.current.checkDueDates();
-                }
-            }, 500);
-        }
-    };
 
     useEffect(() => {
         const handleResize = () => {
@@ -70,11 +51,6 @@ export default function AuthenticatedLayout({ header, children }) {
         window.addEventListener("resize", handleResize);
         return () => window.removeEventListener("resize", handleResize);
     }, []);
-
-    // Listen for URL changes and trigger due date check
-    useEffect(() => {
-        handleNavigation();
-    }, [url]);
 
     const navigation = [
         { name: "Dashboard", href: route("dashboard"), icon: LayoutDashboard },
@@ -151,7 +127,6 @@ export default function AuthenticatedLayout({ header, children }) {
                                 <Link
                                     key={item.name}
                                     href={item.href}
-                                    onClick={handleNavigation}
                                     className={`group flex items-center px-3 py-3 text-sm font-medium rounded-lg mx-2 transition-colors duration-200 ${
                                         active
                                             ? "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300 shadow-sm"
@@ -229,8 +204,8 @@ export default function AuthenticatedLayout({ header, children }) {
                                 </button>
                             </div>
 
-                            <div className="flex items-center ml-auto">
-                                <NotificationCenter ref={notificationCenterRef} />
+                            <div className="flex items-center ml-auto gap-1">
+                                <NotificationBell />
                                 <ThemeToggle className="mr-4" />
                                 <div className="relative">
                                     <Dropdown>
@@ -292,6 +267,7 @@ export default function AuthenticatedLayout({ header, children }) {
                     </div>
                 </main>
             </div>
+            <NotificationCenter />
             <ToastContainer />
         </div>
     );
