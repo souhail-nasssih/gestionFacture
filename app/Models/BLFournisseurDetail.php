@@ -63,10 +63,9 @@ class BLFournisseurDetail extends Model
         static::created(function ($detail) {
             $produit = $detail->produit;
             if ($produit) {
-                $produit->increment('stock', $detail->quantite);
-
-                // Mettre à jour le prix d'achat avec le prix unitaire du nouvel achat
-                $produit->update(['prix_achat' => $detail->prix_unitaire]);
+                $produit->stock += $detail->quantite;
+                $produit->prix_achat = $detail->prix_unitaire;
+                $produit->save();
             }
         });
 
@@ -77,11 +76,8 @@ class BLFournisseurDetail extends Model
 
             $produit = $detail->produit;
             if ($produit && $difference !== 0) {
-                if ($difference > 0) {
-                    $produit->increment('stock', $difference);
-                } else {
-                    $produit->decrement('stock', abs($difference));
-                }
+                $produit->stock += $difference;
+                $produit->save();
             }
 
             // Si le prix unitaire a changé, mettre à jour le prix d'achat
@@ -105,7 +101,8 @@ class BLFournisseurDetail extends Model
             $produit = $detail->produit;
             if ($produit) {
                 // Deleting a supplier BL detail should remove the previously added stock
-                $produit->decrement('stock', $detail->quantite);
+                $produit->stock -= $detail->quantite;
+                $produit->save();
 
                 // Si l'achat supprimé était le plus récent, recalculer le prix d'achat
                 if (isset($detail->was_latest_purchase) && $detail->was_latest_purchase) {

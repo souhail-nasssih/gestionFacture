@@ -107,6 +107,12 @@ export default function Produits({ produits: produitsData, filters }) {
             required: true,
         },
         {
+            name: "seuil_alerte",
+            label: "Seuil d'alerte stock",
+            type: "number",
+            required: false,
+        },
+        {
             name: "unite",
             label: "Unité",
             type: "select",

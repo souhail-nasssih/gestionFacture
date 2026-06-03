@@ -65,10 +65,14 @@ class ProduitController extends Controller
             'prix_achat' => 'required|numeric|min:0',
             'prix_vente' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
+            'seuil_alerte' => 'nullable|integer|min:0',
             'unite' => 'required|string',
         ]);
 
-        Produit::create($request->all());
+        Produit::create($request->only([
+            'reference', 'nom', 'description', 'prix_achat', 'prix_vente',
+            'stock', 'seuil_alerte', 'unite',
+        ]));
 
         // Redirect to index instead of back
         return redirect()->route('produits.index')->with('success', 'Produit créé avec succès.');
@@ -103,10 +107,14 @@ class ProduitController extends Controller
             'prix_achat' => 'required|numeric|min:0',
             'prix_vente' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
+            'seuil_alerte' => 'nullable|integer|min:0',
             'unite' => 'required|string',
         ]);
 
-        $produit->update($request->all());
+        $produit->update($request->only([
+            'reference', 'nom', 'description', 'prix_achat', 'prix_vente',
+            'stock', 'seuil_alerte', 'unite',
+        ]));
 
         // Redirect to index instead of back
         return redirect()->route('produits.index')->with('success', 'Produit mis à jour avec succès.');

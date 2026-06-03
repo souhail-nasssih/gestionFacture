@@ -2,37 +2,36 @@
 
 namespace App\Observers;
 
-use App\Events\LowStockAlert;
 use App\Models\Produit;
+use App\Services\NotificationService;
 
 class ProduitObserver
 {
-    /**
-     * Stock précédent avant la mise à jour (pour détecter le passage sous le seuil).
-     */
     private static ?int $previousStock = null;
 
-    /**
-     * Mémorise le stock avant modification.
-     */
     public function saving(Produit $produit): void
     {
         self::$previousStock = $produit->exists ? $produit->getOriginal('stock') : null;
     }
 
-    /**
-     * Déclenche une alerte broadcast uniquement quand le stock vient de passer
-     * à ou en dessous du seuil (évite les alertes en double).
-     */
     public function saved(Produit $produit): void
     {
+        $notifications = app(NotificationService::class);
         $seuil = $produit->seuil_alerte ?? 0;
         $stock = $produit->stock;
-        $wasAbove = self::$previousStock === null || self::$previousStock > $seuil;
-        $isNowAtOrBelow = $stock <= $seuil && $stock >= 0;
+        $previous = self::$previousStock;
 
-        if ($wasAbove && $isNowAtOrBelow) {
-            LowStockAlert::dispatch($produit->fresh());
+        $wasAboveSeuil = $previous === null || $previous > $seuil;
+        $isNowAtOrBelowSeuil = $stock <= $seuil && $stock > 0;
+        $wasAboveZero = $previous === null || $previous > 0;
+        $isNowZero = $stock === 0;
+
+        if ($wasAboveSeuil && $isNowAtOrBelowSeuil) {
+            $notifications->notifyLowStock($produit->fresh());
+        }
+
+        if ($wasAboveZero && $isNowZero) {
+            $notifications->notifyOutOfStock($produit->fresh());
         }
 
         self::$previousStock = null;

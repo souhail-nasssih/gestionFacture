@@ -3,25 +3,33 @@ import { configureEcho } from '@laravel/echo-react';
 
 window.axios = axios;
 
-window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
+axios.defaults.withCredentials = true;
+axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 
-// Laravel Echo + Reverb pour les notifications temps réel (ex: stock bas)
-configureEcho({
-    broadcaster: 'reverb',
-    key: import.meta.env.VITE_REVERB_APP_KEY,
-    wsHost: import.meta.env.VITE_REVERB_HOST ?? 'localhost',
-    wsPort: import.meta.env.VITE_REVERB_PORT ?? 8080,
-    wssPort: import.meta.env.VITE_REVERB_PORT ?? 8080,
-    forceTLS: (import.meta.env.VITE_REVERB_SCHEME ?? 'http') === 'https',
-    enabledTransports: ['ws', 'wss'],
-    authEndpoint: `${window.location.origin}/broadcasting/auth`,
-    auth: {
-        headers: {
-            'X-XSRF-TOKEN': getCsrfToken(),
-            'Accept': 'application/json',
+const reverbKey = import.meta.env.VITE_REVERB_APP_KEY;
+const reverbScheme = import.meta.env.VITE_REVERB_SCHEME ?? 'http';
+const useTls = reverbScheme === 'https';
+const reverbPort = Number(import.meta.env.VITE_REVERB_PORT ?? 8081);
+
+if (reverbKey) {
+    configureEcho({
+        broadcaster: 'reverb',
+        key: reverbKey,
+        wsHost: import.meta.env.VITE_REVERB_HOST ?? window.location.hostname,
+        wsPort: useTls ? 443 : reverbPort,
+        wssPort: useTls ? reverbPort : 443,
+        forceTLS: useTls,
+        // En local (http) : ws uniquement — évite les erreurs wss://localhost
+        enabledTransports: useTls ? ['wss'] : ['ws'],
+        authEndpoint: `${window.location.origin}/broadcasting/auth`,
+        auth: {
+            headers: {
+                'X-XSRF-TOKEN': getCsrfToken(),
+                Accept: 'application/json',
+            },
         },
-    },
-});
+    });
+}
 
 function getCsrfToken() {
     const name = 'XSRF-TOKEN=';
@@ -34,3 +42,5 @@ function getCsrfToken() {
     }
     return '';
 }
+
+export const isEchoEnabled = () => Boolean(reverbKey);

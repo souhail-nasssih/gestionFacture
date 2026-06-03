@@ -9,6 +9,7 @@ use App\Http\Controllers\FactureFournisseurController;
 use App\Http\Controllers\FournisseurController;
 use App\Http\Controllers\ProduitController;
 use App\Http\Controllers\TrashController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -152,6 +153,13 @@ Route::middleware('auth')->group(function () {
 
     // Route pour vider la poubelle
         Route::post('/trash/empty', [TrashController::class, 'emptyTrash'])->name('trash.empty');
+
+        // Notifications (cloche + API)
+        Route::get('/api/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+        Route::get('/api/notifications/unread-count', [NotificationController::class, 'unreadCount'])->name('notifications.unread-count');
+        Route::post('/api/notifications/{id}/read', [NotificationController::class, 'markRead'])->name('notifications.mark-read');
+        Route::post('/api/notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.mark-all-read');
+        Route::post('/api/notifications/check-due-dates', [NotificationController::class, 'checkDueDates'])->name('notifications.check-due-dates');
 
         Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
         Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

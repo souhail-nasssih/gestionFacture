@@ -5,13 +5,13 @@ namespace App\Events;
 use App\Models\Produit;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Contracts\Events\ShouldDispatchAfterCommit;
 use Illuminate\Contracts\Broadcasting\ShouldRescue;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class LowStockAlert implements ShouldBroadcast, ShouldDispatchAfterCommit, ShouldRescue
+class LowStockAlert implements ShouldBroadcastNow, ShouldDispatchAfterCommit, ShouldRescue
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
@@ -57,7 +57,7 @@ class LowStockAlert implements ShouldBroadcast, ShouldDispatchAfterCommit, Shoul
                 'stock' => $this->produit->stock,
                 'seuil_alerte' => $this->produit->seuil_alerte,
             ],
-            'message' => "Stock bas pour « {$this->produit->nom } » : {$this->produit->stock} (seuil : {$this->produit->seuil_alerte}).",
+            'message' => "Stock bas pour « {$this->produit->nom} » : {$this->produit->stock} (seuil : {$this->produit->seuil_alerte}).",
         ];
     }
 }

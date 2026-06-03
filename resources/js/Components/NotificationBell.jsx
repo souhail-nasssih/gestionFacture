@@ -1,26 +1,57 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link } from '@inertiajs/react';
-import { Bell, Package } from 'lucide-react';
+import axios from 'axios';
+import { Bell, Package, CalendarClock, AlertTriangle } from 'lucide-react';
 import Dropdown from '@/Components/Dropdown';
 
-// Store partagé pour les notifications (alimenté par NotificationCenter)
 let notificationListeners = [];
 let notificationItems = [];
-const MAX_ITEMS = 20;
+
+const mapApiNotification = (n) => ({
+    id: n.id,
+    type: n.type,
+    title: n.title,
+    message: n.message,
+    data: n.data,
+    read_at: n.read_at,
+    at: n.created_at,
+    produit: n.data?.produit_id
+        ? { id: n.data.produit_id, nom: n.data.produit_nom }
+        : null,
+});
 
 export const addNotification = (item) => {
     const entry = {
-        id: Date.now() + Math.random(),
-        ...item,
+        id: item.id ?? `tmp-${Date.now()}`,
+        type: item.type ?? 'realtime',
+        title: item.title ?? 'Notification',
+        message: item.message ?? '',
+        data: item.data ?? (item.produit ? { produit_id: item.produit.id } : null),
         at: new Date().toISOString(),
+        produit: item.produit,
     };
-    notificationItems = [entry, ...notificationItems].slice(0, MAX_ITEMS);
+
+    const exists = notificationItems.some(
+        (n) => n.message === entry.message && n.type === entry.type
+    );
+    if (exists) return;
+
+    notificationItems = [entry, ...notificationItems].slice(0, 30);
     notificationListeners.forEach((fn) => fn(notificationItems));
 };
 
-export const clearNotifications = () => {
-    notificationItems = [];
-    notificationListeners.forEach((fn) => fn(notificationItems));
+export const clearNotifications = async () => {
+    try {
+        await axios.post(route('notifications.mark-all-read'));
+        notificationItems = notificationItems.map((n) => ({
+            ...n,
+            read_at: new Date().toISOString(),
+        }));
+        notificationListeners.forEach((fn) => fn(notificationItems));
+    } catch {
+        notificationItems = [];
+        notificationListeners.forEach((fn) => fn(notificationItems));
+    }
 };
 
 export const removeNotification = (id) => {
@@ -43,9 +74,66 @@ function useNotifications() {
     return items;
 }
 
+const iconForType = (type) => {
+    if (type?.includes('due_date')) return CalendarClock;
+    if (type === 'out_of_stock') return AlertTriangle;
+    return Package;
+};
+
 export default function NotificationBell() {
     const items = useNotifications();
-    const count = items.length;
+    const unreadCount = items.filter((n) => !n.read_at).length;
+
+    const fetchNotifications = useCallback(async () => {
+        try {
+            const { data } = await axios.get(route('notifications.index'));
+            notificationItems = (data.notifications ?? []).map(mapApiNotification);
+            notificationListeners.forEach((fn) => fn(notificationItems));
+        } catch (e) {
+            console.warn('Impossible de charger les notifications', e);
+        }
+    }, []);
+
+    useEffect(() => {
+        fetchNotifications();
+        const interval = setInterval(fetchNotifications, 20000);
+        const onRefresh = () => fetchNotifications();
+        window.addEventListener('notifications:refresh', onRefresh);
+        return () => {
+            clearInterval(interval);
+            window.removeEventListener('notifications:refresh', onRefresh);
+        };
+    }, [fetchNotifications]);
+
+    useEffect(() => {
+        const checkDue = async () => {
+            try {
+                const { data } = await axios.post(route('notifications.check-due-dates'));
+                if (data.notifications?.length) {
+                    notificationItems = data.notifications.map(mapApiNotification);
+                    notificationListeners.forEach((fn) => fn(notificationItems));
+                } else {
+                    await fetchNotifications();
+                }
+            } catch {
+                // silencieux
+            }
+        };
+        checkDue();
+    }, [fetchNotifications]);
+
+    const markOneRead = async (id) => {
+        if (typeof id === 'string' && id.startsWith('tmp-')) return;
+        try {
+            await axios.post(route('notifications.mark-read', id));
+            notificationItems = notificationItems.map((n) =>
+                n.id === id ? { ...n, read_at: new Date().toISOString() } : n
+            );
+            notificationListeners.forEach((fn) => fn(notificationItems));
+        } catch {
+            // ignore
+        }
+    };
 
     return (
         <Dropdown>
@@ -56,9 +144,9 @@ export default function NotificationBell() {
                     aria-label="Notifications"
                 >
                     <Bell className="h-5 w-5" />
-                    {count > 0 && (
+                    {unreadCount > 0 && (
                         <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-amber-500 text-[10px] font-bold text-white ring-2 ring-white dark:ring-gray-800">
-                            {count > 9 ? '9+' : count}
+                            {unreadCount > 9 ? '9+' : unreadCount}
                         </span>
                     )}
                 </button>
@@ -67,19 +155,19 @@ export default function NotificationBell() {
             <Dropdown.Content
                 align="right"
                 width="80"
-                contentClasses="py-1 bg-white dark:bg-gray-700 min-w-[280px] max-w-sm"
+                contentClasses="py-1 bg-white dark:bg-gray-700 min-w-[300px] max-w-sm"
             >
-                <div className="px-3 py-2 border-b border-gray-200 dark:border-gray-600">
+                <div className="px-3 py-2 border-b border-gray-200 dark:border-gray-600 flex justify-between items-center">
                     <p className="text-sm font-medium text-gray-900 dark:text-white">
                         Notifications
                     </p>
-                    {count > 0 && (
+                    {unreadCount > 0 && (
                         <button
                             type="button"
                             onClick={clearNotifications}
                             className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline"
                         >
-                            Tout effacer
+                            Tout marquer lu
                         </button>
                     )}
                 </div>
@@ -91,40 +179,75 @@ export default function NotificationBell() {
                         </div>
                     ) : (
                         <ul className="py-1">
-                            {items.map((item) => (
-                                <li
-                                    key={item.id}
-                                    className="flex gap-3 px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-600/50 border-b border-gray-100 dark:border-gray-600 last:border-0"
-                                >
-                                    <Package className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
-                                    <div className="flex-1 min-w-0">
-                                        <p className="text-sm text-gray-700 dark:text-gray-300">
-                                            {item.message}
-                                        </p>
-                                        {item.produit?.id && (
-                                            <Link
-                                                href={route('produits.historique', item.produit.id)}
-                                                className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline"
-                                            >
-                                                Voir le produit
-                                            </Link>
-                                        )}
-                                    </div>
-                                </li>
-                            ))}
+                            {items.map((item) => {
+                                const Icon = iconForType(item.type);
+                                const isUnread = !item.read_at;
+                                return (
+                                    <li
+                                        key={item.id}
+                                        className={`flex gap-3 px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-600/50 border-b border-gray-100 dark:border-gray-600 last:border-0 ${
+                                            isUnread ? 'bg-amber-50/50 dark:bg-amber-900/10' : ''
+                                        }`}
+                                        onClick={() => markOneRead(item.id)}
+                                    >
+                                        <Icon
+                                            className={`h-4 w-4 shrink-0 mt-0.5 ${
+                                                item.type === 'out_of_stock'
+                                                    ? 'text-red-500'
+                                                    : 'text-amber-500'
+                                            }`}
+                                        />
+                                        <div className="flex-1 min-w-0">
+                                            {item.title && (
+                                                <p className="text-xs font-semibold text-gray-800 dark:text-gray-200">
+                                                    {item.title}
+                                                </p>
+                                            )}
+                                            <p className="text-sm text-gray-700 dark:text-gray-300">
+                                                {item.message}
+                                            </p>
+                                            {item.data?.action_url && (
+                                                <Link
+                                                    href={item.data.action_url}
+                                                    className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline"
+                                                    onClick={(e) => e.stopPropagation()}
+                                                >
+                                                    Voir le détail
+                                                </Link>
+                                            )}
+                                            {item.produit?.id && !item.data?.action_url && (
+                                                <Link
+                                                    href={route(
+                                                        'produits.historique',
+                                                        item.produit.id
+                                                    )}
+                                                    className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline"
+                                                    onClick={(e) => e.stopPropagation()}
+                                                >
+                                                    Voir le produit
+                                                </Link>
+                                            )}
+                                        </div>
+                                    </li>
+                                );
+                            })}
                         </ul>
                     )}
                 </div>
-                {items.length > 0 && (
-                    <div className="px-3 py-2 border-t border-gray-200 dark:border-gray-600">
-                        <Link
-                            href={route('produits.index')}
-                            className="text-sm text-indigo-600 dark:text-indigo-400 hover:underline"
-                        >
-                            Voir tous les produits
-                        </Link>
-                    </div>
-                )}
+                <div className="px-3 py-2 border-t border-gray-200 dark:border-gray-600 flex gap-3">
+                    <Link
+                        href={route('produits.index')}
+                        className="text-sm text-indigo-600 dark:text-indigo-400 hover:underline"
+                    >
+                        Produits
+                    </Link>
+                    <Link
+                        href={route('echeancier.index')}
+                        className="text-sm text-indigo-600 dark:text-indigo-400 hover:underline"
+                    >
+                        Échéancier
+                    </Link>
+                </div>
             </Dropdown.Content>
         </Dropdown>
     );
