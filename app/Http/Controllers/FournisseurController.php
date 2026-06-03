@@ -18,7 +18,9 @@ class FournisseurController extends Controller
         // Return with flash messages
         return inertia('Fournisseur/Index', [
             'fournisseurs' => $fournisseurs,
-            'flash' => session()->get('flash') // Explicitly pass flash messages
+            'flash' => [
+                'success' => session('success'),
+            ],
         ]);
     }
 
@@ -36,15 +38,18 @@ class FournisseurController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
-            'nom' => 'required|string|max:100',
-            'telephone' => 'required|string|max:20|unique:fournisseurs,telephone',
-            'adresse' => 'nullable|string|max:255',
-            'email' => 'nullable|email|max:255|unique:fournisseurs,email',
-            'delai_paiement' => 'required|integer|min:0',
-        ]);
+        $validated = $request->validate(
+            [
+                'nom' => 'required|string|max:100',
+                'telephone' => 'required|string|max:20|unique:fournisseurs,telephone',
+                'adresse' => 'nullable|string|max:255',
+                'email' => 'nullable|email|max:255|unique:fournisseurs,email',
+                'delai_paiement' => 'required|integer|min:0',
+            ],
+            $this->validationMessages()
+        );
 
-        Fournisseur::create($request->all());
+        Fournisseur::create($validated);
 
         return redirect()->route('fournisseurs.index')
             ->with('success', 'Fournisseur créé avec succès.');
@@ -71,15 +76,18 @@ class FournisseurController extends Controller
      */
     public function update(Request $request, Fournisseur $fournisseur)
     {
-        $request->validate([
-            'nom' => 'required|string|max:100',
-            'telephone' => 'required|string|max:20|unique:fournisseurs,telephone,' . $fournisseur->getKey(),
-            'adresse' => 'nullable|string|max:255',
-            'email' => 'nullable|email|max:255|unique:fournisseurs,email,' . $fournisseur->getKey(),
-            'delai_paiement' => 'required|integer|min:0',
-        ]);
+        $validated = $request->validate(
+            [
+                'nom' => 'required|string|max:100',
+                'telephone' => 'required|string|max:20|unique:fournisseurs,telephone,' . $fournisseur->getKey(),
+                'adresse' => 'nullable|string|max:255',
+                'email' => 'nullable|email|max:255|unique:fournisseurs,email,' . $fournisseur->getKey(),
+                'delai_paiement' => 'required|integer|min:0',
+            ],
+            $this->validationMessages()
+        );
 
-        $fournisseur->update($request->all());
+        $fournisseur->update($validated);
 
         return redirect()->route('fournisseurs.index')
             ->with('success', 'Fournisseur mis à jour avec succès.');
@@ -94,5 +102,22 @@ class FournisseurController extends Controller
         $fournisseur->delete();
         // Rediriger vers la page index
         return redirect()->route('fournisseurs.index')->with('success', 'Fournisseur supprimé avec succès.');
+    }
+
+    /**
+     * Messages de validation en français.
+     */
+    private function validationMessages(): array
+    {
+        return [
+            'nom.required' => 'Le nom du fournisseur est obligatoire.',
+            'telephone.required' => 'Le numéro de téléphone est obligatoire.',
+            'telephone.unique' => 'Ce numéro de téléphone est déjà utilisé par un autre fournisseur.',
+            'email.email' => 'Veuillez saisir une adresse e-mail valide.',
+            'email.unique' => 'Cette adresse e-mail est déjà utilisée par un autre fournisseur.',
+            'delai_paiement.required' => 'Le délai de paiement est obligatoire.',
+            'delai_paiement.integer' => 'Le délai de paiement doit être un nombre entier.',
+            'delai_paiement.min' => 'Le délai de paiement ne peut pas être négatif.',
+        ];
     }
 }

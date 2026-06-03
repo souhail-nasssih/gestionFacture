@@ -1,0 +1,100 @@
+databases:
+  - name: gestionfacture-db
+    databaseName: gestionfacture
+    user: gestionfacture
+    plan: free
+
+services:
+  - type: web
+    name: gestionfacture-web
+    runtime: docker
+    plan: free
+    autoDeployTrigger: commit
+    healthCheckPath: /health
+    dockerCommand: /start.sh
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: LOG_CHANNEL
+        value: stderr
+      - key: LOG_LEVEL
+        value: info
+      - key: APP_URL
+        sync: false
+      - key: APP_KEY
+        sync: false
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DATABASE_URL
+        fromDatabase:
+          name: gestionfacture-db
+          property: connectionString
+      - key: CACHE_STORE
+        value: database
+      - key: SESSION_DRIVER
+        value: database
+      - key: QUEUE_CONNECTION
+        value: database
+    preDeployCommand: >-
+      php artisan migrate --force &&
+      php artisan storage:link &&
+      php artisan config:cache &&
+      php artisan route:cache &&
+      php artisan view:cache &&
+      php artisan event:cache
+
+  - type: worker
+    name: gestionfacture-worker
+    runtime: docker
+    plan: free
+    dockerCommand: php artisan queue:work --tries=3 --sleep=1 --timeout=90
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: LOG_CHANNEL
+        value: stderr
+      - key: LOG_LEVEL
+        value: info
+      - key: APP_URL
+        sync: false
+      - key: APP_KEY
+        sync: false
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DATABASE_URL
+        fromDatabase:
+          name: gestionfacture-db
+          property: connectionString
+      - key: QUEUE_CONNECTION
+        value: database
+
+  - type: cron
+    name: gestionfacture-scheduler
+    runtime: docker
+    plan: free
+    schedule: "*/1 * * * *"
+    dockerCommand: php artisan schedule:run --no-interaction
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: LOG_CHANNEL
+        value: stderr
+      - key: LOG_LEVEL
+        value: info
+      - key: APP_URL
+        sync: false
+      - key: APP_KEY
+        sync: false
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DATABASE_URL
+        fromDatabase:
+          name: gestionfacture-db
+          property: connectionString
+

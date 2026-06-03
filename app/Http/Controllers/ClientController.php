@@ -17,6 +17,9 @@ class ClientController extends Controller
         $clients = Client::paginate(10);
         return inertia('Client/index', [
             'clients' => $clients,
+            'flash' => [
+                'success' => session('success'),
+            ],
         ]);
     }
     /**
@@ -70,15 +73,18 @@ class ClientController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
-            'nom' => 'required|string|max:100',
-            'telephone' => 'required|string|max:20|unique:clients,telephone',
-            'adresse' => 'nullable|string|max:255',
-            'email' => 'nullable|email|max:255|unique:clients,email',
-            'delai_paiement' => 'nullable|integer|min:0',
-        ]);
+        $validated = $request->validate(
+            [
+                'nom' => 'required|string|max:100',
+                'telephone' => 'required|string|max:20|unique:clients,telephone',
+                'adresse' => 'nullable|string|max:255',
+                'email' => 'nullable|email|max:255|unique:clients,email',
+                'delai_paiement' => 'nullable|integer|min:0',
+            ],
+            $this->validationMessages()
+        );
 
-        Client::create($request->all());
+        Client::create($validated);
 
         // Redirect to index instead of back
         return redirect()->route('clients.index')->with('success', 'Client créé avec succès.');
@@ -105,15 +111,18 @@ class ClientController extends Controller
      */
     public function update(Request $request, Client $client)
     {
-        $request->validate([
-            'nom' => 'required|string|max:100',
-            'telephone' => 'required|string|max:20|unique:clients,telephone,' . $client->getKey(),
-            'adresse' => 'nullable|string|max:255',
-            'email' => 'nullable|email|max:255|unique:clients,email,' . $client->getKey(),
-            'delai_paiement' => 'nullable|integer|min:0',
-        ]);
+        $validated = $request->validate(
+            [
+                'nom' => 'required|string|max:100',
+                'telephone' => 'required|string|max:20|unique:clients,telephone,' . $client->getKey(),
+                'adresse' => 'nullable|string|max:255',
+                'email' => 'nullable|email|max:255|unique:clients,email,' . $client->getKey(),
+                'delai_paiement' => 'nullable|integer|min:0',
+            ],
+            $this->validationMessages()
+        );
 
-        $client->update($request->all());
+        $client->update($validated);
 
         // Redirect to index instead of back
         return redirect()->route('clients.index')->with('success', 'Client mis à jour avec succès.');
@@ -129,5 +138,19 @@ class ClientController extends Controller
         return redirect()->route('clients.index')->with('success', 'Client supprimé avec succès.');
     }
 
-
+    /**
+     * Messages de validation en français.
+     */
+    private function validationMessages(): array
+    {
+        return [
+            'nom.required' => 'Le nom du client est obligatoire.',
+            'telephone.required' => 'Le numéro de téléphone est obligatoire.',
+            'telephone.unique' => 'Ce numéro de téléphone est déjà utilisé par un autre client.',
+            'email.email' => 'Veuillez saisir une adresse e-mail valide.',
+            'email.unique' => 'Cette adresse e-mail est déjà utilisée par un autre client.',
+            'delai_paiement.integer' => 'Le délai de paiement doit être un nombre entier.',
+            'delai_paiement.min' => 'Le délai de paiement ne peut pas être négatif.',
+        ];
+    }
 }

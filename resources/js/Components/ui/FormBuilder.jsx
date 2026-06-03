@@ -21,13 +21,43 @@ const FormBuilder = ({
     additionalData = {}, // Données supplémentaires à envoyer avec la requête
 }) => {
     initialData = initialData || {};
-    const { errors } = usePage().props;
+    const pageErrors = usePage().props.errors ?? {};
     const [processing, setProcessing] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
-    const [clientErrors, setClientErrors] = useState({}); // Erreurs de validation côté client
-    const [touchedFields, setTouchedFields] = useState({}); // Champs modifiés par l'utilisateur
+    const [clientErrors, setClientErrors] = useState({});
+    const [touchedFields, setTouchedFields] = useState({});
+    const [submitAttempted, setSubmitAttempted] = useState(false);
 
-    const { data, setData, post, put, reset } = useForm(initialData);
+    const {
+        data,
+        setData,
+        post,
+        put,
+        reset,
+        transform,
+        errors: formErrors,
+        clearErrors,
+    } = useForm(initialData);
+
+    const getFieldError = (fieldName) => {
+        const serverError =
+            formErrors[fieldName] ??
+            pageErrors[fieldName] ??
+            clientErrors[fieldName];
+        if (!serverError) return null;
+        return Array.isArray(serverError) ? serverError[0] : serverError;
+    };
+
+    const shouldShowError = (fieldName) => {
+        const error = getFieldError(fieldName);
+        if (!error) return false;
+        return (
+            submitAttempted ||
+            touchedFields[fieldName] ||
+            !!formErrors[fieldName] ||
+            !!pageErrors[fieldName]
+        );
+    };
 
     // Validation côté client
     const validateField = (fieldName, value) => {
@@ -123,21 +153,24 @@ const FormBuilder = ({
     };
 
     useEffect(() => {
-        if (Object.keys(errors).length === 0 && showSuccess) {
+        const hasErrors =
+            Object.keys(formErrors).length > 0 ||
+            Object.keys(pageErrors).length > 0;
+        if (!hasErrors && showSuccess) {
             const timer = setTimeout(() => setShowSuccess(false), 3000);
             return () => clearTimeout(timer);
         }
-    }, [errors, showSuccess]);
+    }, [formErrors, pageErrors, showSuccess]);
 
     const handleSubmit = (e) => {
         e.preventDefault();
+        setSubmitAttempted(true);
+        clearErrors();
 
-        // Validation côté client
         if (clientSideValidation && !validateForm()) {
             return;
         }
 
-        // Validation personnalisée avant soumission
         if (beforeSubmit && !beforeSubmit()) {
             return;
         }
@@ -146,49 +179,63 @@ const FormBuilder = ({
 
         const method = initialData.id ? put : post;
 
-        // Créer un objet avec toutes les données à envoyer
-        const allData = { ...data, ...additionalData };
+        if (Object.keys(additionalData).length > 0) {
+            transform((formData) => ({ ...formData, ...additionalData }));
+        }
 
-        console.log("Données envoyées:", allData);
-
-        method(
-            onSubmit,
-            {
-                ...allData,
+        const options = {
+            preserveScroll: true,
+            preserveState: true,
+            onSuccess: () => {
+                setShowSuccess(true);
+                setSubmitAttempted(false);
+                setClientErrors({});
+                setTouchedFields({});
+                if (!initialData.id) reset();
+                onSuccess?.();
             },
-            {
-                onSuccess: () => {
-                    setShowSuccess(true);
-                    if (!initialData.id) reset();
-                    onSuccess?.(); // ✅ now parent handleSubmitSuccess will run
-                    setClientErrors({});
-                },
-                onError: (errors) => {
-                    // Traitement des erreurs spécifiques du serveur
-                    const processedErrors = {};
-                    Object.keys(errors).forEach((key) => {
-                        if (errors[key].includes("has already been taken")) {
-                            processedErrors[key] = `Ce ${key} est déjà utilisé`;
-                        } else if (errors[key].includes("invalid format")) {
-                            processedErrors[key] = `Format de ${key} invalide`;
-                        } else {
-                            processedErrors[key] = errors[key];
-                        }
-                    });
-                    // Mettre à jour les erreurs pour affichage
-                    setClientErrors(processedErrors);
-                },
-                onFinish: () => setProcessing(false),
-            }
-        );
+            onError: (serverErrors) => {
+                const processedErrors = {};
+                Object.keys(serverErrors).forEach((key) => {
+                    const message = Array.isArray(serverErrors[key])
+                        ? serverErrors[key][0]
+                        : serverErrors[key];
+                    processedErrors[key] = formatServerError(key, message);
+                });
+                setClientErrors(processedErrors);
+                const allTouched = {};
+                fields.forEach((field) => {
+                    allTouched[field.name] = true;
+                });
+                setTouchedFields(allTouched);
+            },
+            onFinish: () => setProcessing(false),
+        };
+
+        method(onSubmit, options);
+    };
+
+    const formatServerError = (fieldName, message) => {
+        if (!message) return message;
+        const lower = message.toLowerCase();
+        if (
+            lower.includes("already been taken") ||
+            lower.includes("déjà été pris") ||
+            lower.includes("déjà utilisé")
+        ) {
+            const labels = {
+                telephone: "Ce numéro de téléphone est déjà utilisé",
+                email: "Cette adresse e-mail est déjà utilisée",
+                nom: "Ce nom est déjà utilisé",
+            };
+            return labels[fieldName] ?? `Cette valeur est déjà utilisée`;
+        }
+        return message;
     };
 
     const renderField = (field) => {
-        const error = clientErrors[field.name] || errors[field.name];
-        const isTouched = touchedFields[field.name];
-
-        // Ne montrer l'erreur que si le champ a été touché ou s'il y a une erreur serveur
-        const showError = (isTouched || errors[field.name]) && error;
+        const error = getFieldError(field.name);
+        const showError = shouldShowError(field.name);
 
         const commonProps = {
             id: field.name,
@@ -196,7 +243,7 @@ const FormBuilder = ({
             value: data[field.name] ?? "",
             onChange: (e) => {
                 setData(field.name, e.target.value);
-                if (clientSideValidation && isTouched) {
+                if (clientSideValidation && touchedFields[field.name]) {
                     const error = validateField(field.name, e.target.value);
                     setClientErrors((prev) => ({
                         ...prev,
@@ -302,6 +349,10 @@ const FormBuilder = ({
 
     useEffect(() => {
         setData(initialData || {});
+        setClientErrors({});
+        setTouchedFields({});
+        setSubmitAttempted(false);
+        clearErrors();
     }, [initialData]);
 
     return (
@@ -309,6 +360,20 @@ const FormBuilder = ({
             className={`bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden border border-gray-100 dark:border-gray-700 ${className}`}
         >
             <form onSubmit={handleSubmit} className="p-6 space-y-6">
+                {submitAttempted &&
+                    Object.keys(formErrors).length > 0 && (
+                        <div className="rounded-lg bg-red-50 dark:bg-red-900/30 border border-red-100 dark:border-red-800 p-4 mb-6">
+                            <div className="flex items-start">
+                                <AlertCircle className="flex-shrink-0 h-5 w-5 text-red-500 dark:text-red-400 mt-0.5" />
+                                <div className="ml-3">
+                                    <p className="text-sm font-medium text-red-800 dark:text-red-200">
+                                        Veuillez corriger les erreurs ci-dessous.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                 {showSuccess && (
                     <div className="rounded-lg bg-green-50 dark:bg-green-900/30 border border-green-100 dark:border-green-800 p-4 mb-6">
                         <div className="flex items-center">
@@ -331,11 +396,8 @@ const FormBuilder = ({
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {fields.map((field) => {
-                        const error =
-                            clientErrors[field.name] || errors[field.name];
-                        const isTouched = touchedFields[field.name];
-                        const showError =
-                            (isTouched || errors[field.name]) && error;
+                        const error = getFieldError(field.name);
+                        const showError = shouldShowError(field.name);
 
                         return (
                             <div
@@ -382,6 +444,8 @@ const FormBuilder = ({
                             reset();
                             setClientErrors({});
                             setTouchedFields({});
+                            setSubmitAttempted(false);
+                            clearErrors();
                         }}
                         disabled={processing}
                         className="px-5 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"

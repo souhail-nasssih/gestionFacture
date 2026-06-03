@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Edit2, PlusCircle, X } from "lucide-react";
 import { Link, usePage } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
@@ -13,15 +13,9 @@ export default function Client({ clients }) {
     const [showForm, setShowForm] = useState(false);
     const [formValues, setFormValues] = useState(null);
 
-    // Close form when clients data changes (after redirect)
-    useEffect(() => {
+    const handleFormSuccess = () => {
         setShowForm(false);
         setFormValues(null);
-    }, [clients]);
-
-    const handleFormSuccess = () => {
-        setFormValues(null);
-        // The form will be closed by the useEffect
     };
 
     const handleEdit = (client) => {

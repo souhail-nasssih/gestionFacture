@@ -21,6 +21,8 @@ Route::get('/', function () {
     ]);
 });
 
+Route::get('/health', fn () => response('ok', 200))->name('health');
+
 
 // la route les ressources des produits
 Route::resource(('produits'), ProduitController::class)->names([

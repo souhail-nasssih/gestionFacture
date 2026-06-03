@@ -2,7 +2,7 @@ import DataTable from "@/Components/ui/DataTable";
 import FormBuilder from "@/Components/ui/FormBuilder";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Edit2, PlusCircle, Trash2, X } from "lucide-react";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Edit from "../Profile/Edit";
 import { Link, usePage } from "@inertiajs/react";
 
@@ -14,13 +14,8 @@ export default function Index({ fournisseurs }) {
     const [formValues, setFormValues] = useState(null);
     const [deleting, setDeleting] = useState(false);
 
-    // Close form when the page loads (after redirect from store/update)
-    useEffect(() => {
-        setShowForm(false);
-        setFormValues(null);
-    }, [fournisseurs]);
-
     const handleFormSuccess = () => {
+        setShowForm(false);
         setFormValues(null);
     };
 
