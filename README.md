@@ -1,96 +1,145 @@
-# 📄 GestionFacture
+# 🧾 GestionFacture
 
-Application web de gestion de facturation permettant la création, le suivi et l'administration des factures, clients et paiements.
+<p align="center">
+  Application web complète de gestion de facturation permettant aux entreprises de gérer leurs clients, produits, factures, paiements et statistiques depuis une interface moderne.
+</p>
 
 ---
 
 ## 🚀 Présentation
 
-GestionFacture est une application conçue pour simplifier la gestion commerciale des entreprises et des indépendants.
+**GestionFacture** est une application Full Stack conçue pour digitaliser et simplifier la gestion commerciale des entreprises.
 
-Elle permet de créer des factures professionnelles, gérer les clients, suivre les paiements et générer des statistiques de vente.
+Elle permet de gérer efficacement :
+
+- Les clients
+- Les produits
+- Les factures
+- Les paiements
+- Les utilisateurs
+- Les statistiques commerciales
+
+L'objectif principal est de centraliser les opérations de facturation, réduire les erreurs manuelles et améliorer le suivi financier.
 
 ---
 
-## ✨ Fonctionnalités
+# ✨ Fonctionnalités
 
-### 👥 Gestion des clients
+## 👥 Gestion des clients
 
-- Ajout de clients
+- Création des clients
 - Modification des informations
-- Historique des factures
+- Suppression des clients
 - Recherche avancée
+- Historique des factures associées
 
-### 📄 Gestion des factures
+---
 
-- Création de factures
-- Modification et suppression
+## 📄 Gestion des factures
+
+- Création des factures
+- Ajout de plusieurs produits
+- Calcul automatique des montants
 - Numérotation automatique
-- Statuts des factures
+- Modification et suppression
+- Gestion des statuts :
 
-### 💰 Gestion des paiements
+  - Payée
+  - Impayée
+  - Paiement partiel
 
-- Factures payées
-- Factures impayées
-- Paiements partiels
-- Historique des règlements
+---
 
-### 📦 Gestion des produits
+## 📦 Gestion des produits
 
 - Création des produits
+- Modification des informations
 - Gestion des prix
-- Gestion du stock
-- Catégorisation
+- Gestion des catégories
+- Suivi du stock
 
-### 📊 Tableau de bord
+---
+
+## 💰 Gestion des paiements
+
+- Enregistrement des paiements
+- Paiement complet
+- Paiement partiel
+- Historique des règlements
+- Suivi des factures impayées
+
+---
+
+## 📊 Tableau de bord
+
+Dashboard avec :
 
 - Chiffre d'affaires
-- Nombre de factures
+- Nombre total de factures
+- Revenus générés
 - Factures en attente
 - Statistiques globales
 
-### 🔐 Gestion des utilisateurs
+---
+
+## 🔐 Gestion des utilisateurs
 
 - Authentification sécurisée
 - Gestion des rôles
-- Contrôle des permissions
+- Gestion des permissions
+- Contrôle des accès
 
 ---
 
-## 🛠️ Technologies utilisées
+# 🛠️ Technologies utilisées
 
-### Frontend
+## Frontend
 
 - React.js
 - Bootstrap
 - Axios
+- JavaScript ES6+
 
-### Backend
+## Backend
 
 - Laravel
 - PHP 8+
 
-### Base de données
+## Base de données
 
 - MySQL
 
+## Outils
+
+- Git
+- Composer
+- NPM
+
 ---
 
-## 📂 Structure du projet
+# 🏗️ Architecture du projet
 
-```bash
+```
 gestionFacture/
-│
+
 ├── app/
-├── bootstrap/
-├── config/
+│   ├── Models
+│   ├── Controllers
+│   └── Http
+
 ├── database/
-├── public/
-├── resources/
+│   ├── migrations
+│   └── seeders
+
 ├── routes/
+│   └── api.php
+
+├── resources/
+
+├── public/
+
 ├── storage/
-├── tests/
-│
+
 ├── composer.json
 ├── package.json
 └── README.md
@@ -98,31 +147,43 @@ gestionFacture/
 
 ---
 
-## ⚙️ Installation
+# ⚙️ Installation
 
-### Cloner le projet
+## Cloner le projet
 
 ```bash
 git clone https://github.com/souhail-nasssih/gestionFacture.git
+
 cd gestionFacture
 ```
 
-### Installer les dépendances Laravel
+---
+
+# Backend Laravel
+
+Installer les dépendances :
 
 ```bash
 composer install
 ```
 
-### Configurer l'environnement
+Créer le fichier environnement :
 
 ```bash
 cp .env.example .env
+```
+
+Générer la clé Laravel :
+
+```bash
 php artisan key:generate
 ```
 
-### Configurer la base de données
+---
 
-Modifier :
+## Configuration Base de données
+
+Modifier le fichier `.env`
 
 ```env
 DB_CONNECTION=mysql
@@ -133,73 +194,121 @@ DB_USERNAME=root
 DB_PASSWORD=
 ```
 
-Puis :
+---
+
+Lancer les migrations :
 
 ```bash
 php artisan migrate --seed
 ```
 
-### Lancer l'application
+---
+
+Démarrer Laravel :
 
 ```bash
 php artisan serve
 ```
 
+Backend disponible :
+
+```
+http://127.0.0.1:8000
+```
+
 ---
 
-## 📊 Fonctionnalités principales
+# Frontend React
+
+Installer les dépendances :
+
+```bash
+npm install
+```
+
+Lancer l'application :
+
+```bash
+npm run dev
+```
+
+---
+
+# 📌 Modules du système
 
 | Module | Description |
-|----------|------------|
+|---|---|
+| Authentification | Connexion et sécurité |
 | Clients | Gestion complète des clients |
 | Produits | Gestion du catalogue |
 | Factures | Création et suivi |
-| Paiements | Gestion des règlements |
-| Dashboard | Statistiques et rapports |
+| Paiements | Gestion financière |
+| Dashboard | Statistiques |
 | Utilisateurs | Gestion des accès |
 
 ---
 
-## 🔒 Sécurité
+# 🔒 Sécurité
 
-- Authentification sécurisée
+Le projet utilise :
+
 - Validation des données
+- Authentification sécurisée
 - Protection CSRF
+- Middleware Laravel
 - Gestion des permissions
+- Sécurisation des routes
 
 ---
 
-## 📸 Captures d'écran
+# 📸 Captures d'écran
 
-### Tableau de bord
-
-Ajouter une capture ici.
-
-### Gestion des clients
-
-Ajouter une capture ici.
-
-### Gestion des factures
-
-Ajouter une capture ici.
-
-### Statistiques
+## Dashboard
 
 Ajouter une capture ici.
 
 ---
 
-## 🎯 Objectifs du projet
+## Gestion des clients
 
-- Digitaliser le processus de facturation
-- Réduire les erreurs de gestion
+Ajouter une capture ici.
+
+---
+
+## Gestion des factures
+
+Ajouter une capture ici.
+
+---
+
+## Statistiques
+
+Ajouter une capture ici.
+
+---
+
+# 🎯 Objectifs du projet
+
+- Digitaliser la gestion de facturation
 - Centraliser les données commerciales
-- Améliorer le suivi financier
-- Automatiser certaines tâches administratives
+- Simplifier le suivi financier
+- Réduire les erreurs administratives
+- Améliorer la productivité
 
 ---
 
-## 👨‍💻 Auteur
+# 🚀 Améliorations possibles
+
+- Génération PDF des factures
+- Envoi des factures par email
+- Export Excel
+- Notifications
+- Historique des actions
+- Graphiques avancés
+
+---
+
+# 👨‍💻 Auteur
 
 **Souhail NASSIH**
 
@@ -211,7 +320,7 @@ https://github.com/souhail-nasssih
 
 ---
 
-## 📄 Licence
+# 📄 Licence
 
 Projet développé à des fins professionnelles.
 
